@@ -94,7 +94,7 @@ func main() {
 		Addr:    "127.0.0.1:443",
 		Handler: router,
 	}
-	err := server.ListenAndServeTLS("cert.pem", "key.pem")
+	err := server.ListenAndServeTLS("./build/cert.pem", "./build/key.pem")
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

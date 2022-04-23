@@ -2,3 +2,5 @@
 .env
 app/build/.env
 app/build/go_app
+app/build/cert.pem
+app/build/key.pem
