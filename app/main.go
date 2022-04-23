@@ -88,6 +88,7 @@ func sayPolo(chatID int64) error {
 func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", Handler)
+	router.HandleFunc("/", Handler)
 	server := http.Server{
 		Addr:    "127.0.0.1:8887",
 		Handler: router,
