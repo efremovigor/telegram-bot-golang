@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
 	"telegram-bot-golang/env"
@@ -85,5 +86,14 @@ func sayPolo(chatID int64) error {
 
 // FInally, the main funtion starts our server on port 3000
 func main() {
-	http.ListenAndServe(":8887", http.HandlerFunc(Handler))
+	router := mux.NewRouter()
+	router.HandleFunc("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", Handler)
+	server := http.Server{
+		Addr:    "127.0.0.1:8887",
+		Handler: router,
+	}
+	err := server.ListenAndServe()
+	if err != nil {
+		panic(err)
+	}
 }
