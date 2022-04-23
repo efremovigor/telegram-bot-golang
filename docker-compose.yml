@@ -9,3 +9,5 @@ services:
     volumes:
       - ./app:/app
       - ./.env:/app/build/.env
+      - ./cert.pem:/app/build/cert.pem
+      - ./key.pem:/app/build/key.pem

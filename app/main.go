@@ -94,7 +94,7 @@ func main() {
 		Addr:    "127.0.0.1:8887",
 		Handler: router,
 	}
-	err := server.ListenAndServeTLS("server.crt", "server.key")
+	err := server.ListenAndServeTLS("cert.pem", "key.pem")
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
