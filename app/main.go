@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"strings"
 	"telegram-bot-golang/env"
@@ -93,8 +94,8 @@ func main() {
 		Addr:    "127.0.0.1:8887",
 		Handler: router,
 	}
-	err := server.ListenAndServe()
+	err := server.ListenAndServeTLS("server.crt", "server.key")
 	if err != nil {
-		panic(err)
+		log.Fatal("ListenAndServe: ", err)
 	}
 }
