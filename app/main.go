@@ -91,7 +91,7 @@ func main() {
 	router.HandleFunc("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", Handler)
 	router.HandleFunc("/", Handler)
 	server := http.Server{
-		Addr:    "127.0.0.1:8887",
+		Addr:    "127.0.0.1:443",
 		Handler: router,
 	}
 	err := server.ListenAndServeTLS("cert.pem", "key.pem")
