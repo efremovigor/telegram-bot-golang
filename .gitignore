@@ -1,0 +1,4 @@
+.idea
+.env
+app/build/.env
+app/build/go_app

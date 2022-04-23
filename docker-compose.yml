@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  app:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./app
+    ports:
+      - ${APP_PORT}:8887
+    volumes:
+      - ./app:/app
+      - ./.env:/app/build/.env
