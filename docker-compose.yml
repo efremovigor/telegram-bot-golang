@@ -11,3 +11,4 @@ services:
       - ./.env:/app/build/.env
       - ./domain.crt:/app/build/domain.crt
       - ./domain.key:/app/build/domain.key
+      - ./domain.pem:/app/build/domain.pem
