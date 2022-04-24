@@ -66,6 +66,9 @@ func sayPolo(chatID int64) error {
 func main() {
 	e := echo.New()
 	fmt.Println(env.GetEnvVariable("TELEGRAM_API_TOKEN"))
+	e.GET("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, "worked")
+	})
 	e.POST("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", func(c echo.Context) error {
 		// First, decode the JSON response body
 		body := &webhookReqBody{}
