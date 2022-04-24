@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 	"strings"
 	"telegram-bot-golang/env"
+
+	"github.com/labstack/echo/v4"
 )
 
 // Create a struct that mimics the webhook response body
@@ -23,30 +23,8 @@ type webhookReqBody struct {
 	} `json:"message"`
 }
 
-// This handler is called everytime telegram sends us a webhook event
 func Handler(res http.ResponseWriter, req *http.Request) {
-	// First, decode the JSON response body
-	body := &webhookReqBody{}
-	if err := json.NewDecoder(req.Body).Decode(body); err != nil {
-		fmt.Println("could not decode request body", err)
-		return
-	}
 
-	// Check if the message contains the word "marco"
-	// if not, return without doing anything
-	if !strings.Contains(strings.ToLower(body.Message.Text), "marco") {
-		return
-	}
-
-	// If the text contains marco, call the `sayPolo` function, which
-	// is defined below
-	if err := sayPolo(body.Message.Chat.ID); err != nil {
-		fmt.Println("error in sending reply:", err)
-		return
-	}
-
-	// log a confirmation message if the message is sent successfully
-	fmt.Println("reply sent")
 }
 
 //The below code deals with the process of sending a response message
@@ -85,17 +63,36 @@ func sayPolo(chatID int64) error {
 	return nil
 }
 
-// FInally, the main funtion starts our server on port 3000
 func main() {
-	router := mux.NewRouter()
-	router.HandleFunc("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", Handler)
-	router.HandleFunc("/", Handler)
-	server := http.Server{
-		Addr:    "127.0.0.1:443",
-		Handler: router,
-	}
-	err := server.ListenAndServeTLS("./build/cert.pem", "./build/key.pem")
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+	e := echo.New()
+	fmt.Println(env.GetEnvVariable("TELEGRAM_API_TOKEN"))
+	e.POST("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", func(c echo.Context) error {
+		// First, decode the JSON response body
+		body := &webhookReqBody{}
+		if err := json.NewDecoder(c.Request().Body).Decode(body); err != nil {
+			fmt.Println("could not decode request body", err)
+			return err
+		}
+
+		// Check if the message contains the word "marco"
+		// if not, return without doing anything
+		if !strings.Contains(strings.ToLower(body.Message.Text), "marco") {
+			if err := sayPolo(body.Message.Chat.ID); err != nil {
+				fmt.Println("error in sending reply:", err)
+				return err
+			}
+		}
+
+		// If the text contains marco, call the `sayPolo` function, which
+		// is defined below
+		if err := sayPolo(body.Message.Chat.ID); err != nil {
+			fmt.Println("error in sending reply:", err)
+			return err
+		}
+
+		// log a confirmation message if the message is sent successfully
+		fmt.Println("reply sent")
+		return c.JSON(http.StatusOK, "")
+	})
+	e.Logger.Fatal(e.StartTLS(":443", "./build/cert.pem", "./build/key.pem"))
 }
