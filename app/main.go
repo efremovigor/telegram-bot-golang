@@ -111,5 +111,6 @@ func main() {
 		fmt.Println("reply sent")
 		return c.JSON(http.StatusOK, "")
 	})
-	e.Logger.Fatal(e.StartTLS(":443", "./build/domain.csr", "./build/domain.key"))
+	//e.Logger.Fatal(e.StartTLS(":443", "./build/domain.csr", "./build/domain.key"))
+	e.Logger.Fatal(e.StartTLS(":443", "./build/webhook_cert.pem", "./build/webhook_pkey.key"))
 }
