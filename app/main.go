@@ -40,6 +40,8 @@ type sendMessageReqBody struct {
 
 // sayPolo takes a chatID and sends "polo" to them
 func sayPolo(chatID int64) error {
+	fmt.Println("request is got")
+
 	// Create the request body struct
 	reqBody := &sendMessageReqBody{
 		ChatID: chatID,
@@ -73,12 +75,19 @@ func main() {
 		return c.JSON(http.StatusOK, "worked")
 	})
 	e.POST("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", func(c echo.Context) error {
+		fmt.Println("got request from telegram")
+
 		// First, decode the JSON response body
 		body := &webhookReqBody{}
 		if err := json.NewDecoder(c.Request().Body).Decode(body); err != nil {
 			fmt.Println("could not decode request body", err)
 			return err
 		}
+		fmt.Println("----------")
+
+		fmt.Println(body)
+
+		fmt.Println("----------")
 
 		// Check if the message contains the word "marco"
 		// if not, return without doing anything
