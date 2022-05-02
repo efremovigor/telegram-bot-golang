@@ -69,9 +69,11 @@ func main() {
 	e := echo.New()
 	fmt.Println(env.GetEnvVariable("TELEGRAM_API_TOKEN"))
 	e.GET("/", func(c echo.Context) error {
+		fmt.Println("/ - got request from telegram")
 		return c.JSON(http.StatusOK, "worked")
 	})
 	e.GET("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", func(c echo.Context) error {
+		fmt.Println("/" + env.GetEnvVariable("TELEGRAM_API_TOKEN") + "/ - got request from telegram")
 		return c.JSON(http.StatusOK, "worked")
 	})
 	e.POST("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", func(c echo.Context) error {
