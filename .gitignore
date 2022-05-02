@@ -4,3 +4,6 @@ app/build/.env
 app/build/go_app
 app/build/cert.pem
 app/build/key.pem
+app/build/domain.key
+app/build/domain.csr
+
