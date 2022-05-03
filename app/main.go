@@ -5,56 +5,25 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/labstack/echo/v4"
 	"net/http"
 	"strings"
-	"telegram-bot-golang/env"
-
-	"github.com/labstack/echo/v4"
+	"telegram-bot-golang/config"
+	telegram "telegram-bot-golang/telegram"
+	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-// Create a struct that mimics the webhook response body
-// https://core.telegram.org/bots/api#update
-type webhookReqBody struct {
-	Message struct {
-		Text string `json:"text"`
-		Chat struct {
-			ID int64 `json:"id"`
-		} `json:"chat"`
-	} `json:"message"`
-}
-
-func Handler(res http.ResponseWriter, req *http.Request) {
-
-}
-
-//The below code deals with the process of sending a response message
-// to the user
-
-// Create a struct to conform to the JSON body
-// of the send message request
-// https://core.telegram.org/bots/api#sendmessage
-type sendMessageReqBody struct {
-	ChatID int64  `json:"chat_id"`
-	Text   string `json:"text"`
-}
-
-// sayPolo takes a chatID and sends "polo" to them
 func sayPolo(chatID int64) error {
-	fmt.Println("request is got")
-
-	// Create the request body struct
-	reqBody := &sendMessageReqBody{
+	reqBody := &telegram.SendMessageReqBody{
 		ChatID: chatID,
 		Text:   "Polo!!",
 	}
-	// Create the JSON body from the struct
 	reqBytes, err := json.Marshal(reqBody)
 	if err != nil {
 		return err
 	}
 
-	// Send a post request with your token
-	res, err := http.Post("https://api.telegram.org/bot"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/sendMessage", "application/json", bytes.NewBuffer(reqBytes))
+	res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return err
 	}
@@ -67,32 +36,14 @@ func sayPolo(chatID int64) error {
 
 func main() {
 	e := echo.New()
-	fmt.Println(env.GetEnvVariable("TELEGRAM_API_TOKEN"))
-	e.GET("/", func(c echo.Context) error {
-		fmt.Println("/ - got request from telegram")
-		return c.JSON(http.StatusOK, "worked")
-	})
-	e.GET("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", func(c echo.Context) error {
-		fmt.Println("/" + env.GetEnvVariable("TELEGRAM_API_TOKEN") + "/ - got request from telegram")
-		return c.JSON(http.StatusOK, "worked")
-	})
-	e.POST("/"+env.GetEnvVariable("TELEGRAM_API_TOKEN")+"/", func(c echo.Context) error {
-		fmt.Println("got request from telegram")
-
-		// First, decode the JSON response body
-		body := &webhookReqBody{}
+	e.POST(telegramConfig.GetUrlPrefix(), func(c echo.Context) error {
+		body := &telegram.WebhookReqBody{}
+		fmt.Println(c.Request().Body)
 		if err := json.NewDecoder(c.Request().Body).Decode(body); err != nil {
 			fmt.Println("could not decode request body", err)
 			return err
 		}
-		fmt.Println("----------")
 
-		fmt.Println(body)
-
-		fmt.Println("----------")
-
-		// Check if the message contains the word "marco"
-		// if not, return without doing anything
 		if !strings.Contains(strings.ToLower(body.Message.Text), "marco") {
 			if err := sayPolo(body.Message.Chat.ID); err != nil {
 				fmt.Println("error in sending reply:", err)
@@ -100,17 +51,13 @@ func main() {
 			}
 		}
 
-		// If the text contains marco, call the `sayPolo` function, which
-		// is defined below
 		if err := sayPolo(body.Message.Chat.ID); err != nil {
 			fmt.Println("error in sending reply:", err)
 			return err
 		}
 
-		// log a confirmation message if the message is sent successfully
-		fmt.Println("reply sent")
 		return c.JSON(http.StatusOK, "")
 	})
-	//e.Logger.Fatal(e.StartTLS(":443", "./build/domain.csr", "./build/domain.key"))
-	e.Logger.Fatal(e.StartTLS(":443", "./build/"+env.GetEnvVariable("CERT_FILE"), "./build/"+env.GetEnvVariable("CERT_KEY")))
+
+	e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
 }
