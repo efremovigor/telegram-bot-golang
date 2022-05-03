@@ -1,9 +1,9 @@
 .idea
 .env
+cert.crt
+cert.key
 app/build/.env
 app/build/go_app
-app/build/cert.pem
-app/build/key.pem
-app/build/domain.key
-app/build/domain.csr
+app/build/cert.crt
+app/build/cert.key
 
