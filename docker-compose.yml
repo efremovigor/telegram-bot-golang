@@ -9,5 +9,5 @@ services:
     volumes:
       - ./app:/app
       - ./.env:/app/build/.env
-      - ./domain.crt:/app/build/domain.crt
-      - ./domain.key:/app/build/domain.key
+      - ./${CERT_FILE}:/app/build/${CERT_FILE}
+      - ./${CERT_KEY}:/app/build/${CERT_KEY}
