@@ -7,16 +7,15 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"strings"
 	"telegram-bot-golang/config"
 	telegram "telegram-bot-golang/telegram"
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-func sayPolo(chatID int64) error {
+func sayPolo(chatID int64, msg string) error {
 	reqBody := &telegram.SendMessageReqBody{
 		ChatID: chatID,
-		Text:   "Polo!!",
+		Text:   "Иди на хуй со своим:" + msg,
 	}
 	reqBytes, err := json.Marshal(reqBody)
 	if err != nil {
@@ -38,20 +37,16 @@ func main() {
 	e := echo.New()
 	e.POST(telegramConfig.GetUrlPrefix(), func(c echo.Context) error {
 		body := &telegram.WebhookReqBody{}
-		fmt.Println(c.Request().Body)
+		json_map := make(map[string]interface{})
+		_ = json.NewDecoder(c.Request().Body).Decode(&json_map)
+
+		fmt.Println(json_map)
 		if err := json.NewDecoder(c.Request().Body).Decode(body); err != nil {
 			fmt.Println("could not decode request body", err)
 			return err
 		}
 
-		if !strings.Contains(strings.ToLower(body.Message.Text), "marco") {
-			if err := sayPolo(body.Message.Chat.ID); err != nil {
-				fmt.Println("error in sending reply:", err)
-				return err
-			}
-		}
-
-		if err := sayPolo(body.Message.Chat.ID); err != nil {
+		if err := sayPolo(body.Message.Chat.ID, body.Message.Text); err != nil {
 			fmt.Println("error in sending reply:", err)
 			return err
 		}
