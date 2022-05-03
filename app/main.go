@@ -37,10 +37,10 @@ func main() {
 	e := echo.New()
 	e.POST(telegramConfig.GetUrlPrefix(), func(c echo.Context) error {
 		body := &telegram.WebhookReqBody{}
-		json_map := make(map[string]interface{})
-		_ = json.NewDecoder(c.Request().Body).Decode(&json_map)
+		//json_map := make(map[string]interface{})
+		//_ = json.NewDecoder(c.Request().Body).Decode(&json_map)
 
-		fmt.Println(json_map)
+		//fmt.Println(json_map)
 		if err := json.NewDecoder(c.Request().Body).Decode(body); err != nil {
 			fmt.Println("could not decode request body", err)
 			return err
