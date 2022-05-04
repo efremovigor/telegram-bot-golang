@@ -12,10 +12,10 @@ import (
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-func sayPolo(body telegram.WebhookReqBody, msg string) error {
+func sayPolo(body telegram.WebhookReqBody) error {
 	reqBody := &telegram.SendMessageReqBody{
-		ChatID: chatID,
-		Text:   "Ей, [" + body.From.FirstName + "](tg://user?id=" + body.From.ID + "), Иди на хуй со своим:" + msg,
+		ChatID: body.Message.Chat.ID,
+		Text:   "Ей, [" + body.From.FirstName + "](tg://user?id=" + body.From.ID + "), Иди на хуй со своим:" + body.Message.Text,
 	}
 	reqBytes, err := json.Marshal(reqBody)
 	if err != nil {
@@ -44,7 +44,7 @@ func main() {
 		}
 		fmt.Println(body)
 
-		if err := sayPolo(body.Message.Chat.ID, body.Message.Text); err != nil {
+		if err := sayPolo(body); err != nil {
 			fmt.Println("error in sending reply:", err)
 			return err
 		}
