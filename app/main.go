@@ -44,7 +44,7 @@ func main() {
 		}
 		fmt.Println(body)
 
-		if err := sayPolo(body); err != nil {
+		if err := sayPolo(*body); err != nil {
 			fmt.Println("error in sending reply:", err)
 			return err
 		}
