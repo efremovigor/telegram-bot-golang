@@ -38,7 +38,6 @@ type SendMessageReqBody struct {
 }
 
 func SayHello(body WebhookReqBody) SendMessageReqBody {
-	text := ""
 	ctx := context.Background()
 	lang, err := language.Parse(body.Message.Text)
 	if err != nil {
@@ -51,13 +50,13 @@ func SayHello(body WebhookReqBody) SendMessageReqBody {
 	}
 	defer client.Close()
 
-	resp, err := client.Translate(ctx, []string{text}, lang, nil)
+	resp, err := client.Translate(ctx, []string{body.Message.Text}, lang, nil)
 	if err != nil {
 		fmt.Errorf("error initialization translate client")
 
 	}
 	if len(resp) == 0 {
-		fmt.Errorf("Translate returned empty response to text: %s", text)
+		fmt.Errorf("Translate returned empty response to text: %s", body.Message.Text)
 	}
 
 	return SendMessageReqBody{
