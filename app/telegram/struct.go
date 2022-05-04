@@ -1,5 +1,7 @@
 package telegram
 
+import "fmt"
+
 type WebhookReqBody struct {
 	Message struct {
 		Text      string `json:"text"`
@@ -28,4 +30,12 @@ type SendMessageReqBody struct {
 	ChatID    int    `json:"chat_id"`
 	Text      string `json:"text"`
 	ParseMode string `json:"parse_mode"`
+}
+
+func sayHello(body WebhookReqBody) SendMessageReqBody {
+	return SendMessageReqBody{
+		ChatID:    body.Message.Chat.ID,
+		Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text),
+		ParseMode: "MarkdownV2",
+	}
 }
