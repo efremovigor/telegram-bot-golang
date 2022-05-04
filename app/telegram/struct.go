@@ -25,6 +25,7 @@ type WebhookReqBody struct {
 }
 
 type SendMessageReqBody struct {
-	ChatID int    `json:"chat_id"`
-	Text   string `json:"text"`
+	ChatID    int    `json:"chat_id"`
+	Text      string `json:"text"`
+	ParseMode string `json:"parse_mode"`
 }

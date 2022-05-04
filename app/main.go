@@ -14,8 +14,9 @@ import (
 
 func sayPolo(body telegram.WebhookReqBody) error {
 	reqBody := &telegram.SendMessageReqBody{
-		ChatID: body.Message.Chat.ID,
-		Text:   fmt.Sprintf("Ей, <a href=\"tg://user?id=%d\">%s</a>, Иди на хуй со своим:%s", body.Message.From.ID, body.Message.From.FirstName, body.Message.Text),
+		ChatID:    body.Message.Chat.ID,
+		Text:      fmt.Sprintf("Ей, [%s](tg://user?id=%d), Иди на хуй со своим:%s", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text),
+		ParseMode: "MarkdownV2",
 	}
 	reqBytes, err := json.Marshal(reqBody)
 	if err != nil {
