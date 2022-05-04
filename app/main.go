@@ -38,16 +38,11 @@ func main() {
 	e.POST(telegramConfig.GetUrlPrefix(), func(c echo.Context) error {
 		body := &telegram.WebhookReqBody{}
 
-		bodyCopy := c.Request().Body
-		json_map := make(map[string]interface{})
-		_ = json.NewDecoder(bodyCopy).Decode(&json_map)
-
-		fmt.Println(json_map)
-
 		if err := json.NewDecoder(c.Request().Body).Decode(body); err != nil {
 			fmt.Println("could not decode request body", err)
 			return err
 		}
+		fmt.Println(body)
 
 		if err := sayPolo(body.Message.Chat.ID, body.Message.Text); err != nil {
 			fmt.Println("error in sending reply:", err)
