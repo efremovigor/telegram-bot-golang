@@ -5,15 +5,15 @@ type WebhookReqBody struct {
 		Text      string `json:"text"`
 		MessageId string `json:"message_id"`
 		Chat      struct {
-			ID        int64  `json:"id"`
+			ID        int    `json:"id"`
 			FirstName string `json:"first_name"`
 			LastName  string `json:"last_name"`
 			Type      string `json:"type"`
 			Username  string `json:"username"`
 		} `json:"chat"`
-		Date string `json:"date"`
+		Date int `json:"date"`
 		From struct {
-			ID           int64  `json:"id"`
+			ID           int    `json:"id"`
 			FirstName    string `json:"first_name"`
 			IsBot        string `json:"is_bot"`
 			LastName     string `json:"last_name"`
@@ -21,7 +21,7 @@ type WebhookReqBody struct {
 			Username     string `json:"username"`
 		} `json:"from"`
 	} `json:"message"`
-	UpdateId string `json:"update_id"`
+	UpdateId int `json:"update_id"`
 }
 
 type SendMessageReqBody struct {
