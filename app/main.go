@@ -12,7 +12,7 @@ import (
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-func sayPolo(chatID int64, msg string) error {
+func sayPolo(chatID int, msg string) error {
 	reqBody := &telegram.SendMessageReqBody{
 		ChatID: chatID,
 		Text:   "Иди на хуй со своим:" + msg,
