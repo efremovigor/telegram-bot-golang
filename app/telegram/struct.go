@@ -3,7 +3,7 @@ package telegram
 type WebhookReqBody struct {
 	Message struct {
 		Text      string `json:"text"`
-		MessageId string `json:"message_id"`
+		MessageId int    `json:"message_id"`
 		Chat      struct {
 			ID        int    `json:"id"`
 			FirstName string `json:"first_name"`
