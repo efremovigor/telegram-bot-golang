@@ -15,7 +15,7 @@ type WebhookReqBody struct {
 		From struct {
 			ID           int    `json:"id"`
 			FirstName    string `json:"first_name"`
-			IsBot        string `json:"is_bot"`
+			IsBot        bool   `json:"is_bot"`
 			LastName     string `json:"last_name"`
 			LanguageCode string `json:"language_code"`
 			Username     string `json:"username"`
