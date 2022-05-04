@@ -13,7 +13,7 @@ import (
 )
 
 func sayPolo(body telegram.WebhookReqBody) error {
-	reqBytes, err := json.Marshal(telegram.sayHello(body))
+	reqBytes, err := json.Marshal(telegram.SayHello(body))
 	if err != nil {
 		return err
 	}

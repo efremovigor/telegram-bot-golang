@@ -1,6 +1,11 @@
 package telegram
 
-import "fmt"
+import (
+	"cloud.google.com/go/translate"
+	"context"
+	"fmt"
+	"golang.org/x/text/language"
+)
 
 type WebhookReqBody struct {
 	Message struct {
@@ -32,10 +37,32 @@ type SendMessageReqBody struct {
 	ParseMode string `json:"parse_mode"`
 }
 
-func sayHello(body WebhookReqBody) SendMessageReqBody {
+func SayHello(body WebhookReqBody) SendMessageReqBody {
+	text := ""
+	ctx := context.Background()
+	lang, err := language.Parse(body.Message.Text)
+	if err != nil {
+		fmt.Errorf("language.Parse: %v", err)
+	}
+
+	client, err := translate.NewClient(ctx)
+	if err != nil {
+		fmt.Errorf("error initialization translate client")
+	}
+	defer client.Close()
+
+	resp, err := client.Translate(ctx, []string{text}, lang, nil)
+	if err != nil {
+		fmt.Errorf("error initialization translate client")
+
+	}
+	if len(resp) == 0 {
+		fmt.Errorf("Translate returned empty response to text: %s", text)
+	}
+
 	return SendMessageReqBody{
 		ChatID:    body.Message.Chat.ID,
-		Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text),
+		Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s, translate:", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text, resp[0].Text),
 		ParseMode: "MarkdownV2",
 	}
 }
