@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"telegram-bot-golang/env"
 )
 
 type WebhookReqBody struct {
@@ -46,7 +47,7 @@ func SayHello(body WebhookReqBody) SendMessageReqBody {
 
 	req.Header.Add("content-type", "application/json")
 	req.Header.Add("X-RapidAPI-Host", "microsoft-translator-text.p.rapidapi.com")
-	req.Header.Add("X-RapidAPI-Key", "2165911fa9mshe5a7831406f9640p1b7fc4jsna2569304e3df")
+	req.Header.Add("X-RapidAPI-Key", env.GetEnvVariable("MICROSOFT_API_TOKEN"))
 
 	res, _ := http.DefaultClient.Do(req)
 
