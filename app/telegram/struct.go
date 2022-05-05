@@ -58,10 +58,16 @@ func SayHello(body WebhookReqBody) SendMessageReqBody {
 		fmt.Println("could not decode microsoft response", err)
 	}
 
-	fmt.Println(microsoftTranslateResponse[0].Translations[0].Text)
+	stringTranslation := ""
+	for i, translation := range microsoftTranslateResponse[0].Translations {
+		if i != 0 {
+			stringTranslation += ", "
+		}
+		stringTranslation += translation.Text
+	}
 	return SendMessageReqBody{
 		ChatID:    body.Message.Chat.ID,
-		Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s, translate:%s", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text, microsoftTranslateResponse[0].Translations[0].Text),
+		Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s, translate:%s", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text, stringTranslation),
 		ParseMode: "MarkdownV2",
 	}
 }
