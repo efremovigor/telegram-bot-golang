@@ -59,11 +59,13 @@ func SayHello(body WebhookReqBody) SendMessageReqBody {
 	}
 
 	stringTranslation := ""
-	for i, translation := range microsoftTranslateResponse[0].Translations {
-		if i != 0 {
-			stringTranslation += ", "
+	for i, response := range microsoftTranslateResponse {
+		for _, translation := range response.Translations {
+			if i != 0 {
+				stringTranslation += ", "
+			}
+			stringTranslation += translation.Text
 		}
-		stringTranslation += translation.Text
 	}
 	return SendMessageReqBody{
 		ChatID:    body.Message.Chat.ID,
