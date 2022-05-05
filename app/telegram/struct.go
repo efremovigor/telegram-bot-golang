@@ -1,10 +1,10 @@
 package telegram
 
 import (
-	"cloud.google.com/go/translate"
-	"context"
+	"encoding/json"
 	"fmt"
-	"golang.org/x/text/language"
+	"net/http"
+	"strings"
 )
 
 type WebhookReqBody struct {
@@ -38,30 +38,37 @@ type SendMessageReqBody struct {
 }
 
 func SayHello(body WebhookReqBody) SendMessageReqBody {
-	ctx := context.Background()
-	lang, err := language.Parse(body.Message.Text)
-	if err != nil {
-		fmt.Errorf("language.Parse: %v", err)
+	url := "https://microsoft-translator-text.p.rapidapi.com/translate?to=ru&from=en&api-version=3.0&profanityAction=NoAction&textType=plain"
+
+	payload := strings.NewReader("[\n    {\n        \"Text\": \"" + body.Message.Text + "\"\n    }\n]")
+
+	req, _ := http.NewRequest("POST", url, payload)
+
+	req.Header.Add("content-type", "application/json")
+	req.Header.Add("X-RapidAPI-Host", "microsoft-translator-text.p.rapidapi.com")
+	req.Header.Add("X-RapidAPI-Key", "2165911fa9mshe5a7831406f9640p1b7fc4jsna2569304e3df")
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	var microsoftTranslateResponse []MicrosoftTranslate
+
+	if err := json.NewDecoder(res.Body).Decode(&microsoftTranslateResponse); err != nil {
+		fmt.Println("could not decode microsoft response", err)
 	}
 
-	client, err := translate.NewClient(ctx)
-	if err != nil {
-		fmt.Errorf("error initialization translate client")
-	}
-	defer client.Close()
-
-	resp, err := client.Translate(ctx, []string{body.Message.Text}, lang, nil)
-	if err != nil {
-		fmt.Errorf("error initialization translate client")
-
-	}
-	if len(resp) == 0 {
-		fmt.Errorf("Translate returned empty response to text: %s", body.Message.Text)
-	}
-
+	fmt.Println(microsoftTranslateResponse[0].Translations[0].Text)
 	return SendMessageReqBody{
 		ChatID:    body.Message.Chat.ID,
-		Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s, translate:", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text, resp[0].Text),
+		Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s, translate:%s", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text, microsoftTranslateResponse[0].Translations[0].Text),
 		ParseMode: "MarkdownV2",
 	}
+}
+
+type MicrosoftTranslate struct {
+	Translations []Translation `json:"translations"`
+}
+type Translation struct {
+	Text string `json:"text"`
+	To   string `json:"to"`
 }

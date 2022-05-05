@@ -38,7 +38,6 @@ func main() {
 			fmt.Println("could not decode request body", err)
 			return err
 		}
-		fmt.Println(body)
 
 		if err := sayPolo(*body); err != nil {
 			fmt.Println("error in sending reply:", err)
