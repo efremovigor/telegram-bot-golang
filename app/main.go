@@ -24,7 +24,8 @@ func sayPolo(body telegram.WebhookReqBody) error {
 		return err
 	}
 	if res.StatusCode != http.StatusOK {
-		return errors.New("unexpected status" + res.Status)
+		body, _ := ioutil.ReadAll(res.Body)
+		return errors.New("Unexpected status:" + res.Status + " Message:" + string(body))
 	}
 
 	return nil
