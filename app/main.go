@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"io/ioutil"
 	"net/http"
 	"telegram-bot-golang/config"
 	telegram "telegram-bot-golang/telegram"
@@ -47,5 +48,31 @@ func main() {
 		return c.JSON(http.StatusOK, "")
 	})
 
+	e.GET("/dictionary/:string", func(c echo.Context) error {
+		string := c.Param("string")
+		html, _ := getHtmlPage("https://dictionary.cambridge.org/dictionary/english-russian/" + string + "?q=" + string)
+		return c.JSON(http.StatusOK, html)
+	})
+
 	e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
+}
+
+func getHtmlPage(webPage string) (string, error) {
+
+	resp, err := http.Get(webPage)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+
+		return "", err
+	}
+
+	return string(body), nil
 }

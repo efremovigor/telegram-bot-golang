@@ -33,9 +33,10 @@ type WebhookReqBody struct {
 }
 
 type SendMessageReqBody struct {
-	ChatID    int    `json:"chat_id"`
-	Text      string `json:"text"`
-	ParseMode string `json:"parse_mode"`
+	ChatID      int      `json:"chat_id"`
+	Text        string   `json:"text"`
+	ParseMode   string   `json:"parse_mode"`
+	ReplyMarkup []string `json:"reply_markup"`
 }
 
 func SayHello(body WebhookReqBody) SendMessageReqBody {
@@ -68,9 +69,10 @@ func SayHello(body WebhookReqBody) SendMessageReqBody {
 		}
 	}
 	return SendMessageReqBody{
-		ChatID:    body.Message.Chat.ID,
-		Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s, translate:%s", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text, stringTranslation),
-		ParseMode: "MarkdownV2",
+		ChatID:      body.Message.Chat.ID,
+		Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s, translate:%s", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text, stringTranslation),
+		ParseMode:   "MarkdownV2",
+		ReplyMarkup: []string{"one", "two"},
 	}
 }
 
