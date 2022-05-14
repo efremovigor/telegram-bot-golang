@@ -40,8 +40,8 @@ type SendMessageReqBody struct {
 }
 
 type ReplyMarkup struct {
-	Keyboard        []Keyboard `json:"keyboard"`
-	OneTimeKeyboard bool       `json:"one_time_keyboard"`
+	Keyboard        [][]Keyboard `json:"keyboard"`
+	OneTimeKeyboard bool         `json:"one_time_keyboard"`
 }
 
 type Keyboard struct {
@@ -81,7 +81,7 @@ func SayHello(body WebhookReqBody) SendMessageReqBody {
 		ChatID:      body.Message.Chat.ID,
 		Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s, translate:%s", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text, stringTranslation),
 		ParseMode:   "MarkdownV2",
-		ReplyMarkup: ReplyMarkup{Keyboard: []Keyboard{{Text: "One"}, {Text: "Two"}}, OneTimeKeyboard: true},
+		ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{{{Text: "One"}}, {{Text: "Two"}}}, OneTimeKeyboard: true},
 	}
 }
 
