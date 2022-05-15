@@ -14,7 +14,7 @@ import (
 )
 
 func sayPolo(body telegram.WebhookReqBody) error {
-	var reqBytes []byte
+	var response telegram.SendMessageReqBody
 	var err error
 	switch body.Message.Text {
 	case "/ru_en":
@@ -23,23 +23,32 @@ func sayPolo(body telegram.WebhookReqBody) error {
 			telegram.Chats[body.Message.Chat.ID] = make(map[int]string)
 		}
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "ru_en"
-		reqBytes = []byte("Changed translation RU -> EN")
+		response = telegram.SendMessageReqBody{
+			ChatID:    body.Message.Chat.ID,
+			Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("RU -> EN")),
+			ParseMode: "MarkdownV2",
+		}
+
 	case "/en_ru":
 		_, exist := telegram.Chats[body.Message.Chat.ID]
 		if !exist {
 			telegram.Chats[body.Message.Chat.ID] = make(map[int]string)
 		}
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "en_ru"
-		reqBytes = []byte("Changed translation EN -> RU")
+		response = telegram.SendMessageReqBody{
+			ChatID:    body.Message.Chat.ID,
+			Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("EN -> RU")),
+			ParseMode: "MarkdownV2",
+		}
 	default:
 		fmt.Println(fmt.Sprintf("chat text: %s", body.Message.Text))
-		reqBytes, err = json.Marshal(telegram.SayHello(body))
-		if err != nil {
-			return err
-		}
+		response = telegram.SayHello(body)
 
 	}
-
+	reqBytes, err := json.Marshal(response)
+	if err != nil {
+		return err
+	}
 	res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return err
