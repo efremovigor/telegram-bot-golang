@@ -15,9 +15,9 @@ import (
 
 func sayPolo(body telegram.WebhookReqBody) error {
 	switch body.Message.Text {
-	case "ru_en":
+	case "/ru_en":
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "ru_en"
-	case "en_ru":
+	case "/en_ru":
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "en_ru"
 	default:
 		fmt.Println(fmt.Sprintf("chat text: %s", body.Message.Text))
