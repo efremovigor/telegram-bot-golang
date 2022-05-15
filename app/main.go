@@ -16,8 +16,16 @@ import (
 func sayPolo(body telegram.WebhookReqBody) error {
 	switch body.Message.Text {
 	case "/ru_en":
+		_, exist := telegram.Chats[body.Message.Chat.ID]
+		if !exist {
+			telegram.Chats[body.Message.Chat.ID] = make(map[int]string)
+		}
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "ru_en"
 	case "/en_ru":
+		_, exist := telegram.Chats[body.Message.Chat.ID]
+		if !exist {
+			telegram.Chats[body.Message.Chat.ID] = make(map[int]string)
+		}
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "en_ru"
 	default:
 		fmt.Println(fmt.Sprintf("chat text: %s", body.Message.Text))
