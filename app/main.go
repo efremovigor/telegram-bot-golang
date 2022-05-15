@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"telegram-bot-golang/config"
 	telegram "telegram-bot-golang/telegram"
 	telegramConfig "telegram-bot-golang/telegram/config"
@@ -25,7 +26,7 @@ func sayPolo(body telegram.WebhookReqBody) error {
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "ru_en"
 		response = telegram.SendMessageReqBody{
 			ChatID:      body.Message.Chat.ID,
-			Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("RU \\-\\> EN")),
+			Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("RU -> EN")),
 			ParseMode:   "MarkdownV2",
 			ReplyMarkup: telegram.ReplyMarkup{Keyboard: [][]telegram.Keyboard{{{Text: "One"}}, {{Text: "Two"}}}, OneTimeKeyboard: true},
 		}
@@ -38,7 +39,7 @@ func sayPolo(body telegram.WebhookReqBody) error {
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "en_ru"
 		response = telegram.SendMessageReqBody{
 			ChatID:      body.Message.Chat.ID,
-			Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("EN \\-\\> RU")),
+			Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("EN -> RU")),
 			ParseMode:   "MarkdownV2",
 			ReplyMarkup: telegram.ReplyMarkup{Keyboard: [][]telegram.Keyboard{{{Text: "One"}}, {{Text: "Two"}}}, OneTimeKeyboard: true},
 		}
@@ -51,6 +52,8 @@ func sayPolo(body telegram.WebhookReqBody) error {
 	if err != nil {
 		return err
 	}
+	replacer := strings.NewReplacer("<", "\\<", ">", "\\>", ".", "\\.", "-", "\\-")
+	reqBytes = []byte(replacer.Replace(string(reqBytes)))
 	fmt.Println("json:" + string(reqBytes))
 
 	res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(reqBytes))
