@@ -24,9 +24,10 @@ func sayPolo(body telegram.WebhookReqBody) error {
 		}
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "ru_en"
 		response = telegram.SendMessageReqBody{
-			ChatID:    body.Message.Chat.ID,
-			Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("RU -> EN")),
-			ParseMode: "MarkdownV2",
+			ChatID:      body.Message.Chat.ID,
+			Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("RU -> EN")),
+			ParseMode:   "MarkdownV2",
+			ReplyMarkup: telegram.ReplyMarkup{Keyboard: [][]telegram.Keyboard{{{Text: "One"}}, {{Text: "Two"}}}, OneTimeKeyboard: true},
 		}
 
 	case "/en_ru":
@@ -36,9 +37,10 @@ func sayPolo(body telegram.WebhookReqBody) error {
 		}
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "en_ru"
 		response = telegram.SendMessageReqBody{
-			ChatID:    body.Message.Chat.ID,
-			Text:      fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("EN -> RU")),
-			ParseMode: "MarkdownV2",
+			ChatID:      body.Message.Chat.ID,
+			Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("EN -> RU")),
+			ParseMode:   "MarkdownV2",
+			ReplyMarkup: telegram.ReplyMarkup{Keyboard: [][]telegram.Keyboard{{{Text: "One"}}, {{Text: "Two"}}}, OneTimeKeyboard: true},
 		}
 	default:
 		fmt.Println(fmt.Sprintf("chat text: %s", body.Message.Text))
