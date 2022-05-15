@@ -28,7 +28,7 @@ func sayPolo(body telegram.WebhookReqBody) error {
 			ChatID:      body.Message.Chat.ID,
 			Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("RU -> EN")),
 			ParseMode:   "MarkdownV2",
-			ReplyMarkup: telegram.ReplyMarkup{Keyboard: [][]telegram.Keyboard{{{Text: "One"}}, {{Text: "Two"}}}, OneTimeKeyboard: true},
+			ReplyMarkup: telegram.ReplyMarkup{Keyboard: [][]telegram.Keyboard{{{Text: "One"}}, {{Text: "Two"}}}, OneTimeKeyboard: true, ResizeKeyboard: true},
 		}
 
 	case "/en_ru":
@@ -41,7 +41,7 @@ func sayPolo(body telegram.WebhookReqBody) error {
 			ChatID:      body.Message.Chat.ID,
 			Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("EN -> RU")),
 			ParseMode:   "MarkdownV2",
-			ReplyMarkup: telegram.ReplyMarkup{Keyboard: [][]telegram.Keyboard{{{Text: "One"}}, {{Text: "Two"}}}, OneTimeKeyboard: true},
+			ReplyMarkup: telegram.ReplyMarkup{Keyboard: [][]telegram.Keyboard{{{Text: "One"}}, {{Text: "Two"}}}, OneTimeKeyboard: true, ResizeKeyboard: true},
 		}
 	default:
 		fmt.Println(fmt.Sprintf("chat text: %s", body.Message.Text))
