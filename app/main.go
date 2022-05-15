@@ -49,14 +49,16 @@ func sayPolo(body telegram.WebhookReqBody) error {
 
 	}
 	replacer := strings.NewReplacer(
-		"\\u003e", "\\\\\\u003e",
-		"\\u003C", "\\\\\\u003C",
-		".", "\\\\.",
-		"-", "\\\\-",
-		"!", "\\\\!",
-		"#", "\\\\#",
+		">", "\\>",
+		"<", "\\<",
+		".", "\\.",
+		"-", "\\-",
+		"!", "\\!",
+		"#", "\\#",
 		"{", "\\{",
 		"}", "\\}",
+		"[", "\\[",
+		"]", "\\]",
 	)
 	response.Text = replacer.Replace(response.Text)
 
