@@ -48,8 +48,22 @@ type Keyboard struct {
 	Text string `json:"text"`
 }
 
+var Chats = make(map[int]map[int]string)
+
 func SayHello(body WebhookReqBody) SendMessageReqBody {
-	url := "https://microsoft-translator-text.p.rapidapi.com/translate?to=ru&from=en&api-version=3.0&profanityAction=NoAction&textType=plain"
+	state, exist := Chats[body.Message.Chat.ID][body.Message.From.ID]
+
+	var from, to string
+
+	if !exist || state == "en_ru" {
+		from = "en"
+		to = "ru"
+	} else {
+		from = "ru"
+		to = "en"
+	}
+
+	url := fmt.Sprintf("https://microsoft-translator-text.p.rapidapi.com/translate?to=%s&from=%s&api-version=3.0&profanityAction=NoAction&textType=plain", to, from)
 
 	payload := strings.NewReader("[\n    {\n        \"Text\": \"" + body.Message.Text + "\"\n    }\n]")
 
