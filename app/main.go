@@ -51,6 +51,8 @@ func sayPolo(body telegram.WebhookReqBody) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("json:" + string(reqBytes))
+
 	res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return err
