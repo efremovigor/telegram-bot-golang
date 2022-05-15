@@ -17,6 +17,11 @@ func sayPolo(body telegram.WebhookReqBody) error {
 	var response telegram.SendMessageReqBody
 	var err error
 	switch body.Message.Text {
+	case "/start":
+		response = telegram.GetTelegramRequest(
+			body.Message.Chat.ID,
+			telegram.GetBaseMsg(body.Message.From.FirstName, body.Message.From.ID)+"Hello Friend. How can I help you?",
+		)
 	case "/ru_en":
 		_, exist := telegram.Chats[body.Message.Chat.ID]
 		if !exist {
@@ -38,7 +43,6 @@ func sayPolo(body telegram.WebhookReqBody) error {
 			body.Message.Chat.ID,
 			telegram.GetBaseMsg(body.Message.From.FirstName, body.Message.From.ID)+telegram.GetChangeTranslateMsg("EN -> RU"),
 		)
-
 	default:
 		fmt.Println(fmt.Sprintf("chat text: %s", body.Message.Text))
 		response = telegram.SayHello(body)
