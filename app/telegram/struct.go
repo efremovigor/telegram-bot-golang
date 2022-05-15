@@ -48,7 +48,7 @@ type Keyboard struct {
 	Text string `json:"text"`
 }
 
-var Chats = make(map[int]map[int]string)
+var Chats = map[int]map[int]string{}
 
 func SayHello(body WebhookReqBody) SendMessageReqBody {
 	state, exist := Chats[body.Message.Chat.ID][body.Message.From.ID]
