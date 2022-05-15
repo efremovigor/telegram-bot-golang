@@ -100,13 +100,9 @@ func SayHello(body WebhookReqBody) SendMessageReqBody {
 			stringTranslation += translation.Text
 		}
 	}
-	return GetTelegramRequestWithTranslation(body, stringTranslation)
-}
-
-func GetTelegramRequestWithTranslation(body WebhookReqBody, translate string) SendMessageReqBody {
 	return GetTelegramRequest(
 		body.Message.Chat.ID,
-		GetBaseMsg(body.Message.From.FirstName, body.Message.From.ID)+GetTranslateMsg(body.Message.Text, translate),
+		GetBaseMsg(body.Message.From.FirstName, body.Message.From.ID)+GetTranslateMsg(body.Message.Text, stringTranslation),
 	)
 }
 
