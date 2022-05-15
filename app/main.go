@@ -52,7 +52,8 @@ func sayPolo(body telegram.WebhookReqBody) error {
 	if err != nil {
 		return err
 	}
-	replacer := strings.NewReplacer("<", "\\\\\\<", ">", "\\\\\\>", ".", "\\\\.", "-", "\\\\-")
+	fmt.Println("json:" + string(reqBytes))
+	replacer := strings.NewReplacer("\\u003e", "\\\\u003e", ">", "\\\\u003e", ".", "\\\\.", "-", "\\\\-")
 	reqBytes = []byte(replacer.Replace(string(reqBytes)))
 	fmt.Println("json:" + string(reqBytes))
 
