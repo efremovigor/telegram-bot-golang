@@ -29,19 +29,18 @@ func sayPolo(body telegram.WebhookReqBody) error {
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "en_ru"
 	default:
 		fmt.Println(fmt.Sprintf("chat text: %s", body.Message.Text))
-	}
-	reqBytes, err := json.Marshal(telegram.SayHello(body))
-	if err != nil {
-		return err
-	}
-
-	res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(reqBytes))
-	if err != nil {
-		return err
-	}
-	if res.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(res.Body)
-		return errors.New("Unexpected status:" + res.Status + " Message:" + string(body))
+		reqBytes, err := json.Marshal(telegram.SayHello(body))
+		if err != nil {
+			return err
+		}
+		res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(reqBytes))
+		if err != nil {
+			return err
+		}
+		if res.StatusCode != http.StatusOK {
+			body, _ := ioutil.ReadAll(res.Body)
+			return errors.New("Unexpected status:" + res.Status + " Message:" + string(body))
+		}
 	}
 
 	return nil
