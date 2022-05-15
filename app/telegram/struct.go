@@ -96,7 +96,7 @@ func SayHello(body WebhookReqBody) SendMessageReqBody {
 		ChatID:      body.Message.Chat.ID,
 		Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s, translate:%s", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text, stringTranslation),
 		ParseMode:   "MarkdownV2",
-		ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{{{Text: "One"}}, {{Text: "Two"}}}, OneTimeKeyboard: true, ResizeKeyboard: true},
+		ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{{{Text: "Hello"}}, {{Text: "Привет"}}}, OneTimeKeyboard: true, ResizeKeyboard: true},
 	}
 }
 
