@@ -49,6 +49,14 @@ type Keyboard struct {
 	Text string `json:"text"`
 }
 
+type MicrosoftTranslate struct {
+	Translations []Translation `json:"translations"`
+}
+type Translation struct {
+	Text string `json:"text"`
+	To   string `json:"to"`
+}
+
 var Chats = map[int]map[int]string{}
 
 func SayHello(body WebhookReqBody) SendMessageReqBody {
@@ -92,18 +100,51 @@ func SayHello(body WebhookReqBody) SendMessageReqBody {
 			stringTranslation += translation.Text
 		}
 	}
+	return GetTelegramRequestWithTranslation(body, stringTranslation)
+}
+
+func GetTelegramRequestWithTranslation(body WebhookReqBody, translate string) SendMessageReqBody {
+	return GetTelegramRequest(
+		body.Message.Chat.ID,
+		GetBaseMsg(body.Message.From.FirstName, body.Message.From.ID)+GetTranslateMsg(body.Message.Text, translate),
+	)
+}
+
+func GetBaseMsg(name string, id int) string {
+	return fmt.Sprintf("Hey, [%s](tg://user?id=%d), ", name, id)
+}
+func GetTranslateMsg(base string, translate string) string {
+	return fmt.Sprintf("I got your message: %s, translate:%s", DecodeForTelegram(base), DecodeForTelegram(translate))
+}
+
+func GetChangeTranslateMsg(translate string) string {
+	return fmt.Sprintf("I changed translation:  %s", DecodeForTelegram(translate))
+}
+
+func GetTelegramRequest(chatId int, text string) SendMessageReqBody {
 	return SendMessageReqBody{
-		ChatID:      body.Message.Chat.ID,
-		Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I got your message: %s, translate:%s", body.Message.From.FirstName, body.Message.From.ID, body.Message.Text, stringTranslation),
+		ChatID:      chatId,
+		Text:        text,
 		ParseMode:   "MarkdownV2",
 		ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{{{Text: "Hello"}}, {{Text: "Привет"}}}, OneTimeKeyboard: true, ResizeKeyboard: true},
 	}
 }
 
-type MicrosoftTranslate struct {
-	Translations []Translation `json:"translations"`
-}
-type Translation struct {
-	Text string `json:"text"`
-	To   string `json:"to"`
+func DecodeForTelegram(text string) string {
+	replacer := strings.NewReplacer(
+		">", "\\>",
+		"<", "\\<",
+		".", "\\.",
+		"-", "\\-",
+		"!", "\\!",
+		"#", "\\#",
+		"{", "\\{",
+		"}", "\\}",
+		"[", "\\[",
+		"]", "\\]",
+		"(", "\\(",
+		")", "\\)",
+		"=", "\\=",
+	)
+	return replacer.Replace(text)
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"telegram-bot-golang/config"
 	telegram "telegram-bot-golang/telegram"
 	telegramConfig "telegram-bot-golang/telegram/config"
@@ -24,12 +23,10 @@ func sayPolo(body telegram.WebhookReqBody) error {
 			telegram.Chats[body.Message.Chat.ID] = make(map[int]string)
 		}
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "ru_en"
-		response = telegram.SendMessageReqBody{
-			ChatID:      body.Message.Chat.ID,
-			Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("RU -> EN")),
-			ParseMode:   "MarkdownV2",
-			ReplyMarkup: telegram.ReplyMarkup{Keyboard: [][]telegram.Keyboard{{{Text: "Hello"}}, {{Text: "Привет"}}}, OneTimeKeyboard: true, ResizeKeyboard: true},
-		}
+		response = telegram.GetTelegramRequest(
+			body.Message.Chat.ID,
+			telegram.GetBaseMsg(body.Message.From.FirstName, body.Message.From.ID)+telegram.GetChangeTranslateMsg("RU -> EN"),
+		)
 
 	case "/en_ru":
 		_, exist := telegram.Chats[body.Message.Chat.ID]
@@ -37,33 +34,16 @@ func sayPolo(body telegram.WebhookReqBody) error {
 			telegram.Chats[body.Message.Chat.ID] = make(map[int]string)
 		}
 		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "en_ru"
-		response = telegram.SendMessageReqBody{
-			ChatID:      body.Message.Chat.ID,
-			Text:        fmt.Sprintf("Hey, [%s](tg://user?id=%d), I changed translation: %s", body.Message.From.FirstName, body.Message.From.ID, []byte("EN -> RU")),
-			ParseMode:   "MarkdownV2",
-			ReplyMarkup: telegram.ReplyMarkup{Keyboard: [][]telegram.Keyboard{{{Text: "Hello"}}, {{Text: "Привет"}}}, OneTimeKeyboard: true, ResizeKeyboard: true},
-		}
+		response = telegram.GetTelegramRequest(
+			body.Message.Chat.ID,
+			telegram.GetBaseMsg(body.Message.From.FirstName, body.Message.From.ID)+telegram.GetChangeTranslateMsg("EN -> RU"),
+		)
+
 	default:
 		fmt.Println(fmt.Sprintf("chat text: %s", body.Message.Text))
 		response = telegram.SayHello(body)
 
 	}
-	replacer := strings.NewReplacer(
-		">", "\\>",
-		"<", "\\<",
-		".", "\\.",
-		"-", "\\-",
-		"!", "\\!",
-		"#", "\\#",
-		"{", "\\{",
-		"}", "\\}",
-		"[", "\\[",
-		"]", "\\]",
-		"(", "\\(",
-		")", "\\)",
-		"=", "\\=",
-	)
-	response.Text = replacer.Replace(response.Text)
 
 	reqBytes, err := json.Marshal(response)
 	if err != nil {
