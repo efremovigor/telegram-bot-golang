@@ -20,7 +20,7 @@ func sayPolo(body telegram.WebhookReqBody) error {
 	case "/start":
 		response = telegram.GetTelegramRequest(
 			body.Message.Chat.ID,
-			telegram.GetBaseMsg(body.Message.From.FirstName, body.Message.From.ID)+"Hello Friend. How can I help you?",
+			telegram.GetBaseMsg(body.Message.From.FirstName, body.Message.From.ID)+telegram.DecodeForTelegram("Hello Friend. How can I help you?"),
 		)
 	case "/ru_en":
 		_, exist := telegram.Chats[body.Message.Chat.ID]
