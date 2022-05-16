@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/antchfx/htmlquery"
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
 	"net/http"
@@ -14,8 +15,16 @@ import (
 )
 
 func sayPolo(body telegram.WebhookReqBody) error {
+
 	var response telegram.SendMessageReqBody
 	var err error
+
+	fromTelegram, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	fmt.Println("from telegram json:" + string(fromTelegram))
+
 	switch body.Message.Text {
 	case "/start":
 		response = telegram.GetTelegramRequest(
@@ -49,13 +58,16 @@ func sayPolo(body telegram.WebhookReqBody) error {
 
 	}
 
-	reqBytes, err := json.Marshal(response)
+	toTelegram, err := json.Marshal(response)
 	if err != nil {
 		return err
 	}
-	fmt.Println("json:" + string(reqBytes))
+	fmt.Println("----")
+	fmt.Println("to telegram json:" + string(toTelegram))
+	fmt.Println("+++")
+	fmt.Println("+++")
 
-	res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(reqBytes))
+	res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(toTelegram))
 	if err != nil {
 		return err
 	}
@@ -85,13 +97,23 @@ func main() {
 		return c.JSON(http.StatusOK, "")
 	})
 
-	e.GET("/dictionary/:string", func(c echo.Context) error {
-		string := c.Param("string")
-		html, _ := getHtmlPage("https://dictionary.cambridge.org/dictionary/english-russian/" + string + "?q=" + string)
-		return c.JSON(http.StatusOK, html)
-	})
+	e.GET("/dictionary/:query", func(c echo.Context) error {
+		query := c.Param("query")
+		html, err := htmlquery.LoadURL("https://dictionary.cambridge.org/dictionary/english-russian/" + query + "?q=" + query)
+		if err != nil {
+			panic(err)
+		}
 
+		list, err := htmlquery.QueryAll(html, "//div[contains(@class, 'entry-body')]//div[contains(@class, 'entry-body__el')]//span[@lang=\"ru\"]")
+		var translate string
+
+		for _, n := range list {
+			translate += htmlquery.InnerText(n)
+		}
+		return c.JSON(http.StatusOK, translate)
+	})
 	e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
+	//e.Logger.Fatal(e.Start(":88"))
 }
 
 func getHtmlPage(webPage string) (string, error) {
