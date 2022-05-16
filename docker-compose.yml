@@ -13,3 +13,5 @@ services:
       - ./${CERT_KEY}:/app/build/${CERT_KEY}
   redis:
     image: "redis:alpine"
+    ports:
+      - "6379:6379"
