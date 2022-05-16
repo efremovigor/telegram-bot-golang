@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/antchfx/htmlquery"
+	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"
 	"io"
 	"io/ioutil"
@@ -15,6 +17,16 @@ import (
 	telegram "telegram-bot-golang/telegram"
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
+
+var ctx = context.Background()
+
+func getRedis() *redis.Client {
+	return redis.NewClient(&redis.Options{
+		Addr:     "redis:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+}
 
 func sayPolo(body telegram.WebhookReqBody) error {
 
@@ -34,29 +46,45 @@ func sayPolo(body telegram.WebhookReqBody) error {
 			telegram.DecodeForTelegram("Hello Friend. How can I help you?"),
 		)
 	case "/ru_en":
-		_, exist := telegram.Chats[body.GetChatId()]
-		if !exist {
-			telegram.Chats[body.GetChatId()] = make(map[int]string)
+		err := getRedis().
+			Set(
+				ctx,
+				fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()),
+				"ru_en",
+				0,
+			).
+			Err()
+		if err != nil {
+			fmt.Println("error of writing cache:" + err.Error())
 		}
-		telegram.Chats[body.GetChatId()][body.GetUserId()] = "ru_en"
 		response = telegram.GetTelegramRequest(
 			body.GetChatId(),
 			telegram.GetBaseMsg(body.GetUsername(), body.GetUserId())+telegram.GetChangeTranslateMsg("RU -> EN"),
 		)
 
 	case "/en_ru":
-		_, exist := telegram.Chats[body.GetChatId()]
-		if !exist {
-			telegram.Chats[body.GetChatId()] = make(map[int]string)
+		err := getRedis().
+			Set(
+				ctx,
+				fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()),
+				"en_ru",
+				0,
+			).
+			Err()
+		if err != nil {
+			fmt.Println("error of writing cache:" + err.Error())
 		}
-		telegram.Chats[body.GetChatId()][body.GetUserId()] = "en_ru"
 		response = telegram.GetTelegramRequest(
 			body.GetChatId(),
 			telegram.GetBaseMsg(body.GetUsername(), body.GetUserId())+telegram.GetChangeTranslateMsg("EN -> RU"),
 		)
 	default:
 		fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
-		response = telegram.SayHello(body)
+		state, err := getRedis().Get(ctx, "key").Result()
+		if err != nil {
+			panic(err)
+		}
+		response = telegram.SayHello(body, state)
 
 	}
 

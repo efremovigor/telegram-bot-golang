@@ -109,12 +109,9 @@ type Translation struct {
 
 var Chats = map[int]map[int]string{}
 
-func SayHello(body WebhookReqBody) SendMessageReqBody {
-	state, exist := Chats[body.GetChatId()][body.GetUserId()]
-
+func SayHello(body WebhookReqBody, state string) SendMessageReqBody {
 	var from, to string
-
-	if !exist || state == "en_ru" {
+	if state == "" || state == "en_ru" {
 		from = "en"
 		to = "ru"
 	} else {
