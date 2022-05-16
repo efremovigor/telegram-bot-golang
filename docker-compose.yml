@@ -11,3 +11,5 @@ services:
       - ./.env:/app/build/.env
       - ./${CERT_FILE}:/app/build/${CERT_FILE}
       - ./${CERT_KEY}:/app/build/${CERT_KEY}
+  redis:
+    image: "redis:alpine"
