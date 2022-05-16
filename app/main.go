@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"github.com/antchfx/htmlquery"
 	"github.com/labstack/echo/v4"
+	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"telegram-bot-golang/config"
 	telegram "telegram-bot-golang/telegram"
@@ -83,6 +85,14 @@ func main() {
 	e := echo.New()
 	e.POST(telegramConfig.GetUrlPrefix(), func(c echo.Context) error {
 		body := &telegram.WebhookReqBody{}
+		copyRequest := c.Request().Body
+		b, err := io.ReadAll(copyRequest)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		fmt.Println("raw json from telegram:" + string(b))
+		fmt.Println("----")
 
 		if err := json.NewDecoder(c.Request().Body).Decode(body); err != nil {
 			fmt.Println("could not decode request body", err)
