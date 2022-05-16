@@ -85,8 +85,9 @@ func main() {
 	e := echo.New()
 	e.POST(telegramConfig.GetUrlPrefix(), func(c echo.Context) error {
 		body := &telegram.WebhookReqBody{}
-		copyRequest := c.Request().Body
-		b, err := io.ReadAll(copyRequest)
+
+		buf, _ := ioutil.ReadAll(c.Request().Body)
+		b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -94,7 +95,7 @@ func main() {
 		fmt.Println("raw json from telegram:" + string(b))
 		fmt.Println("----")
 
-		if err := json.NewDecoder(c.Request().Body).Decode(body); err != nil {
+		if err := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(buf))).Decode(body); err != nil {
 			fmt.Println("could not decode request body", err)
 			return err
 		}
