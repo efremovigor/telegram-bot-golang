@@ -82,7 +82,7 @@ func sayPolo(body telegram.WebhookReqBody) error {
 		fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
 		state, err := getRedis().Get(ctx, "key").Result()
 		if err != nil {
-			panic(err)
+			fmt.Println("error of getting cache:" + err.Error())
 		}
 		response = telegram.SayHello(body, state)
 
