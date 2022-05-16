@@ -27,35 +27,35 @@ func sayPolo(body telegram.WebhookReqBody) error {
 	}
 	fmt.Println("from telegram json:" + string(fromTelegram))
 
-	switch body.Message.Text {
+	switch body.GetChatText() {
 	case "/start":
 		response = telegram.GetTelegramRequest(
-			body.Message.Chat.ID,
+			body.GetChatId(),
 			telegram.DecodeForTelegram("Hello Friend. How can I help you?"),
 		)
 	case "/ru_en":
-		_, exist := telegram.Chats[body.Message.Chat.ID]
+		_, exist := telegram.Chats[body.GetChatId()]
 		if !exist {
-			telegram.Chats[body.Message.Chat.ID] = make(map[int]string)
+			telegram.Chats[body.GetChatId()] = make(map[int]string)
 		}
-		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "ru_en"
+		telegram.Chats[body.GetChatId()][body.GetUserId()] = "ru_en"
 		response = telegram.GetTelegramRequest(
-			body.Message.Chat.ID,
-			telegram.GetBaseMsg(body.Message.From.FirstName, body.Message.From.ID)+telegram.GetChangeTranslateMsg("RU -> EN"),
+			body.GetChatId(),
+			telegram.GetBaseMsg(body.GetUsername(), body.GetUserId())+telegram.GetChangeTranslateMsg("RU -> EN"),
 		)
 
 	case "/en_ru":
-		_, exist := telegram.Chats[body.Message.Chat.ID]
+		_, exist := telegram.Chats[body.GetChatId()]
 		if !exist {
-			telegram.Chats[body.Message.Chat.ID] = make(map[int]string)
+			telegram.Chats[body.GetChatId()] = make(map[int]string)
 		}
-		telegram.Chats[body.Message.Chat.ID][body.Message.From.ID] = "en_ru"
+		telegram.Chats[body.GetChatId()][body.GetUserId()] = "en_ru"
 		response = telegram.GetTelegramRequest(
-			body.Message.Chat.ID,
-			telegram.GetBaseMsg(body.Message.From.FirstName, body.Message.From.ID)+telegram.GetChangeTranslateMsg("EN -> RU"),
+			body.GetChatId(),
+			telegram.GetBaseMsg(body.GetUsername(), body.GetUserId())+telegram.GetChangeTranslateMsg("EN -> RU"),
 		)
 	default:
-		fmt.Println(fmt.Sprintf("chat text: %s", body.Message.Text))
+		fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
 		response = telegram.SayHello(body)
 
 	}
