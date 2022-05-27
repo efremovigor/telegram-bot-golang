@@ -12,10 +12,9 @@ services:
       - ./${CERT_FILE}:/app/build/${CERT_FILE}
       - ./${CERT_KEY}:/app/build/${CERT_KEY}
   redis:
-    image: "redis:alpine"
+    image: redis:latest
+    restart: always
+    volumes:
+      - "redis-data:/data"
     ports:
       - "6379:6379"
-    restart: always
-    command: redis-server --save 20 1 --loglevel warning
-    volumes:
-      - cache:/data
