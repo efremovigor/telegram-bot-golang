@@ -15,7 +15,7 @@ services:
     image: redis:latest
     restart: always
     volumes:
-      - "redis-data:/data"
+      - .:/var/lib/redis/data
     ports:
       - "6379:6379"
 volumes:
