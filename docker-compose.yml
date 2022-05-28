@@ -14,7 +14,8 @@ services:
   redis:
     image: redis:latest
     restart: always
+    command: bash -c "redis-server --appendonly yes"
     volumes:
-      - .:/var/lib/redis/data
+      - ./data/redis:/data
     ports:
       - "6379:6379"
