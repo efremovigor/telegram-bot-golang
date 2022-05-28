@@ -16,13 +16,13 @@ func getRedis() *redis.Client {
 	})
 }
 
-func Get(key string) string {
-	value, err := getRedis().Get(ctx, key).
+func Get(key string) (value string, err error) {
+	value, err = getRedis().Get(ctx, key).
 		Result()
 	if err != nil {
 		fmt.Println("error of getting cache:" + err.Error())
 	}
-	return value
+	return
 }
 
 func Set(key string, value interface{}) {

@@ -49,7 +49,7 @@ func sayPolo(body telegram.WebhookReqBody) error {
 		)
 	default:
 		fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
-		state := db.Get(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()))
+		state, _ := db.Get(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()))
 		response = telegram.Reply(body, state)
 	}
 
