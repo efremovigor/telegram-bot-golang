@@ -123,16 +123,16 @@ func GetBaseMsg(name string, id int) string {
 }
 func GetIGotYourNewRequest(base string) string {
 	return fmt.Sprintf(
-		DecodeForTelegram("I got your message:")+" *%s*\n", DecodeForTelegram(base))
+		DecodeForTelegram("I got your message: ")+"*%s*\n", DecodeForTelegram(base))
 }
 
 func GetBlockWithRapidInfo(translate string) string {
 	return fmt.Sprintf(
-		DecodeForTelegram("Translates of rapid-microsoft:")+" *%s*\n\n", DecodeForTelegram(translate))
+		DecodeForTelegram("Translates of rapid-microsoft: ")+"*%s*\n\n", DecodeForTelegram(translate))
 }
 
 func GetBlockWithCambridge(info cambridge.Info) string {
-	mainBlock := DecodeForTelegram("Information from cambridge-dictionary:") + GetFieldIfCan(info.Text, "")
+	mainBlock := DecodeForTelegram("Information from cambridge-dictionary: ") + fmt.Sprintf("*%s*", DecodeForTelegram(info.Text)) + "\n"
 	mainBlock += GetFieldIfCan(info.Type, "Type")
 	if len(info.Explanation) > 0 {
 		for n, explanation := range info.Explanation {
@@ -154,10 +154,6 @@ func GetBlockWithCambridge(info cambridge.Info) string {
 
 func GetFieldIfCan(value string, field string) string {
 	if len([]rune(value)) > 0 {
-		if len([]rune(field)) == 0 {
-			return fmt.Sprintf("%s", DecodeForTelegram(value)) + "\n"
-
-		}
 		return fmt.Sprintf("*%s*: %s", field, DecodeForTelegram(value)) + "\n"
 	}
 	return ""
