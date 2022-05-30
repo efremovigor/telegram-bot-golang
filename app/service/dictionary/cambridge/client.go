@@ -8,15 +8,16 @@ import (
 )
 
 func Get(query string) Info {
+	info := Info{}
+
 	html, err := htmlquery.LoadURL("https://dictionary.cambridge.org/dictionary/english-russian/" + query + "?q=" + query)
 	if err != nil {
 		fmt.Println(err)
+		return info
 	}
 
-	info := Info{}
 	if node, err := htmlquery.Query(html, xpathTitle); err == nil {
 		info.Text = strings.TrimSpace(htmlquery.InnerText(node))
-
 	}
 	if node, err := htmlquery.Query(html, xpathType); err == nil {
 		info.Type = strings.TrimSpace(htmlquery.InnerText(node))
