@@ -128,7 +128,7 @@ func GetIGotYourNewRequest(base string) string {
 
 func GetBlockWithRapidInfo(translate string) string {
 	return fmt.Sprintf(
-		"Translates of rapid-microsoft: %s\n\n", DecodeForTelegram(translate))
+		DecodeForTelegram("Translates of rapid-microsoft:")+" %s\n\n", DecodeForTelegram(translate))
 }
 
 func GetBlockWithCambridge(info cambridge.Info) string {
