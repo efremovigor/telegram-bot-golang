@@ -28,7 +28,7 @@ func Get(query string) Info {
 		if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsSemanticDescription); node != nil && err == nil {
 			explanation.SemanticDescription = strings.TrimSpace(
 				strings.Map(func(letter rune) rune {
-					if unicode.IsGraphic(letter) {
+					if unicode.IsGraphic(letter) && unicode.IsPrint(letter) {
 						return letter
 					}
 					return -1
