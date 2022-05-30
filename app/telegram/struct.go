@@ -119,7 +119,7 @@ func Reply(body WebhookReqBody, state string) SendMessageReqBody {
 
 func GetBaseMsg(name string, id int) string {
 	return fmt.Sprintf("Hey, [%s](tg://user?id=%d)\n", name, id) +
-		DecodeForTelegram("-----\n")
+		DecodeForTelegram("\n")
 }
 func GetIGotYourNewRequest(base string) string {
 	return fmt.Sprintf(
@@ -137,6 +137,9 @@ func GetBlockWithCambridge(info cambridge.Info) string {
 	if len(info.Explanation) > 0 {
 		mainBlock += DecodeForTelegram("Explanations:") + "\n"
 		for n, explanation := range info.Explanation {
+			if n > 0 {
+				mainBlock += DecodeForTelegram("-+-+-+-+-+-")
+			}
 			mainBlock += fmt.Sprintf("%d", n) + DecodeForTelegram(".") + "\n"
 			mainBlock += GetFieldIfCan(explanation.Level, "Level")
 			mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic")
@@ -156,7 +159,7 @@ func GetFieldIfCan(value string, field string) string {
 			return fmt.Sprintf("%s", DecodeForTelegram(value)) + "\n"
 
 		}
-		return fmt.Sprintf("%s: %s", field, DecodeForTelegram(value)) + "\n"
+		return fmt.Sprintf("*%s*: %s", field, DecodeForTelegram(value)) + "\n"
 	}
 	return ""
 }
