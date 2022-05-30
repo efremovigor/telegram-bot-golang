@@ -132,17 +132,17 @@ func GetBlockWithRapidInfo(translate string) string {
 }
 
 func GetBlockWithCambridge(info cambridge.Info) string {
-	mainBlock := DecodeForTelegram("Information from cambridge-dictionary:") + GetFieldIfCan(info.Text, "") + "\n"
-	mainBlock += GetFieldIfCan(info.Type, "Type") + "\n"
+	mainBlock := DecodeForTelegram("Information from cambridge-dictionary:") + GetFieldIfCan(info.Text, "")
+	mainBlock += GetFieldIfCan(info.Type, "Type")
 	if len(info.Explanation) > 0 {
 		mainBlock += DecodeForTelegram("Explanations:") + "\n"
 		for n, explanation := range info.Explanation {
 			mainBlock += fmt.Sprintf("%d", n) + DecodeForTelegram(".") + "\n"
-			mainBlock += GetFieldIfCan(explanation.Level, "Level") + "\n"
-			mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic") + "\n"
-			mainBlock += GetFieldIfCan(explanation.Translate, "Translate") + "\n"
+			mainBlock += GetFieldIfCan(explanation.Level, "Level")
+			mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic")
+			mainBlock += GetFieldIfCan(explanation.Translate, "Translate")
 			if len(explanation.Example[0]) > 0 {
-				mainBlock += GetFieldIfCan(explanation.Example[0], "Example") + "\n"
+				mainBlock += GetFieldIfCan(explanation.Example[0], "Example")
 			}
 		}
 	}
@@ -153,10 +153,10 @@ func GetBlockWithCambridge(info cambridge.Info) string {
 func GetFieldIfCan(value string, field string) string {
 	if len([]rune(value)) > 0 {
 		if len([]rune(field)) == 0 {
-			return fmt.Sprintf("%s", DecodeForTelegram(value))
+			return fmt.Sprintf("%s", DecodeForTelegram(value)) + "\n"
 
 		}
-		return fmt.Sprintf("%s: %s", field, DecodeForTelegram(value))
+		return fmt.Sprintf("%s: %s", field, DecodeForTelegram(value)) + "\n"
 	}
 	return ""
 }
