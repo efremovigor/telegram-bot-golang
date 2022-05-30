@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/antchfx/htmlquery"
 	"strings"
+	"unicode"
 )
 
 func Get(query string) Info {
@@ -25,7 +26,13 @@ func Get(query string) Info {
 	for _, xpathExplanation := range xpathExplanations {
 		explanation := Explanation{}
 		if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsSemanticDescription); node != nil && err == nil {
-			explanation.SemanticDescription = strings.TrimSpace(htmlquery.InnerText(node))
+			explanation.SemanticDescription = strings.TrimSpace(
+				strings.Map(func(letter rune) rune {
+					if unicode.IsGraphic(letter) {
+						return letter
+					}
+					return -1
+				}, htmlquery.InnerText(node)))
 		}
 		if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsLevel); node != nil && err == nil {
 			explanation.Level = strings.TrimSpace(htmlquery.InnerText(node))
