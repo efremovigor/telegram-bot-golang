@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"telegram-bot-golang/config"
 	"telegram-bot-golang/db"
 	"telegram-bot-golang/service/dictionary/cambridge"
 	telegram "telegram-bot-golang/telegram"
@@ -105,8 +106,8 @@ func main() {
 		return c.JSON(http.StatusOK, cambridge.Get(query))
 	})
 
-	//e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
-	e.Logger.Fatal(e.Start(":443"))
+	e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
+	//e.Logger.Fatal(e.Start(":443"))
 }
 
 func getHtmlPage(webPage string) (string, error) {
