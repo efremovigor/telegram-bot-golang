@@ -119,7 +119,7 @@ func Reply(body WebhookReqBody, state string) SendMessageReqBody {
 
 func GetBaseMsg(name string, id int) string {
 	return fmt.Sprintf("Hey, [%s](tg://user?id=%d)\n", name, id) +
-		"-----\n"
+		DecodeForTelegram("-----\n")
 }
 func GetIGotYourNewRequest(base string) string {
 	return fmt.Sprintf(
@@ -132,22 +132,33 @@ func GetBlockWithRapidInfo(translate string) string {
 }
 
 func GetBlockWithCambridge(info cambridge.Info) string {
-	mainBlock := fmt.Sprintf("Information from cambridge-dictionary: %s\n", DecodeForTelegram(info.Text)) +
-		fmt.Sprintf("Type: %s\n", DecodeForTelegram(info.Type))
+	mainBlock := "Information from cambridge-dictionary:" + GetFieldIfCan(info.Text, "") + "\n"
+	mainBlock += GetFieldIfCan(info.Type, "Type") + "\n"
 	if len(info.Explanation) > 0 {
 		mainBlock += "Explanations:\n"
 		for _, explanation := range info.Explanation {
 			mainBlock += "1.\n"
-			mainBlock += fmt.Sprintf("Level: %s\n", DecodeForTelegram(explanation.Level))
-			mainBlock += fmt.Sprintf("Semantic: %s\n", DecodeForTelegram(explanation.SemanticDescription))
-			mainBlock += fmt.Sprintf("Translate: %s\n", DecodeForTelegram(explanation.Translate))
+			mainBlock += GetFieldIfCan(explanation.Level, "Level") + "\n"
+			mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic") + "\n"
+			mainBlock += GetFieldIfCan(explanation.Translate, "Translate") + "\n"
 			if len(explanation.Example[0]) > 0 {
-				mainBlock += fmt.Sprintf("Example: %s\n", DecodeForTelegram(explanation.Example[0]))
+				mainBlock += GetFieldIfCan(explanation.Example[0], "Example") + "\n"
 			}
 		}
 	}
 
 	return mainBlock + "\n"
+}
+
+func GetFieldIfCan(value string, field string) string {
+	if len([]rune(value)) > 0 {
+		if len([]rune(field)) > 0 {
+			return fmt.Sprintf("%s", DecodeForTelegram(value))
+
+		}
+		return fmt.Sprintf("%s: %s", field, DecodeForTelegram(value))
+	}
+	return ""
 }
 
 func GetChangeTranslateMsg(translate string) string {
