@@ -16,7 +16,7 @@ import (
 const url = "https://microsoft-translator-text.p.rapidapi.com/translate?to=%s&from=%s&api-version=3.0&profanityAction=NoAction&textType=plain"
 const cacheKey = "translate_rapid_from_%s_to_%s_text_%s"
 
-func GetTranslate(text string, to string, from string) ([]MicrosoftTranslate, error) {
+func GetTranslate(text string, to string, from string) string {
 	var microsoftTranslateResponse []MicrosoftTranslate
 	var err error
 	translate, err := db.Get(fmt.Sprintf(cacheKey, from, to, text))
@@ -45,13 +45,25 @@ func GetTranslate(text string, to string, from string) ([]MicrosoftTranslate, er
 		} else {
 			db.Set(fmt.Sprintf(cacheKey, from, to, text), string(buf))
 		}
-		return microsoftTranslateResponse, err
-	}
-	fmt.Println("get translate from redis")
+	} else {
+		fmt.Println("get translate from redis")
 
-	if err = json.Unmarshal([]byte(translate), &microsoftTranslateResponse); err != nil {
-		fmt.Println(err)
+		if err = json.Unmarshal([]byte(translate), &microsoftTranslateResponse); err != nil {
+			fmt.Println(err)
+		}
 	}
 
-	return microsoftTranslateResponse, err
+	stringTranslation := ""
+	if err == nil {
+		for i, response := range microsoftTranslateResponse {
+			for _, translation := range response.Translations {
+				if i != 0 {
+					stringTranslation += ", "
+				}
+				stringTranslation += translation.Text
+			}
+		}
+	}
+
+	return stringTranslation
 }

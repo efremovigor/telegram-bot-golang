@@ -3,6 +3,7 @@ package telegram
 import (
 	"fmt"
 	"strings"
+	"telegram-bot-golang/service/dictionary/cambridge"
 	rapid_microsoft "telegram-bot-golang/service/translate/rapid-microsoft"
 )
 
@@ -107,31 +108,46 @@ func Reply(body WebhookReqBody, state string) SendMessageReqBody {
 		to = "en"
 	}
 
-	translate, err := rapid_microsoft.GetTranslate(body.Message.Text, to, from)
-
-	stringTranslation := ""
-	if err == nil {
-		for i, response := range translate {
-			for _, translation := range response.Translations {
-				if i != 0 {
-					stringTranslation += ", "
-				}
-				stringTranslation += translation.Text
-			}
-		}
-	}
-
 	return GetTelegramRequest(
 		body.GetChatId(),
-		GetBaseMsg(body.GetUsername(), body.GetUserId())+GetTranslateMsg(body.GetChatText(), stringTranslation),
+		GetBaseMsg(body.GetUsername(), body.GetUserId())+
+			GetIGotYourNewRequest(body.GetChatText())+
+			GetBlockWithRapidInfo(rapid_microsoft.GetTranslate(body.Message.Text, to, from))+
+			GetBlockWithCambridge(cambridge.Get(body.Message.Text)),
 	)
 }
 
 func GetBaseMsg(name string, id int) string {
-	return fmt.Sprintf("Hey, [%s](tg://user?id=%d), ", name, id)
+	return fmt.Sprintf("Hey, [%s](tg://user?id=%d)\n", name, id) +
+		"-----\n"
 }
-func GetTranslateMsg(base string, translate string) string {
-	return fmt.Sprintf("I got your message: %s \ntranslate:%s", DecodeForTelegram(base), DecodeForTelegram(translate))
+func GetIGotYourNewRequest(base string) string {
+	return fmt.Sprintf(
+		"I got your message: %s\n", DecodeForTelegram(base))
+}
+
+func GetBlockWithRapidInfo(translate string) string {
+	return fmt.Sprintf(
+		"Translates of rapid-microsoft: %s\n\n", DecodeForTelegram(translate))
+}
+
+func GetBlockWithCambridge(info cambridge.Info) string {
+	mainBlock := fmt.Sprintf("Information from cambridge-dictionary: %s\n", DecodeForTelegram(info.Text)) +
+		fmt.Sprintf("Type: %s\n", DecodeForTelegram(info.Type))
+	if len(info.Explanation) > 0 {
+		mainBlock += "Explanations:\n"
+		for _, explanation := range info.Explanation {
+			mainBlock += "1.\n"
+			mainBlock += fmt.Sprintf("Level: %s\n", DecodeForTelegram(explanation.Level))
+			mainBlock += fmt.Sprintf("Semantic: %s\n", DecodeForTelegram(explanation.SemanticDescription))
+			mainBlock += fmt.Sprintf("Translate: %s\n", DecodeForTelegram(explanation.Translate))
+			if len(explanation.Example[0]) > 0 {
+				mainBlock += fmt.Sprintf("Example: %s\n", DecodeForTelegram(explanation.Example[0]))
+			}
+		}
+	}
+
+	return mainBlock + "\n"
 }
 
 func GetChangeTranslateMsg(translate string) string {
