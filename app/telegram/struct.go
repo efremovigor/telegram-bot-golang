@@ -152,7 +152,7 @@ func GetBlockWithCambridge(info cambridge.Info) string {
 
 func GetFieldIfCan(value string, field string) string {
 	if len([]rune(value)) > 0 {
-		if len([]rune(field)) > 0 {
+		if len([]rune(field)) == 0 {
 			return fmt.Sprintf("%s", DecodeForTelegram(value))
 
 		}
