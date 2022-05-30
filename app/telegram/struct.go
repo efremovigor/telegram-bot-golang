@@ -144,7 +144,7 @@ func GetBlockWithCambridge(info cambridge.Info) string {
 			mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic")
 			mainBlock += GetFieldIfCan(explanation.Description, "Description")
 			mainBlock += GetFieldIfCan(explanation.Translate, "Translate")
-			if len(explanation.Example[0]) > 0 {
+			if len(explanation.Example) > 0 {
 				mainBlock += GetFieldIfCan(explanation.Example[0], "Example")
 			}
 		}
