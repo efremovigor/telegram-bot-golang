@@ -131,7 +131,7 @@ func GetBaseMsg(name string, id int) string {
 	return fmt.Sprintf("Hey, [%s](tg://user?id=%d), ", name, id)
 }
 func GetTranslateMsg(base string, translate string) string {
-	return fmt.Sprintf("I got your message: %s, translate:%s", DecodeForTelegram(base), DecodeForTelegram(translate))
+	return fmt.Sprintf("I got your message: %s \ntranslate:%s", DecodeForTelegram(base), DecodeForTelegram(translate))
 }
 
 func GetChangeTranslateMsg(translate string) string {
@@ -143,7 +143,7 @@ func GetTelegramRequest(chatId int, text string) SendMessageReqBody {
 		ChatID:      chatId,
 		Text:        text,
 		ParseMode:   "MarkdownV2",
-		ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{{{Text: "Hello"}}, {{Text: "Привет"}}}, OneTimeKeyboard: true, ResizeKeyboard: true},
+		ReplyMarkup: ReplyMarkup{OneTimeKeyboard: true, ResizeKeyboard: true},
 	}
 }
 
@@ -153,6 +153,8 @@ func DecodeForTelegram(text string) string {
 		"<", "\\<",
 		".", "\\.",
 		"-", "\\-",
+		"=", "\\=",
+		"|", "\\|",
 		"!", "\\!",
 		"#", "\\#",
 		"{", "\\{",

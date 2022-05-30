@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/antchfx/htmlquery"
 	"github.com/labstack/echo/v4"
 	"io"
 	"io/ioutil"
@@ -13,6 +12,7 @@ import (
 	"net/http"
 	"telegram-bot-golang/config"
 	"telegram-bot-golang/db"
+	"telegram-bot-golang/service/dictionary/cambridge"
 	telegram "telegram-bot-golang/telegram"
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
@@ -103,21 +103,11 @@ func main() {
 
 	e.GET("/dictionary/:query", func(c echo.Context) error {
 		query := c.Param("query")
-		html, err := htmlquery.LoadURL("https://dictionary.cambridge.org/dictionary/english-russian/" + query + "?q=" + query)
-		if err != nil {
-			panic(err)
-		}
-
-		list, err := htmlquery.QueryAll(html, "//div[contains(@class, 'entry-body')]//div[contains(@class, 'entry-body__el')]//span[@lang=\"ru\"]")
-		var translate string
-
-		for _, n := range list {
-			translate += htmlquery.InnerText(n)
-		}
-		return c.JSON(http.StatusOK, translate)
+		return c.JSON(http.StatusOK, cambridge.Get(query))
 	})
+
 	e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
-	//e.Logger.Fatal(e.Start(":88"))
+	//e.Logger.Fatal(e.Start(":443"))
 }
 
 func getHtmlPage(webPage string) (string, error) {
