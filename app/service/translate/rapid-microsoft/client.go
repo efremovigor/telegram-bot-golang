@@ -19,7 +19,7 @@ const cacheKey = "translate_rapid_from_%s_to_%s_text_%s"
 func GetTranslate(text string, to string, from string) string {
 	var microsoftTranslateResponse []MicrosoftTranslate
 	var err error
-	translate, errGetCache := db.Get(fmt.Sprintf(cacheKey, from, to, text))
+	translate, errGetCache := db.Get(fmt.Sprintf(cacheKey, from, to, strings.ToLower(text)))
 	if errGetCache != nil {
 		fmt.Println("get translate from service")
 
@@ -43,7 +43,7 @@ func GetTranslate(text string, to string, from string) string {
 		if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&microsoftTranslateResponse); err != nil {
 			fmt.Println("could not decode microsoft response", err)
 		} else {
-			db.Set(fmt.Sprintf(cacheKey, from, to, text), buf)
+			db.Set(fmt.Sprintf(cacheKey, from, to, strings.ToLower(text)), buf)
 		}
 	} else {
 		fmt.Println("get translate from redis")

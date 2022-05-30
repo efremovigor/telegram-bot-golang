@@ -14,7 +14,7 @@ const cacheKey = "info_cambridge_page_%s"
 func Get(query string) Info {
 	info := Info{}
 
-	cachedInfo, errGetCache := db.Get(fmt.Sprintf(cacheKey, query))
+	cachedInfo, errGetCache := db.Get(fmt.Sprintf(cacheKey, strings.ToLower(query)))
 	if errGetCache != nil {
 		fmt.Println("get cambridge info from service")
 		html, err := htmlquery.LoadURL("https://dictionary.cambridge.org/dictionary/english-russian/" + query + "?q=" + query)
@@ -66,7 +66,7 @@ func Get(query string) Info {
 		if json, err := json.Marshal(info); err != nil {
 			fmt.Println(err)
 		} else {
-			db.Set(fmt.Sprintf(cacheKey, query), json)
+			db.Set(fmt.Sprintf(cacheKey, strings.ToLower(query)), json)
 		}
 
 	} else {
