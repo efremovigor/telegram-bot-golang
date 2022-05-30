@@ -22,6 +22,9 @@ func Get(query string) Info {
 	if node, err := htmlquery.Query(html, xpathType); err == nil && node != nil {
 		info.Type = strings.TrimSpace(htmlquery.InnerText(node))
 	}
+	if node, err := htmlquery.Query(html, xpathTranscription); err == nil && node != nil {
+		info.Transcription = strings.TrimSpace(htmlquery.InnerText(node))
+	}
 	xpathExplanations, err := htmlquery.QueryAll(html, xpathExplanations)
 
 	for _, xpathExplanation := range xpathExplanations {

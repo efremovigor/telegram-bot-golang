@@ -140,6 +140,7 @@ func GetBlockWithCambridge(info cambridge.Info) string {
 	}
 
 	mainBlock += GetFieldIfCan(info.Type, "Type")
+	mainBlock += GetFieldIfCan(info.Transcription, "Transcription")
 	if len(info.Explanation) > 0 {
 		for n, explanation := range info.Explanation {
 			if n > 0 {
