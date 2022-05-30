@@ -136,8 +136,8 @@ func GetBlockWithCambridge(info cambridge.Info) string {
 	mainBlock += GetFieldIfCan(info.Type, "Type") + "\n"
 	if len(info.Explanation) > 0 {
 		mainBlock += "Explanations:\n"
-		for _, explanation := range info.Explanation {
-			mainBlock += "1.\n"
+		for n, explanation := range info.Explanation {
+			mainBlock += fmt.Sprintf("%d", n) + ".\n"
 			mainBlock += GetFieldIfCan(explanation.Level, "Level") + "\n"
 			mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic") + "\n"
 			mainBlock += GetFieldIfCan(explanation.Translate, "Translate") + "\n"
