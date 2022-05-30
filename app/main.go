@@ -13,7 +13,7 @@ import (
 	"telegram-bot-golang/config"
 	"telegram-bot-golang/db"
 	"telegram-bot-golang/service/dictionary/cambridge"
-	telegram "telegram-bot-golang/telegram"
+	"telegram-bot-golang/telegram"
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
@@ -108,24 +108,4 @@ func main() {
 
 	e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
 	//e.Logger.Fatal(e.Start(":443"))
-}
-
-func getHtmlPage(webPage string) (string, error) {
-
-	resp, err := http.Get(webPage)
-
-	if err != nil {
-		return "", err
-	}
-
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-
-	if err != nil {
-
-		return "", err
-	}
-
-	return string(body), nil
 }
