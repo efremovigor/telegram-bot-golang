@@ -16,10 +16,10 @@ func Get(query string) Info {
 		return info
 	}
 
-	if node, err := htmlquery.Query(html, xpathTitle); err == nil {
+	if node, err := htmlquery.Query(html, xpathTitle); err == nil && node != nil {
 		info.Text = strings.TrimSpace(htmlquery.InnerText(node))
 	}
-	if node, err := htmlquery.Query(html, xpathType); err == nil {
+	if node, err := htmlquery.Query(html, xpathType); err == nil && node != nil {
 		info.Type = strings.TrimSpace(htmlquery.InnerText(node))
 	}
 	xpathExplanations, err := htmlquery.QueryAll(html, xpathExplanations)
