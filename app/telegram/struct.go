@@ -132,7 +132,7 @@ func GetBlockWithRapidInfo(translate string) string {
 }
 
 func GetBlockWithCambridge(info cambridge.Info) string {
-	mainBlock := "Information from cambridge-dictionary:" + GetFieldIfCan(info.Text, "") + "\n"
+	mainBlock := DecodeForTelegram("Information from cambridge-dictionary:") + GetFieldIfCan(info.Text, "") + "\n"
 	mainBlock += GetFieldIfCan(info.Type, "Type") + "\n"
 	if len(info.Explanation) > 0 {
 		mainBlock += "Explanations:\n"
