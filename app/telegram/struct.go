@@ -123,7 +123,7 @@ func GetBaseMsg(name string, id int) string {
 }
 func GetIGotYourNewRequest(base string) string {
 	return fmt.Sprintf(
-		DecodeForTelegram("I got your message:")+" %s\n", DecodeForTelegram(base))
+		DecodeForTelegram("I got your message:")+" *%s*\n", DecodeForTelegram(base))
 }
 
 func GetBlockWithRapidInfo(translate string) string {
