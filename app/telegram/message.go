@@ -72,5 +72,5 @@ func GetRatingHeader(n int, all bool) string {
 	return fmt.Sprintf("*My %d words used:*\n", n)
 }
 func GetRowRating(n int, statistic model.WordStatistic) string {
-	return fmt.Sprintf("*%d*\\. %s \\- %d time/n", n, statistic.Word, statistic.Count)
+	return fmt.Sprintf("*%d*\\. %s \\- %d\n", n, statistic.Word, statistic.Count)
 }
