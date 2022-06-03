@@ -23,9 +23,14 @@ func SaveNewWord(userId int, newWord string) {
 		}
 		return
 	} else {
-		statistic, err = model.GetUserStatistic(word, userId)
-		if err != nil {
-			fmt.Println("postgree:error of get statistic:" + err.Error())
+		if statistic, err = model.GetUserStatistic(word, userId); err != nil {
+			statistic = model.NewUserStatistic(word, userId)
+
+			err = statistic.SaveUserStatistic()
+			if err != nil {
+				fmt.Println("postgree:error of save statistic:" + err.Error())
+			}
+			return
 		}
 	}
 	statistic.IncrRequested()
