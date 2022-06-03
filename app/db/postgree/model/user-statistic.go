@@ -60,24 +60,3 @@ func GetUserStatistic(word Word, userId int) (userStatistic UserStatistic, err e
 	err = row.Scan(&userStatistic.Id, &userStatistic.UserId, &userStatistic.WordId, &userStatistic.Requested, &userStatistic.CreatedAt, &userStatistic.UpdatedAt)
 	return
 }
-
-//func GetUserStatistics(page int, limit int) (posts []UserStatistic, err error) {
-//
-//	connect := postgree.GetDbConnection()
-//	defer connect.Close()
-//
-//	rows, err := connect.Query("SELECT id, name, created_at , updated_at FROM posts WHERE deleted = false order by id OFFSET $1 LIMIT $2", page*limit, limit)
-//	if err != nil {
-//		return
-//	}
-//
-//	for rows.Next() {
-//		post := UserStatistic{}
-//		err = rows.Scan(&userStatistic.Id, &userStatistic.Name, &userStatistic.CreatedAt, &userStatistic.UpdatedAt)
-//		if err != nil {
-//			return
-//		}
-//		posts = append(posts, post)
-//	}
-//	return
-//}

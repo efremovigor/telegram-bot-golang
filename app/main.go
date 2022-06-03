@@ -35,9 +35,9 @@ func reply(body telegram.WebhookReqBody) error {
 	case command.EnRuCommand:
 		response = command.ChangeTranslateTransition(command.EnRuCommand, body)
 	case command.GetAllTop:
-		response = command.Draft(body)
+		response = command.GetTop10(body)
 	case command.GetMyTop:
-		response = command.Draft(body)
+		response = command.GetTop10ForUser(body)
 	default:
 		response = command.General(body)
 	}
