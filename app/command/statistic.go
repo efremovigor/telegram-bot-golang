@@ -8,7 +8,7 @@ import (
 func GetTop10(body telegram.WebhookReqBody) telegram.SendMessageReqBody {
 	text := ""
 	list, err := model.GetWordStatistics(10)
-	if err != nil {
+	if err == nil {
 		text = telegram.GetRatingHeader(10, true)
 		text += handleList(list)
 	}
@@ -18,7 +18,7 @@ func GetTop10(body telegram.WebhookReqBody) telegram.SendMessageReqBody {
 func GetTop10ForUser(body telegram.WebhookReqBody) telegram.SendMessageReqBody {
 	text := ""
 	list, err := model.GetWordStatisticsForUser(10, body.GetUserId())
-	if err != nil {
+	if err == nil {
 		text = telegram.GetRatingHeader(10, false)
 		text += handleList(list)
 	}
