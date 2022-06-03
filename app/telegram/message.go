@@ -60,9 +60,9 @@ func GetChangeTranslateMsg(translate string) string {
 
 func GetRatingHeader(n int, all bool) string {
 	if all {
-		return fmt.Sprintf("*Top %d words used*/n", n)
+		return fmt.Sprintf("*Top %d words used:*\n", n)
 	}
-	return fmt.Sprintf("*My %d words used*/n", n)
+	return fmt.Sprintf("*My %d words used:*\n", n)
 }
 func GetRowRating(n int, statistic model.WordStatistic) string {
 	return fmt.Sprintf("*%d*\\. %s \\- %d time/n", n, statistic.Word, statistic.Count)
