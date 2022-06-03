@@ -18,7 +18,7 @@ func Reply(body WebhookReqBody, state string) SendMessageReqBody {
 	}
 	cambridgeInfo := cambridge.Get(body.Message.Text)
 	if cambridgeInfo.IsValid() {
-		statistic.Consider(body.Message.Text, body.GetUserId())
+		statistic.Consider(cambridgeInfo.Text, body.GetUserId())
 	}
 
 	return GetTelegramRequest(
