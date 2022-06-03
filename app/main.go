@@ -41,23 +41,24 @@ func reply(body telegram.WebhookReqBody) error {
 	default:
 		response = command.General(body)
 	}
+	if len([]rune(response.Text)) > 0 {
+		toTelegram, err := json.Marshal(response)
+		if err != nil {
+			return err
+		}
+		fmt.Println("----")
+		fmt.Println("to telegram json:" + string(toTelegram))
+		fmt.Println("+++")
+		fmt.Println("+++")
 
-	toTelegram, err := json.Marshal(response)
-	if err != nil {
-		return err
-	}
-	fmt.Println("----")
-	fmt.Println("to telegram json:" + string(toTelegram))
-	fmt.Println("+++")
-	fmt.Println("+++")
-
-	res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(toTelegram))
-	if err != nil {
-		return err
-	}
-	if res.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(res.Body)
-		return errors.New("Unexpected status:" + res.Status + " Message:" + string(body))
+		res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(toTelegram))
+		if err != nil {
+			return err
+		}
+		if res.StatusCode != http.StatusOK {
+			body, _ := ioutil.ReadAll(res.Body)
+			return errors.New("Unexpected status:" + res.Status + " Message:" + string(body))
+		}
 	}
 
 	return nil
