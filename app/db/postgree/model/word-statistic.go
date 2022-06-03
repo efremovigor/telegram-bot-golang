@@ -1,6 +1,9 @@
 package model
 
-import "telegram-bot-golang/db/postgree"
+import (
+	"fmt"
+	"telegram-bot-golang/db/postgree"
+)
 
 type WordStatistic struct {
 	Word  string
@@ -12,8 +15,9 @@ func GetWordStatistics(limit int) (list []WordStatistic, err error) {
 	connect := postgree.GetDbConnection()
 	postgree.CloseConnection(connect)
 
-	rows, err := connect.Query("SELECT w.name word , sum(us.requested) as count FROM user_statistic us LEFT JOIN word w on w.id = us.word_id GROUP BY w.name ORDER BY count LIMIt $1", limit)
+	rows, err := connect.Query("SELECT w.name word , sum(us.requested) as count FROM user_statistic us LEFT JOIN word w on w.id = us.word_id GROUP BY w.name ORDER BY count DESC LIMIT $1", limit)
 	if err != nil {
+		fmt.Println("postgree:don't find any rows:" + err.Error())
 		return
 	}
 
@@ -21,6 +25,7 @@ func GetWordStatistics(limit int) (list []WordStatistic, err error) {
 		statistic := WordStatistic{}
 		err = rows.Scan(&statistic.Word, &statistic.Count)
 		if err != nil {
+			fmt.Println("postgree:didn't able to write response:" + err.Error())
 			return
 		}
 		list = append(list, statistic)
@@ -33,8 +38,9 @@ func GetWordStatisticsForUser(limit int, userId int) (list []WordStatistic, err 
 	connect := postgree.GetDbConnection()
 	postgree.CloseConnection(connect)
 
-	rows, err := connect.Query("SELECT w.name word , sum(us.requested) as count FROM user_statistic us LEFT JOIN word w on w.id = us.word_id and us.user_id = $2 GROUP BY w.name ORDER BY count LIMIt $1", limit, userId)
+	rows, err := connect.Query("SELECT w.name word , sum(us.requested) as count FROM user_statistic us LEFT JOIN word w on w.id = us.word_id and us.user_id = $2 GROUP BY w.name ORDER BY count DESC LIMIT $1", limit, userId)
 	if err != nil {
+		fmt.Println("postgree:don't find any rows:" + err.Error())
 		return
 	}
 
@@ -42,6 +48,7 @@ func GetWordStatisticsForUser(limit int, userId int) (list []WordStatistic, err 
 		statistic := WordStatistic{}
 		err = rows.Scan(&statistic.Word, &statistic.Count)
 		if err != nil {
+			fmt.Println("postgree:didn't able to write response:" + err.Error())
 			return
 		}
 		list = append(list, statistic)

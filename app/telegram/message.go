@@ -39,6 +39,9 @@ func GetBlockWithCambridge(info cambridge.Info) string {
 					mainBlock += GetFieldIfCan(explanation.Example[0], "Example")
 				}
 			}
+			if len(info.Explanation) > 5 {
+				mainBlock += "\n" + DecodeForTelegram("...this is short info...") + "\n"
+			}
 		}
 	} else {
 		mainBlock += DecodeForTelegram("*-*") + "\n"
