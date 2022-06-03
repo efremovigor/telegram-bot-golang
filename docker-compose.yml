@@ -19,3 +19,32 @@ services:
       - ./data/redis:/data
     ports:
       - "6379"
+  db:
+    image: postgres:12.9
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PW}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - .:/docker-entrypoint-initdb.d
+      - .:/var/lib/postgresql/data
+    ports:
+#      - ${DB_PORT}:${DB_PORT}
+      - ${DB_PORT}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U root -d app" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    depends_on:
+      - app
+  flyway:
+    image: flyway/flyway
+    command: -url=jdbc:postgresql://db:${DB_PORT}/${DB_NAME} -user=${DB_USER} -password=${DB_PW} -connectRetries=10 -loggers=auto migrate info
+    volumes:
+      - ./migrations:/flyway/sql
+    depends_on:
+      - db

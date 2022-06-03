@@ -15,6 +15,13 @@ type Explanation struct {
 	Example             []string `json:"example"`
 }
 
+func (i Info) IsValid() bool {
+	if len(i.Text) > 0 {
+		return true
+	}
+	return false
+}
+
 const xpathBLockDescriptionEnRu = "//article[@id=\"page-content\"]//div[contains(@class, 'entry-body')]//div[contains(@class, 'entry-body__el')]"
 const xpathTitle = xpathBLockDescriptionEnRu + "//div[contains(@class, 'di-title')]/span/span"
 const xpathType = xpathBLockDescriptionEnRu + "//div[contains(@class, 'posgram')]/span"

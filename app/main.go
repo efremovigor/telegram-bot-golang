@@ -10,14 +10,13 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"telegram-bot-golang/command"
 	"telegram-bot-golang/config"
-	"telegram-bot-golang/db"
-	"telegram-bot-golang/service/dictionary/cambridge"
 	"telegram-bot-golang/telegram"
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-func sayPolo(body telegram.WebhookReqBody) error {
+func reply(body telegram.WebhookReqBody) error {
 
 	var response telegram.SendMessageReqBody
 	var err error
@@ -29,28 +28,18 @@ func sayPolo(body telegram.WebhookReqBody) error {
 	fmt.Println("from telegram json:" + string(fromTelegram))
 
 	switch body.GetChatText() {
-	case "/start":
-		response = telegram.GetTelegramRequest(
-			body.GetChatId(),
-			telegram.DecodeForTelegram("Hello Friend. How can I help you?"),
-		)
-	case "/ru_en":
-		db.Set(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()), "ru_en")
-		response = telegram.GetTelegramRequest(
-			body.GetChatId(),
-			telegram.GetBaseMsg(body.GetUsername(), body.GetUserId())+telegram.GetChangeTranslateMsg("RU -> EN"),
-		)
-
-	case "/en_ru":
-		db.Set(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()), "en_ru")
-		response = telegram.GetTelegramRequest(
-			body.GetChatId(),
-			telegram.GetBaseMsg(body.GetUsername(), body.GetUserId())+telegram.GetChangeTranslateMsg("EN -> RU"),
-		)
+	case command.StartCommand:
+		response = command.SayHello(body)
+	case command.RuEnCommand:
+		response = command.ChangeTranslateTransition(command.RuEnCommand, body)
+	case command.EnRuCommand:
+		response = command.ChangeTranslateTransition(command.EnRuCommand, body)
+	case command.GetAllTop:
+		response = command.Draft(body)
+	case command.GetMyTop:
+		response = command.Draft(body)
 	default:
-		fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
-		state, _ := db.Get(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()))
-		response = telegram.Reply(body, state)
+		response = command.General(body)
 	}
 
 	toTelegram, err := json.Marshal(response)
@@ -93,7 +82,7 @@ func main() {
 			return err
 		}
 
-		if err := sayPolo(*body); err != nil {
+		if err := reply(*body); err != nil {
 			fmt.Println("error in sending reply:", err)
 			return err
 		}
@@ -101,10 +90,14 @@ func main() {
 		return c.JSON(http.StatusOK, "")
 	})
 
-	e.GET("/dictionary/:query", func(c echo.Context) error {
-		query := c.Param("query")
-		return c.JSON(http.StatusOK, cambridge.Get(query))
-	})
+	//e.GET("/dictionary/:query", func(c echo.Context) error {
+	//	query := c.Param("query")
+	//	cambridgeInfo := cambridge.Get(query)
+	//	if cambridgeInfo.IsValid() {
+	//		statistic.Consider(query, 1)
+	//	}
+	//	return c.JSON(http.StatusOK, cambridgeInfo)
+	//})
 
 	e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
 	//e.Logger.Fatal(e.Start(":443"))

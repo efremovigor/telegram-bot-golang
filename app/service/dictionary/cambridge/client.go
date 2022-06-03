@@ -5,16 +5,14 @@ import (
 	"fmt"
 	"github.com/antchfx/htmlquery"
 	"strings"
-	"telegram-bot-golang/db"
+	"telegram-bot-golang/db/redis"
 	"unicode"
 )
-
-const cacheKey = "info_cambridge_page_%s"
 
 func Get(query string) Info {
 	info := Info{}
 
-	cachedInfo, errGetCache := db.Get(fmt.Sprintf(cacheKey, strings.ToLower(query)))
+	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgePageKey, strings.ToLower(query)))
 	if errGetCache != nil {
 		fmt.Println("get cambridge info from service")
 		html, err := htmlquery.LoadURL("https://dictionary.cambridge.org/dictionary/english-russian/" + query + "?q=" + query)
@@ -63,10 +61,10 @@ func Get(query string) Info {
 			}
 			info.Explanation = append(info.Explanation, explanation)
 		}
-		if json, err := json.Marshal(info); err != nil {
+		if infoInJson, err := json.Marshal(info); err != nil {
 			fmt.Println(err)
 		} else {
-			db.Set(fmt.Sprintf(cacheKey, strings.ToLower(query)), json)
+			redis.Set(fmt.Sprintf(redis.InfoCambridgePageKey, strings.ToLower(query)), infoInJson)
 		}
 
 	} else {

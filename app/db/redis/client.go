@@ -1,4 +1,4 @@
-package db
+package redis
 
 import (
 	"context"
@@ -20,7 +20,7 @@ func Get(key string) (value string, err error) {
 	value, err = getRedis().Get(ctx, key).
 		Result()
 	if err != nil {
-		fmt.Println("error of getting cache:" + err.Error())
+		fmt.Println("redis:error of getting cache:" + err.Error())
 	}
 	return
 }
@@ -28,6 +28,6 @@ func Get(key string) (value string, err error) {
 func Set(key string, value interface{}) {
 	err := getRedis().Set(ctx, key, value, 0).Err()
 	if err != nil {
-		fmt.Println("error of writing cache:" + err.Error())
+		fmt.Println("redis:error of writing cache:" + err.Error())
 	}
 }

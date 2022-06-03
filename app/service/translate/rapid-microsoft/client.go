@@ -9,17 +9,16 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"telegram-bot-golang/db"
+	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/env"
 )
 
 const url = "https://microsoft-translator-text.p.rapidapi.com/translate?to=%s&from=%s&api-version=3.0&profanityAction=NoAction&textType=plain"
-const cacheKey = "translate_rapid_from_%s_to_%s_text_%s"
 
 func GetTranslate(text string, to string, from string) string {
 	var microsoftTranslateResponse []MicrosoftTranslate
 	var err error
-	translate, errGetCache := db.Get(fmt.Sprintf(cacheKey, from, to, strings.ToLower(text)))
+	translate, errGetCache := redis.Get(fmt.Sprintf(redis.TranslateRapidMicrosoftKey, from, to, strings.ToLower(text)))
 	if errGetCache != nil {
 		fmt.Println("get translate from service")
 
@@ -32,7 +31,7 @@ func GetTranslate(text string, to string, from string) string {
 
 		res, _ := http.DefaultClient.Do(req)
 
-		defer res.Body.Close()
+		defer CloseConnection(res.Body)
 
 		buf, _ := ioutil.ReadAll(res.Body)
 		b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
@@ -43,7 +42,7 @@ func GetTranslate(text string, to string, from string) string {
 		if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&microsoftTranslateResponse); err != nil {
 			fmt.Println("could not decode microsoft response", err)
 		} else {
-			db.Set(fmt.Sprintf(cacheKey, from, to, strings.ToLower(text)), buf)
+			redis.Set(fmt.Sprintf(redis.TranslateRapidMicrosoftKey, from, to, strings.ToLower(text)), buf)
 		}
 	} else {
 		fmt.Println("get translate from redis")
@@ -66,4 +65,11 @@ func GetTranslate(text string, to string, from string) string {
 	}
 
 	return stringTranslation
+}
+
+func CloseConnection(connect io.ReadCloser) {
+	err := connect.Close()
+	if err != nil {
+		fmt.Println("rapid:error close connection:" + err.Error())
+	}
 }
