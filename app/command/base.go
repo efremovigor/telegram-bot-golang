@@ -24,10 +24,10 @@ func Help(body telegram.WebhookReqBody) telegram.SendMessageReqBody {
 		body.GetChatId(),
 		"*List of commands available to you:*\n"+
 			telegram.GetRowSeparation()+
-			RuEnCommand+fmt.Sprintf("Change translate of transition %s \n", telegram.DecodeForTelegram(Transitions()[RuEnCommand].Desc))+
-			EnRuCommand+fmt.Sprintf("Change translate of transition %s \n", telegram.DecodeForTelegram(Transitions()[EnRuCommand].Desc))+
-			HelpCommand+"Show all the available commands\n"+
-			GetAllTopCommand+"To see the most popular requests for translation or explanation  \n"+
-			GetMyTopCommand+"To see your popular requests for translation or explanation  \n",
+			"*"+telegram.DecodeForTelegram(RuEnCommand)+fmt.Sprintf("* \\- Change translate of transition %s \n", telegram.DecodeForTelegram(Transitions()[RuEnCommand].Desc))+
+			"*"+telegram.DecodeForTelegram(EnRuCommand)+fmt.Sprintf("* \\- Change translate of transition %s \n", telegram.DecodeForTelegram(Transitions()[EnRuCommand].Desc))+
+			"*"+telegram.DecodeForTelegram(HelpCommand)+"* \\- Show all the available commands\n"+
+			"*"+telegram.DecodeForTelegram(GetAllTopCommand)+"* \\- To see the most popular requests for translation or explanation  \n"+
+			"*"+telegram.DecodeForTelegram(GetMyTopCommand)+"* \\- To see your popular requests for translation or explanation  \n",
 	)
 }
