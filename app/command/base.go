@@ -18,3 +18,10 @@ func General(body telegram.WebhookReqBody) telegram.SendMessageReqBody {
 	state, _ := redis.Get(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()))
 	return telegram.Reply(body, state)
 }
+
+func Help(body telegram.WebhookReqBody) telegram.SendMessageReqBody {
+	return telegram.GetTelegramRequest(
+		body.GetChatId(),
+		telegram.GetHelpHeader(),
+	)
+}

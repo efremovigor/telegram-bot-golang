@@ -30,13 +30,15 @@ func reply(body telegram.WebhookReqBody) error {
 	switch body.GetChatText() {
 	case command.StartCommand:
 		response = command.SayHello(body)
+	case command.HelpCommand:
+		response = command.Help(body)
 	case command.RuEnCommand:
 		response = command.ChangeTranslateTransition(command.RuEnCommand, body)
 	case command.EnRuCommand:
 		response = command.ChangeTranslateTransition(command.EnRuCommand, body)
-	case command.GetAllTop:
+	case command.GetAllTopCommand:
 		response = command.GetTop10(body)
-	case command.GetMyTop:
+	case command.GetMyTopCommand:
 		response = command.GetTop10ForUser(body)
 	default:
 		response = command.General(body)
