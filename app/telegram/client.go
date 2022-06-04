@@ -70,7 +70,7 @@ func SendVoice(chatId int) {
 
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN"))
 
-	payload := strings.NewReader(fmt.Sprintf("{\"title\":\"Hello\",\"chat_id\":%d,\"audio\":\"BQACAgQAAxkDAAIDSWKbf4rOWkrezgXn9ZZSvqqWNF7NAAIGAwACJpTkUF3cWGDxH4YgJAQ\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
+	payload := strings.NewReader(fmt.Sprintf("{\"performer\":\"Hello\",\"title\":\"Hello\",\"chat_id\":%d,\"audio\":\"BQACAgQAAxkDAAIDSWKbf4rOWkrezgXn9ZZSvqqWNF7NAAIGAwACJpTkUF3cWGDxH4YgJAQ\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
 
 	req, _ := http.NewRequest("POST", url, payload)
 
@@ -121,3 +121,11 @@ type T struct {
 }
 
 //{"ok":true,"result":{"message_id":841,"from":{"id":5125700707,"is_bot":true,"first_name":"EnglishHelper","username":"IdontSpeakBot"},"chat":{"id":184357122,"first_name":"Igor","last_name":"Efremov","username":"Igor198811","type":"private"},"date":1654357898,"document":{"file_name":"ukheft_029.ogg","mime_type":"audio/ogg","file_id":"BQACAgQAAxkDAAIDSWKbf4rOWkrezgXn9ZZSvqqWNF7NAAIGAwACJpTkUF3cWGDxH4YgJAQ","file_unique_id":"AgADBgMAAiaU5FA","file_size":8769}}}
+type T2 struct {
+	Title               string      `json:"title"`
+	ChatId              int         `json:"chat_id"`
+	Audio               string      `json:"audio"`
+	Duration            interface{} `json:"duration"`
+	DisableNotification bool        `json:"disable_notification"`
+	ReplyToMessageId    interface{} `json:"reply_to_message_id"`
+}
