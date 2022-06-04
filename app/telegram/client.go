@@ -1,10 +1,14 @@
 package telegram
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"telegram-bot-golang/env"
 	"telegram-bot-golang/service/dictionary/cambridge"
@@ -74,32 +78,68 @@ func SendVoice(chatId int, word string) {
 		fmt.Println(err)
 	}
 	defer resp.Body.Close()
-	file, err := io.ReadAll(resp.Body)
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, _ := writer.CreateFormFile("audio", filepath.Base("audio.mp3"))
+	io.Copy(part, resp.Body)
+
+	_ = writer.WriteField("performer", "hello")
+	_ = writer.WriteField("title", "hello")
+	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
+	err = writer.Close()
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN"))
-
-	payload := strings.NewReader(fmt.Sprintf("{\"performer\":\"Hello\",\"title\":\"Hello\",\"chat_id\":%d,\"audio\":\""+string(file)+"\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
-
-	req, _ := http.NewRequest("POST", url, payload)
-
-	req.Header.Add("Accept", "application/json")
-
-	req.Header.Add("User-Agent", "Telegram Bot SDK - (https://github.com/irazasyed/telegram-bot-sdk)")
-
-	req.Header.Add("Content-Type", "multipart/form-data")
-
-	res, _ := http.DefaultClient.Do(req)
-
+	r, _ := http.NewRequest("POST", fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN")), body)
+	r.Header.Add("Content-Type", writer.FormDataContentType())
+	client := &http.Client{}
+	res, err := client.Do(r)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	defer res.Body.Close()
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body1, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(body1))
 
-	fmt.Println(res)
+	//resp, err := http.Get("https://dictionary.cambridge.org/media/english-russian/uk_pron/u/ukh/ukhef/ukheft_029.mp3")
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//defer resp.Body.Close()
+	//file, err := io.ReadAll(resp.Body)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
 
-	fmt.Println(string(body))
+	//url := fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN"))
+	//
+	//payload := strings.NewReader(fmt.Sprintf("{\"performer\":\"Hello\",\"title\":\"Hello\",\"chat_id\":%d,\"audio\":\""+string(file)+"\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
+	//
+	//req, _ := http.NewRequest("POST", url, payload)
+	//
+	//req.Header.Add("Accept", "application/json")
+	//
+	//req.Header.Add("User-Agent", "Telegram Bot SDK - (https://github.com/irazasyed/telegram-bot-sdk)")
+	//
+	//req.Header.Add("Content-Type", "multipart/form-data")
+	//
+	//res, _ := http.DefaultClient.Do(req)
+	//
+	//defer res.Body.Close()
+	//
+	//body, _ := ioutil.ReadAll(res.Body)
+	//
+	//fmt.Println(res)
+	//
+	//fmt.Println(string(body))
 
 }
 
