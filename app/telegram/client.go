@@ -68,9 +68,9 @@ func DecodeForTelegram(text string) string {
 
 func SendVoice(chatId int) {
 
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendVoice", env.GetEnvVariable("TELEGRAM_API_TOKEN"))
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN"))
 
-	payload := strings.NewReader(fmt.Sprintf("{\"chat_id\":%d,\"voice\":\"BQACAgQAAxkDAAIDSWKbf4rOWkrezgXn9ZZSvqqWNF7NAAIGAwACJpTkUF3cWGDxH4YgJAQ\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
+	payload := strings.NewReader(fmt.Sprintf("{\"title\":\"Hello\",\"chat_id\":%d,\"audio\":\"BQACAgQAAxkDAAIDSWKbf4rOWkrezgXn9ZZSvqqWNF7NAAIGAwACJpTkUF3cWGDxH4YgJAQ\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
 
 	req, _ := http.NewRequest("POST", url, payload)
 
@@ -91,3 +91,33 @@ func SendVoice(chatId int) {
 	fmt.Println(string(body))
 
 }
+
+type T struct {
+	Ok     bool `json:"ok"`
+	Result struct {
+		MessageId int `json:"message_id"`
+		From      struct {
+			Id        int64  `json:"id"`
+			IsBot     bool   `json:"is_bot"`
+			FirstName string `json:"first_name"`
+			Username  string `json:"username"`
+		} `json:"from"`
+		Chat struct {
+			Id        int    `json:"id"`
+			FirstName string `json:"first_name"`
+			LastName  string `json:"last_name"`
+			Username  string `json:"username"`
+			Type      string `json:"type"`
+		} `json:"chat"`
+		Date     int `json:"date"`
+		Document struct {
+			FileName     string `json:"file_name"`
+			MimeType     string `json:"mime_type"`
+			FileId       string `json:"file_id"`
+			FileUniqueId string `json:"file_unique_id"`
+			FileSize     int    `json:"file_size"`
+		} `json:"document"`
+	} `json:"result"`
+}
+
+//{"ok":true,"result":{"message_id":841,"from":{"id":5125700707,"is_bot":true,"first_name":"EnglishHelper","username":"IdontSpeakBot"},"chat":{"id":184357122,"first_name":"Igor","last_name":"Efremov","username":"Igor198811","type":"private"},"date":1654357898,"document":{"file_name":"ukheft_029.ogg","mime_type":"audio/ogg","file_id":"BQACAgQAAxkDAAIDSWKbf4rOWkrezgXn9ZZSvqqWNF7NAAIGAwACJpTkUF3cWGDxH4YgJAQ","file_unique_id":"AgADBgMAAiaU5FA","file_size":8769}}}
