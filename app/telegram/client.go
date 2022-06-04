@@ -5,7 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 	"telegram-bot-golang/env"
 	"telegram-bot-golang/service/dictionary/cambridge"
@@ -70,23 +69,19 @@ func DecodeForTelegram(text string) string {
 
 func SendVoice(chatId int, word string) {
 
-	out, err := os.Create("./cache/media/cambridge/hello.mp3")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer out.Close()
 	resp, err := http.Get("https://dictionary.cambridge.org/media/english-russian/uk_pron/u/ukh/ukhef/ukheft_029.mp3")
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer resp.Body.Close()
-	_, err = io.Copy(out, resp.Body)
+	file, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN"))
 
-	payload := strings.NewReader(fmt.Sprintf("{\"performer\":\"Hello\",\"title\":\"Hello\",\"chat_id\":%d,\"audio\":\"./cache/media/cambridge/hello.mp3\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
+	payload := strings.NewReader(fmt.Sprintf("{\"performer\":\"Hello\",\"title\":\"Hello\",\"chat_id\":%d,\"audio\":\""+string(file)+"\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
 
 	req, _ := http.NewRequest("POST", url, payload)
 
@@ -94,7 +89,7 @@ func SendVoice(chatId int, word string) {
 
 	req.Header.Add("User-Agent", "Telegram Bot SDK - (https://github.com/irazasyed/telegram-bot-sdk)")
 
-	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Type", "multipart/form-data")
 
 	res, _ := http.DefaultClient.Do(req)
 
