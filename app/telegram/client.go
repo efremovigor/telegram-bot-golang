@@ -70,7 +70,7 @@ func SendVoice(chatId int) {
 
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendVoice", env.GetEnvVariable("TELEGRAM_API_TOKEN"))
 
-	payload := strings.NewReader(fmt.Sprintf("{\"chat_id\":%d,\"voice\":\"https://dictionary.cambridge.org/media/english-russian/uk_pron_ogg/u/ukh/ukhef/ukheft_029.ogg\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
+	payload := strings.NewReader(fmt.Sprintf("{\"chat_id\":%d,\"voice\":\"BQACAgQAAxkDAAIDSWKbf4rOWkrezgXn9ZZSvqqWNF7NAAIGAwACJpTkUF3cWGDxH4YgJAQ\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
 
 	req, _ := http.NewRequest("POST", url, payload)
 
