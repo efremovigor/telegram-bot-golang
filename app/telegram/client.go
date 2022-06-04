@@ -52,7 +52,7 @@ func GetResultFromCambridge(body WebhookReqBody) {
 	}
 	SendMessage(GetTelegramRequest(
 		body.GetChatId(), GetBlockWithCambridge(cambridgeInfo)))
-	SendVoices(body.GetChatId(), cambridgeInfo.VoicePath)
+	SendVoices(body.GetChatId(), cambridgeInfo)
 }
 
 func GetTelegramRequest(chatId int, text string) SendMessageReqBody {
@@ -109,18 +109,26 @@ func SendMessage(response SendMessageReqBody) {
 	}
 }
 
-func SendVoices(chatId int, voices cambridge.VoicePath) {
+func SendVoices(chatId int, info cambridge.Info) {
 
-	if len([]rune(voices.UK)) > 0 {
-		sendVoice(chatId, voices.UK)
+	if len([]rune(info.VoicePath.UK)) > 0 {
+		sendVoice(chatId, "UK", info)
 	}
-	if len([]rune(voices.US)) > 0 {
-		sendVoice(chatId, voices.US)
+	if len([]rune(info.VoicePath.US)) > 0 {
+		sendVoice(chatId, "US", info)
 	}
 }
 
-func sendVoice(chatId int, path string) {
+func sendVoice(chatId int, country string, info cambridge.Info) {
+	var path string
+	switch country {
+	case "UK":
+		path = info.VoicePath.UK
+	case "US":
+		path = info.VoicePath.UK
+	}
 	resp, err := http.Get(cambridge.Url + path)
+
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -130,8 +138,8 @@ func sendVoice(chatId int, path string) {
 	part, _ := writer.CreateFormFile("audio", filepath.Base("audio.mp3"))
 	io.Copy(part, resp.Body)
 
-	_ = writer.WriteField("performer", "hello")
-	_ = writer.WriteField("title", "hello")
+	_ = writer.WriteField("performer", country)
+	_ = writer.WriteField("title", info.Text)
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
 	err = writer.Close()
 	if err != nil {
