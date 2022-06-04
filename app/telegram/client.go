@@ -125,7 +125,7 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 	case "UK":
 		path = info.VoicePath.UK
 	case "US":
-		path = info.VoicePath.UK
+		path = info.VoicePath.US
 	}
 	resp, err := http.Get(cambridge.Url + path)
 
