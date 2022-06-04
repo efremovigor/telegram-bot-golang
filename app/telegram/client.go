@@ -1,7 +1,11 @@
 package telegram
 
 import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strings"
+	"telegram-bot-golang/env"
 	"telegram-bot-golang/service/dictionary/cambridge"
 	rapid_microsoft "telegram-bot-golang/service/translate/rapid-microsoft"
 	"telegram-bot-golang/statistic"
@@ -60,4 +64,30 @@ func DecodeForTelegram(text string) string {
 		"=", "\\=",
 	)
 	return replacer.Replace(text)
+}
+
+func SendVoice(chatId int) {
+
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendVoice", env.GetEnvVariable("TELEGRAM_API_TOKEN"))
+
+	payload := strings.NewReader(fmt.Sprintf("{\"chat_id\":%d,\"voice\":\"https://dictionary.cambridge.org/media/english-russian/uk_pron_ogg/u/ukh/ukhef/ukheft_029.ogg\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
+
+	req, _ := http.NewRequest("POST", url, payload)
+
+	req.Header.Add("Accept", "application/json")
+
+	req.Header.Add("User-Agent", "Telegram Bot SDK - (https://github.com/irazasyed/telegram-bot-sdk)")
+
+	req.Header.Add("Content-Type", "application/json")
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+
+	body, _ := ioutil.ReadAll(res.Body)
+
+	fmt.Println(res)
+
+	fmt.Println(string(body))
+
 }

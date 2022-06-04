@@ -61,6 +61,7 @@ func reply(body telegram.WebhookReqBody) error {
 			body, _ := ioutil.ReadAll(res.Body)
 			return errors.New("Unexpected status:" + res.Status + " Message:" + string(body))
 		}
+		telegram.SendVoice(body.GetChatId())
 	}
 
 	return nil
