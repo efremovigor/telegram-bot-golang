@@ -31,10 +31,10 @@ func Get(query string) Info {
 			info.Transcription = strings.TrimSpace(htmlquery.InnerText(node))
 		}
 		if node, err := htmlquery.Query(html, xpathUK); err == nil && node != nil {
-			info.VoicePath.UK = strings.TrimSpace(htmlquery.InnerText(node))
+			info.VoicePath.UK = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
 		}
 		if node, err := htmlquery.Query(html, xpathUS); err == nil && node != nil {
-			info.VoicePath.US = strings.TrimSpace(htmlquery.InnerText(node))
+			info.VoicePath.US = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
 		}
 		xpathExplanations, err := htmlquery.QueryAll(html, xpathExplanations)
 

@@ -114,6 +114,9 @@ func SendVoices(chatId int, voices cambridge.VoicePath) {
 	if len([]rune(voices.UK)) > 0 {
 		sendVoice(chatId, voices.UK)
 	}
+	if len([]rune(voices.US)) > 0 {
+		sendVoice(chatId, voices.US)
+	}
 }
 
 func sendVoice(chatId int, path string) {
