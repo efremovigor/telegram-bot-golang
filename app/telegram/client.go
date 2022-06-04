@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,9 +15,19 @@ import (
 	"telegram-bot-golang/service/dictionary/cambridge"
 	rapid_microsoft "telegram-bot-golang/service/translate/rapid-microsoft"
 	"telegram-bot-golang/statistic"
+	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-func Reply(body WebhookReqBody, state string) SendMessageReqBody {
+func GetHelloIGotYourMSGRequest(body WebhookReqBody) {
+	SendMessage(GetTelegramRequest(
+		body.GetChatId(),
+		GetBaseMsg(body.GetUsername(), body.GetUserId())+
+			GetIGotYourNewRequest(body.GetChatText()),
+	))
+
+}
+
+func GetResultFromRapidMicrosoft(body WebhookReqBody, state string) {
 	var from, to string
 	if state == "" || state == "en_ru" {
 		from = "en"
@@ -25,18 +36,23 @@ func Reply(body WebhookReqBody, state string) SendMessageReqBody {
 		from = "ru"
 		to = "en"
 	}
+	SendMessage(
+		GetTelegramRequest(
+			body.GetChatId(),
+			GetBlockWithRapidInfo(
+				rapid_microsoft.GetTranslate(body.Message.Text, to, from),
+			),
+		))
+}
+
+func GetResultFromCambridge(body WebhookReqBody) {
 	cambridgeInfo := cambridge.Get(body.Message.Text)
 	if cambridgeInfo.IsValid() {
 		statistic.Consider(cambridgeInfo.Text, body.GetUserId())
 	}
-
-	return GetTelegramRequest(
-		body.GetChatId(),
-		GetBaseMsg(body.GetUsername(), body.GetUserId())+
-			GetIGotYourNewRequest(body.GetChatText())+
-			GetBlockWithRapidInfo(rapid_microsoft.GetTranslate(body.Message.Text, to, from))+
-			GetBlockWithCambridge(cambridgeInfo),
-	)
+	SendMessage(GetTelegramRequest(
+		body.GetChatId(), GetBlockWithCambridge(cambridgeInfo)))
+	SendVoices(body.GetChatId(), cambridgeInfo.VoicePath)
 }
 
 func GetTelegramRequest(chatId int, text string) SendMessageReqBody {
@@ -71,9 +87,37 @@ func DecodeForTelegram(text string) string {
 	return replacer.Replace(text)
 }
 
-func SendVoice(chatId int, word string) {
+func SendMessage(response SendMessageReqBody) {
+	if len([]rune(response.Text)) > 0 {
+		toTelegram, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println("error of serialisation telegram struct:" + string(toTelegram))
+		}
+		fmt.Println("----")
+		fmt.Println("to telegram json:" + string(toTelegram))
+		fmt.Println("+++")
+		fmt.Println("+++")
 
-	resp, err := http.Get("https://dictionary.cambridge.org/media/english-russian/uk_pron/u/ukh/ukhef/ukheft_029.mp3")
+		res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(toTelegram))
+		if err != nil {
+			fmt.Println("error of sending message to telegram:" + string(toTelegram))
+		}
+		if res.StatusCode != http.StatusOK {
+			body, _ := ioutil.ReadAll(res.Body)
+			fmt.Println("bad response from telegram:" + res.Status + " Message:" + string(body) + "\n" + string(toTelegram))
+		}
+	}
+}
+
+func SendVoices(chatId int, voices cambridge.VoicePath) {
+
+	if len([]rune(voices.UK)) > 0 {
+		sendVoice(chatId, voices.UK)
+	}
+}
+
+func sendVoice(chatId int, path string) {
+	resp, err := http.Get(cambridge.Url + path)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -108,39 +152,6 @@ func SendVoice(chatId int, word string) {
 		return
 	}
 	fmt.Println(string(body1))
-
-	//resp, err := http.Get("https://dictionary.cambridge.org/media/english-russian/uk_pron/u/ukh/ukhef/ukheft_029.mp3")
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//defer resp.Body.Close()
-	//file, err := io.ReadAll(resp.Body)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-
-	//url := fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN"))
-	//
-	//payload := strings.NewReader(fmt.Sprintf("{\"performer\":\"Hello\",\"title\":\"Hello\",\"chat_id\":%d,\"audio\":\""+string(file)+"\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId))
-	//
-	//req, _ := http.NewRequest("POST", url, payload)
-	//
-	//req.Header.Add("Accept", "application/json")
-	//
-	//req.Header.Add("User-Agent", "Telegram Bot SDK - (https://github.com/irazasyed/telegram-bot-sdk)")
-	//
-	//req.Header.Add("Content-Type", "multipart/form-data")
-	//
-	//res, _ := http.DefaultClient.Do(req)
-	//
-	//defer res.Body.Close()
-	//
-	//body, _ := ioutil.ReadAll(res.Body)
-	//
-	//fmt.Println(res)
-	//
-	//fmt.Println(string(body))
-
 }
 
 type T struct {

@@ -30,6 +30,12 @@ func Get(query string) Info {
 		if node, err := htmlquery.Query(html, xpathTranscription); err == nil && node != nil {
 			info.Transcription = strings.TrimSpace(htmlquery.InnerText(node))
 		}
+		if node, err := htmlquery.Query(html, xpathUK); err == nil && node != nil {
+			info.VoicePath.UK = strings.TrimSpace(htmlquery.InnerText(node))
+		}
+		if node, err := htmlquery.Query(html, xpathUS); err == nil && node != nil {
+			info.VoicePath.US = strings.TrimSpace(htmlquery.InnerText(node))
+		}
 		xpathExplanations, err := htmlquery.QueryAll(html, xpathExplanations)
 
 		for _, xpathExplanation := range xpathExplanations {

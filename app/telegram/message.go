@@ -28,8 +28,8 @@ func GetBlockWithCambridge(info cambridge.Info) string {
 		mainBlock += GetFieldIfCan(info.Transcription, "Transcription")
 		if len(info.Explanation) > 0 {
 			listExplanation := info.Explanation
-			if len(listExplanation) > 5 {
-				listExplanation = info.Explanation[0:4]
+			if len(listExplanation) > 6 {
+				listExplanation = info.Explanation[0:5]
 			}
 			for n, explanation := range listExplanation {
 				if n > 0 {
@@ -43,7 +43,7 @@ func GetBlockWithCambridge(info cambridge.Info) string {
 					mainBlock += GetFieldIfCan(explanation.Example[0], "Example")
 				}
 			}
-			if len(info.Explanation) > 5 {
+			if len(info.Explanation) > 6 {
 				mainBlock += "\n" + DecodeForTelegram("...this is short info...") + "\n"
 			}
 		}
