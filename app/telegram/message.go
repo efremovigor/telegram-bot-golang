@@ -2,7 +2,6 @@ package telegram
 
 import (
 	"fmt"
-	"telegram-bot-golang/command"
 	"telegram-bot-golang/db/postgree/model"
 	"telegram-bot-golang/service/dictionary/cambridge"
 )
@@ -78,14 +77,4 @@ func GetRowRating(n int, statistic model.WordStatistic) string {
 
 func GetRowSeparation() string {
 	return DecodeForTelegram("-+-+-+-+-+-") + "\n"
-}
-
-func GetHelpHeader() string {
-	return "*List of commands available to you:*\n" +
-		GetRowSeparation() +
-		command.RuEnCommand + fmt.Sprintf("Change translate of transition %s \n", DecodeForTelegram(command.Transitions()[command.RuEnCommand].Desc)) +
-		command.EnRuCommand + fmt.Sprintf("Change translate of transition %s \n", DecodeForTelegram(command.Transitions()[command.EnRuCommand].Desc)) +
-		command.HelpCommand + "Show all the available commands\n" +
-		command.GetAllTopCommand + "To see the most popular requests for translation or explanation  \n" +
-		command.GetMyTopCommand + "To see your popular requests for translation or explanation  \n"
 }

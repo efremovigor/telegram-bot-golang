@@ -22,6 +22,12 @@ func General(body telegram.WebhookReqBody) telegram.SendMessageReqBody {
 func Help(body telegram.WebhookReqBody) telegram.SendMessageReqBody {
 	return telegram.GetTelegramRequest(
 		body.GetChatId(),
-		telegram.GetHelpHeader(),
+		"*List of commands available to you:*\n"+
+			telegram.GetRowSeparation()+
+			RuEnCommand+fmt.Sprintf("Change translate of transition %s \n", telegram.DecodeForTelegram(Transitions()[RuEnCommand].Desc))+
+			EnRuCommand+fmt.Sprintf("Change translate of transition %s \n", telegram.DecodeForTelegram(Transitions()[EnRuCommand].Desc))+
+			HelpCommand+"Show all the available commands\n"+
+			GetAllTopCommand+"To see the most popular requests for translation or explanation  \n"+
+			GetMyTopCommand+"To see your popular requests for translation or explanation  \n",
 	)
 }
