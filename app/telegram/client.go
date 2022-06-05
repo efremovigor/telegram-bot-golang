@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
@@ -18,7 +19,7 @@ import (
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-func GetHelloIGotYourMSGRequest(body WebhookReqBody) {
+func GetHelloIGotYourMSGRequest(body WebhookMessage) {
 	SendMessage(GetTelegramRequest(
 		body.GetChatId(),
 		GetBaseMsg(body.GetUsername(), body.GetUserId())+
@@ -27,7 +28,7 @@ func GetHelloIGotYourMSGRequest(body WebhookReqBody) {
 
 }
 
-func GetResultFromRapidMicrosoft(body WebhookReqBody, state string) {
+func GetResultFromRapidMicrosoft(body WebhookMessage, state string) {
 	var from, to string
 	if state == "" || state == "en_ru" {
 		from = "en"
@@ -45,7 +46,7 @@ func GetResultFromRapidMicrosoft(body WebhookReqBody, state string) {
 		))
 }
 
-func GetResultFromCambridge(body WebhookReqBody) {
+func GetResultFromCambridge(body WebhookMessage) {
 	cambridgeInfo := cambridge.Get(body.Message.Text)
 	if cambridgeInfo.IsValid() {
 		statistic.Consider(cambridgeInfo.Text, body.GetUserId())
@@ -114,9 +115,9 @@ func SendVoices(chatId int, info cambridge.Info) {
 	if len([]rune(info.VoicePath.UK)) > 0 {
 		sendVoice(chatId, "UK", info)
 	}
-	if len([]rune(info.VoicePath.US)) > 0 {
-		sendVoice(chatId, "US", info)
-	}
+	//if len([]rune(info.VoicePath.US)) > 0 {
+	//	sendVoice(chatId, "US", info)
+	//}
 }
 
 func sendVoice(chatId int, country string, info cambridge.Info) {
@@ -157,40 +158,40 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 	}
 	defer res.Body.Close()
 
-	body1, err := ioutil.ReadAll(res.Body)
+	buf, _ := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
-	fmt.Println(string(body1))
-}
 
-type T struct {
-	Ok     bool `json:"ok"`
-	Result struct {
-		MessageId int `json:"message_id"`
-		From      struct {
-			Id        int64  `json:"id"`
-			IsBot     bool   `json:"is_bot"`
-			FirstName string `json:"first_name"`
-			Username  string `json:"username"`
-		} `json:"from"`
-		Chat struct {
-			Id        int    `json:"id"`
-			FirstName string `json:"first_name"`
-			LastName  string `json:"last_name"`
-			Username  string `json:"username"`
-			Type      string `json:"type"`
-		} `json:"chat"`
-		Date     int `json:"date"`
-		Document struct {
-			FileName     string `json:"file_name"`
-			MimeType     string `json:"mime_type"`
-			FileId       string `json:"file_id"`
-			FileUniqueId string `json:"file_unique_id"`
-			FileSize     int    `json:"file_size"`
-		} `json:"document"`
-	} `json:"result"`
+	var audioResponse AudioResponse
+	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&audioResponse); err != nil && !audioResponse.Ok {
+		fmt.Println("could not decode telegram response", err)
+	} else {
+		//redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, country), audioResponse.Result.Document.FileId)
+		writer := multipart.NewWriter(body)
+		part, _ := writer.CreateFormFile("audio", audioResponse.Result.Document.FileId)
+		io.Copy(part, resp.Body)
+
+		_ = writer.WriteField("performer", country)
+		_ = writer.WriteField("title", info.Text)
+		_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
+		err = writer.Close()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		r, _ := http.NewRequest("POST", fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN")), body)
+		r.Header.Add("Content-Type", writer.FormDataContentType())
+		client := &http.Client{}
+		res, err := client.Do(r)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer res.Body.Close()
+	}
 }
 
 //{"ok":true,"result":{"message_id":841,"from":{"id":5125700707,"is_bot":true,"first_name":"EnglishHelper","username":"IdontSpeakBot"},"chat":{"id":184357122,"first_name":"Igor","last_name":"Efremov","username":"Igor198811","type":"private"},"date":1654357898,"document":{"file_name":"ukheft_029.ogg","mime_type":"audio/ogg","file_id":"BQACAgQAAxkDAAIDSWKbf4rOWkrezgXn9ZZSvqqWNF7NAAIGAwACJpTkUF3cWGDxH4YgJAQ","file_unique_id":"AgADBgMAAiaU5FA","file_size":8769}}}

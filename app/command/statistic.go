@@ -5,7 +5,7 @@ import (
 	"telegram-bot-golang/telegram"
 )
 
-func GetTop10(body telegram.WebhookReqBody) {
+func GetTop10(body telegram.WebhookMessage) {
 	text := ""
 	list, err := model.GetWordStatistics(10)
 	if err == nil {
@@ -15,7 +15,7 @@ func GetTop10(body telegram.WebhookReqBody) {
 	telegram.SendMessage(telegram.GetTelegramRequest(body.GetChatId(), text))
 }
 
-func GetTop10ForUser(body telegram.WebhookReqBody) {
+func GetTop10ForUser(body telegram.WebhookMessage) {
 	text := ""
 	list, err := model.GetWordStatisticsForUser(10, body.GetUserId())
 	if err == nil {

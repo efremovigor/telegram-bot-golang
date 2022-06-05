@@ -22,7 +22,7 @@ func Get(query string) Info {
 		}
 
 		if node, err := htmlquery.Query(html, xpathTitle); err == nil && node != nil {
-			info.Text = strings.TrimSpace(htmlquery.InnerText(node))
+			info.Text = strings.ToLower(strings.TrimSpace(htmlquery.InnerText(node)))
 		}
 		if node, err := htmlquery.Query(html, xpathType); err == nil && node != nil {
 			info.Type = strings.TrimSpace(htmlquery.InnerText(node))

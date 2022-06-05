@@ -6,7 +6,7 @@ import (
 	"telegram-bot-golang/telegram"
 )
 
-func ChangeTranslateTransition(command string, body telegram.WebhookReqBody) {
+func ChangeTranslateTransition(command string, body telegram.WebhookMessage) {
 	redis.Set(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()), Transitions()[command].key)
 
 	telegram.SendMessage(telegram.GetTelegramRequest(

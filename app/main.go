@@ -15,7 +15,7 @@ import (
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-func reply(body telegram.WebhookReqBody) error {
+func reply(body telegram.WebhookMessage) error {
 
 	fromTelegram, err := json.Marshal(body)
 	if err != nil {
@@ -46,7 +46,7 @@ func reply(body telegram.WebhookReqBody) error {
 func main() {
 	e := echo.New()
 	e.POST(telegramConfig.GetUrlPrefix(), func(c echo.Context) error {
-		body := &telegram.WebhookReqBody{}
+		body := &telegram.WebhookMessage{}
 
 		buf, _ := ioutil.ReadAll(c.Request().Body)
 		b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))

@@ -1,6 +1,6 @@
 package telegram
 
-type WebhookReqBody struct {
+type WebhookMessage struct {
 	Message struct {
 		Text      string `json:"text"`
 		MessageId int    `json:"message_id"`
@@ -44,14 +44,42 @@ type WebhookReqBody struct {
 	UpdateId int `json:"update_id"`
 }
 
-func (body WebhookReqBody) GetChatId() int {
+type AudioResponse struct {
+	Ok     bool `json:"ok"`
+	Result struct {
+		MessageId int `json:"message_id"`
+		From      struct {
+			Id        int64  `json:"id"`
+			IsBot     bool   `json:"is_bot"`
+			FirstName string `json:"first_name"`
+			Username  string `json:"username"`
+		} `json:"from"`
+		Chat struct {
+			Id        int    `json:"id"`
+			FirstName string `json:"first_name"`
+			LastName  string `json:"last_name"`
+			Username  string `json:"username"`
+			Type      string `json:"type"`
+		} `json:"chat"`
+		Date     int `json:"date"`
+		Document struct {
+			FileName     string `json:"file_name"`
+			MimeType     string `json:"mime_type"`
+			FileId       string `json:"file_id"`
+			FileUniqueId string `json:"file_unique_id"`
+			FileSize     int    `json:"file_size"`
+		} `json:"document"`
+	} `json:"result"`
+}
+
+func (body WebhookMessage) GetChatId() int {
 	if body.Message.Chat.ID != 0 {
 		return body.Message.Chat.ID
 	} else {
 		return body.EditedMessage.Chat.ID
 	}
 }
-func (body WebhookReqBody) GetChatText() string {
+func (body WebhookMessage) GetChatText() string {
 	if body.Message.Chat.ID != 0 {
 		return body.Message.Text
 	} else {
@@ -59,14 +87,14 @@ func (body WebhookReqBody) GetChatText() string {
 	}
 }
 
-func (body WebhookReqBody) GetUsername() string {
+func (body WebhookMessage) GetUsername() string {
 	if body.Message.Chat.ID != 0 {
 		return body.Message.From.FirstName
 	} else {
 		return body.EditedMessage.From.FirstName
 	}
 }
-func (body WebhookReqBody) GetUserId() int {
+func (body WebhookMessage) GetUserId() int {
 	if body.Message.Chat.ID != 0 {
 		return body.Message.From.ID
 	} else {

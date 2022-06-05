@@ -6,14 +6,14 @@ import (
 	"telegram-bot-golang/telegram"
 )
 
-func SayHello(body telegram.WebhookReqBody) {
+func SayHello(body telegram.WebhookMessage) {
 	telegram.SendMessage(telegram.GetTelegramRequest(
 		body.GetChatId(),
 		telegram.DecodeForTelegram("Hello Friend. How can I help you?"),
 	))
 }
 
-func General(body telegram.WebhookReqBody) {
+func General(body telegram.WebhookMessage) {
 	fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
 	state, _ := redis.Get(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()))
 	telegram.GetHelloIGotYourMSGRequest(body)
@@ -21,7 +21,7 @@ func General(body telegram.WebhookReqBody) {
 	telegram.GetResultFromCambridge(body)
 }
 
-func Help(body telegram.WebhookReqBody) {
+func Help(body telegram.WebhookMessage) {
 	telegram.SendMessage(telegram.GetTelegramRequest(
 		body.GetChatId(),
 		"*List of commands available to you:*\n"+
