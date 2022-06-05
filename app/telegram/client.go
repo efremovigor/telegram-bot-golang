@@ -179,9 +179,7 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 		}
 
 		writer := multipart.NewWriter(body)
-		part, _ := writer.CreateFormFile("audio", audioResponse.Result.Audio.FileId)
-		io.Copy(part, resp.Body)
-
+		_ = writer.WriteField("audio", audioResponse.Result.Audio.FileId)
 		_ = writer.WriteField("performer", country)
 		_ = writer.WriteField("title", info.Text)
 		_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
@@ -192,7 +190,6 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 		}
 
 		r, _ := http.NewRequest("POST", fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN")), body)
-		r.Header.Add("Content-Type", writer.FormDataContentType())
 		client := &http.Client{}
 		res, err := client.Do(r)
 		if err != nil {
