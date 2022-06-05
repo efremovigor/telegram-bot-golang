@@ -170,6 +170,11 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 	} else {
 		//redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, country), audioResponse.Result.Document.FileId)
 		fmt.Println(audioResponse)
+		if infoInJson, err := json.Marshal(audioResponse); err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println(infoInJson)
+		}
 
 		writer := multipart.NewWriter(body)
 		part, _ := writer.CreateFormFile("audio", audioResponse.Result.Document.FileId)
@@ -199,7 +204,8 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Println(b)
+
+		fmt.Println(string(b))
 
 	}
 }
