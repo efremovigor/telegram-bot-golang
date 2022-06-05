@@ -163,17 +163,19 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	s, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
+
+	fmt.Println(string(s))
 
 	var audioResponse AudioResponse
 	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&audioResponse); err != nil && !audioResponse.Ok {
 		fmt.Println("could not decode telegram response", err)
 	} else {
 		//redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, country), audioResponse.Result.Document.FileId)
-		fmt.Println(audioResponse)
 		if infoInJson, err := json.Marshal(audioResponse); err != nil {
 			fmt.Println(err)
 		} else {
-			fmt.Println(infoInJson)
+			fmt.Println(string(infoInJson))
 		}
 
 		writer := multipart.NewWriter(body)
