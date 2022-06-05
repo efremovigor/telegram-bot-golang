@@ -169,6 +169,8 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 		fmt.Println("could not decode telegram response", err)
 	} else {
 		//redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, country), audioResponse.Result.Document.FileId)
+		fmt.Println(audioResponse)
+
 		writer := multipart.NewWriter(body)
 		part, _ := writer.CreateFormFile("audio", audioResponse.Result.Document.FileId)
 		io.Copy(part, resp.Body)
@@ -191,6 +193,14 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 			return
 		}
 		defer res.Body.Close()
+
+		buf, _ := ioutil.ReadAll(res.Body)
+		b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Println(b)
+
 	}
 }
 
