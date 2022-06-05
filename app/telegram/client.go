@@ -178,33 +178,24 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 			fmt.Println(string(infoInJson))
 		}
 
-		writer := multipart.NewWriter(body)
-		_ = writer.WriteField("audio", audioResponse.Result.Audio.FileId)
-		_ = writer.WriteField("performer", country)
-		_ = writer.WriteField("title", info.Text)
-		_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
-		err = writer.Close()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		url := fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN"))
 
-		r, _ := http.NewRequest("POST", fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN")), body)
-		client := &http.Client{}
-		res, err := client.Do(r)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		payload := strings.NewReader(fmt.Sprintf("{\"performer\":\"Hello\",\"title\":\"Hello\",\"chat_id\":%d,\"audio\":\"%s\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId, audioResponse.Result.Audio.FileId))
+
+		req, _ := http.NewRequest("POST", url, payload)
+
+		req.Header.Add("Accept", "application/json")
+
+		req.Header.Add("User-Agent", "Telegram Bot SDK - (https://github.com/irazasyed/telegram-bot-sdk)")
+
+		req.Header.Add("Content-Type", "application/json")
+
+		res, _ := http.DefaultClient.Do(req)
+
 		defer res.Body.Close()
 
-		buf, _ := ioutil.ReadAll(res.Body)
-		b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		fmt.Println(string(b))
+		body, _ := ioutil.ReadAll(res.Body)
+		fmt.Println(string(body))
 
 	}
 }
