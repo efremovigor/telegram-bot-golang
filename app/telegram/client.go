@@ -179,7 +179,7 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 		}
 
 		writer := multipart.NewWriter(body)
-		part, _ := writer.CreateFormFile("audio", audioResponse.Result.Document.FileId)
+		part, _ := writer.CreateFormFile("audio", audioResponse.Result.Audio.FileId)
 		io.Copy(part, resp.Body)
 
 		_ = writer.WriteField("performer", country)

@@ -61,14 +61,17 @@ type AudioResponse struct {
 			Username  string `json:"username"`
 			Type      string `json:"type"`
 		} `json:"chat"`
-		Date     int `json:"date"`
-		Document struct {
+		Date  int `json:"date"`
+		Audio struct {
+			Duration     int    `json:"duration"`
 			FileName     string `json:"file_name"`
 			MimeType     string `json:"mime_type"`
+			Title        string `json:"title"`
+			Performer    string `json:"performer"`
 			FileId       string `json:"file_id"`
 			FileUniqueId string `json:"file_unique_id"`
 			FileSize     int    `json:"file_size"`
-		} `json:"document"`
+		} `json:"audio"`
 	} `json:"result"`
 }
 
