@@ -1,5 +1,7 @@
 package cambridge
 
+import "telegram-bot-golang/helper"
+
 const Url = "https://dictionary.cambridge.org"
 
 type Info struct {
@@ -24,10 +26,7 @@ type Explanation struct {
 }
 
 func (i Info) IsValid() bool {
-	if len(i.Text) > 0 {
-		return true
-	}
-	return false
+	return !helper.IsEmpty(i.Text)
 }
 
 const xpathBLockDescriptionEnRu = "//article[@id='page-content']//div[contains(@class, 'entry-body')]//div[contains(@class, 'entry-body__el')]"

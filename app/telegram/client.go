@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"telegram-bot-golang/db/redis"
+	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
 	rapid_microsoft "telegram-bot-golang/service/translate/rapid-microsoft"
 	"telegram-bot-golang/statistic"
@@ -37,20 +38,20 @@ func GetResultFromRapidMicrosoft(body WebhookMessage, state string) {
 		from = "ru"
 		to = "en"
 	}
-	SendMessage(
-		GetTelegramRequest(
-			body.GetChatId(),
-			GetBlockWithRapidInfo(
-				rapid_microsoft.GetTranslate(body.Message.Text, to, from),
-			),
-		))
+
+	translate := rapid_microsoft.GetTranslate(body.Message.Text, to, from)
+	if helper.IsEmpty(translate) {
+		return
+	}
+	SendMessage(GetTelegramRequest(body.GetChatId(), GetBlockWithRapidInfo(translate)))
 }
 
 func GetResultFromCambridge(body WebhookMessage) {
 	cambridgeInfo := cambridge.Get(body.Message.Text)
-	if cambridgeInfo.IsValid() {
-		statistic.Consider(cambridgeInfo.Text, body.GetUserId())
+	if !cambridgeInfo.IsValid() {
+		return
 	}
+	statistic.Consider(cambridgeInfo.Text, body.GetUserId())
 	SendMessage(GetTelegramRequest(
 		body.GetChatId(), GetBlockWithCambridge(cambridgeInfo)))
 	SendVoices(body.GetChatId(), cambridgeInfo)
@@ -112,27 +113,27 @@ func SendMessage(response SendMessageReqBody) {
 
 func SendVoices(chatId int, info cambridge.Info) {
 
-	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, "UK")); err == nil && len([]rune(voiceId)) > 0 {
-		fmt.Println("find key UK voice in cache")
-		sendVoiceFromCache(chatId, "UK", voiceId, info.Text)
+	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, "uk")); err == nil && len([]rune(voiceId)) > 0 {
+		fmt.Println("find key uk voice in cache")
+		sendVoiceFromCache(chatId, "uk", voiceId, info.Text)
 	} else {
-		sendVoice(chatId, "UK", info)
+		sendVoice(chatId, "uk", info)
 	}
 
-	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, "US")); err == nil && len([]rune(voiceId)) > 0 {
-		fmt.Println("find key US voice in cache")
-		sendVoiceFromCache(chatId, "US", voiceId, info.Text)
+	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, "us")); err == nil && len([]rune(voiceId)) > 0 {
+		fmt.Println("find key us voice in cache")
+		sendVoiceFromCache(chatId, "us", voiceId, info.Text)
 	} else {
-		sendVoice(chatId, "US", info)
+		sendVoice(chatId, "us", info)
 	}
 }
 
 func sendVoice(chatId int, country string, info cambridge.Info) {
 	var path string
 	switch country {
-	case "UK":
+	case "uk":
 		path = info.VoicePath.UK
-	case "US":
+	case "us":
 		path = info.VoicePath.US
 	}
 	res, err := http.Get(cambridge.Url + path)
