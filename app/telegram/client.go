@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"telegram-bot-golang/env"
+	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/service/dictionary/cambridge"
 	rapid_microsoft "telegram-bot-golang/service/translate/rapid-microsoft"
 	"telegram-bot-golang/statistic"
@@ -99,7 +99,7 @@ func SendMessage(response SendMessageReqBody) {
 		fmt.Println("+++")
 		fmt.Println("+++")
 
-		res, err := http.Post(telegramConfig.GetTelegramUrl(), "application/json", bytes.NewBuffer(toTelegram))
+		res, err := http.Post(telegramConfig.GetTelegramUrl("sendMessage"), "application/json", bytes.NewBuffer(toTelegram))
 		if err != nil {
 			fmt.Println("error of sending message to telegram:" + string(toTelegram))
 		}
@@ -112,12 +112,19 @@ func SendMessage(response SendMessageReqBody) {
 
 func SendVoices(chatId int, info cambridge.Info) {
 
-	if len([]rune(info.VoicePath.UK)) > 0 {
+	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, "UK")); err == nil && len([]rune(voiceId)) > 0 {
+		fmt.Println("find key UK voice in cache")
+		sendVoiceFromCache(chatId, "UK", voiceId, info.Text)
+	} else {
 		sendVoice(chatId, "UK", info)
 	}
-	//if len([]rune(info.VoicePath.US)) > 0 {
-	//	sendVoice(chatId, "US", info)
-	//}
+
+	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, "US")); err == nil && len([]rune(voiceId)) > 0 {
+		fmt.Println("find key US voice in cache")
+		sendVoiceFromCache(chatId, "US", voiceId, info.Text)
+	} else {
+		sendVoice(chatId, "US", info)
+	}
 }
 
 func sendVoice(chatId int, country string, info cambridge.Info) {
@@ -128,16 +135,20 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 	case "US":
 		path = info.VoicePath.US
 	}
-	resp, err := http.Get(cambridge.Url + path)
+	res, err := http.Get(cambridge.Url + path)
 
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer resp.Body.Close()
+	defer rapid_microsoft.CloseConnection(res.Body)
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, _ := writer.CreateFormFile("audio", filepath.Base("audio.mp3"))
-	io.Copy(part, resp.Body)
+	_, err = io.Copy(part, res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	_ = writer.WriteField("performer", country)
 	_ = writer.WriteField("title", info.Text)
@@ -148,15 +159,15 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 		return
 	}
 
-	r, _ := http.NewRequest("POST", fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN")), body)
+	r, _ := http.NewRequest("POST", telegramConfig.GetTelegramUrl("sendAudio"), body)
 	r.Header.Add("Content-Type", writer.FormDataContentType())
 	client := &http.Client{}
-	res, err := client.Do(r)
+	res, err = client.Do(r)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	defer res.Body.Close()
+	defer rapid_microsoft.CloseConnection(res.Body)
 
 	buf, _ := ioutil.ReadAll(res.Body)
 	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
@@ -171,33 +182,22 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&audioResponse); err != nil && !audioResponse.Ok {
 		fmt.Println("could not decode telegram response", err)
 	} else {
-		//redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, country), audioResponse.Result.Document.FileId)
-		if infoInJson, err := json.Marshal(audioResponse); err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println(string(infoInJson))
-		}
-
-		url := fmt.Sprintf("https://api.telegram.org/bot%s/sendAudio", env.GetEnvVariable("TELEGRAM_API_TOKEN"))
-
-		payload := strings.NewReader(fmt.Sprintf("{\"performer\":\"Hello\",\"title\":\"Hello\",\"chat_id\":%d,\"audio\":\"%s\",\"duration\":null,\"disable_notification\":false,\"reply_to_message_id\":null}", chatId, audioResponse.Result.Audio.FileId))
-
-		req, _ := http.NewRequest("POST", url, payload)
-
-		req.Header.Add("Accept", "application/json")
-
-		req.Header.Add("User-Agent", "Telegram Bot SDK - (https://github.com/irazasyed/telegram-bot-sdk)")
-
-		req.Header.Add("Content-Type", "application/json")
-
-		res, _ := http.DefaultClient.Do(req)
-
-		defer res.Body.Close()
-
-		body, _ := ioutil.ReadAll(res.Body)
-		fmt.Println(string(body))
-
+		redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, country), audioResponse.Result.Audio.FileId)
 	}
+}
+
+func sendVoiceFromCache(chatId int, country string, audioId string, word string) {
+	request := SendEarlierVoiceRequest{Performer: country, Title: word, Audio: audioId, ChatId: chatId}
+	requestInJson, err := json.Marshal(request)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	req, _ := http.NewRequest("POST", telegramConfig.GetTelegramUrl("sendAudio"), strings.NewReader(string(requestInJson)))
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	res, _ := http.DefaultClient.Do(req)
+	defer rapid_microsoft.CloseConnection(res.Body)
 }
 
 //{"ok":true,"result":{"message_id":841,"from":{"id":5125700707,"is_bot":true,"first_name":"EnglishHelper","username":"IdontSpeakBot"},"chat":{"id":184357122,"first_name":"Igor","last_name":"Efremov","username":"Igor198811","type":"private"},"date":1654357898,"document":{"file_name":"ukheft_029.ogg","mime_type":"audio/ogg","file_id":"BQACAgQAAxkDAAIDSWKbf4rOWkrezgXn9ZZSvqqWNF7NAAIGAwACJpTkUF3cWGDxH4YgJAQ","file_unique_id":"AgADBgMAAiaU5FA","file_size":8769}}}

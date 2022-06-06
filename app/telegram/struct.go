@@ -121,3 +121,13 @@ type ReplyMarkup struct {
 type Keyboard struct {
 	Text string `json:"text"`
 }
+
+type SendEarlierVoiceRequest struct {
+	Performer           string      `json:"performer"`
+	Title               string      `json:"title"`
+	ChatId              int         `json:"chat_id"`
+	Audio               string      `json:"audio"`
+	Duration            interface{} `json:"duration"`
+	DisableNotification bool        `json:"disable_notification"`
+	ReplyToMessageId    interface{} `json:"reply_to_message_id"`
+}
