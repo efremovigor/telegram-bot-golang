@@ -53,7 +53,11 @@ func GetResultFromCambridge(body WebhookMessage) {
 	}
 	statistic.Consider(cambridgeInfo.RequestText, body.GetUserId())
 	SendMessage(GetTelegramRequest(
-		body.GetChatId(), GetBlockWithCambridge(cambridgeInfo)))
+		body.GetChatId(), GetCambridgeHeaderBlock(cambridgeInfo)))
+	for _, option := range cambridgeInfo.Options {
+		SendMessage(GetTelegramRequest(
+			body.GetChatId(), GetCambridgeOptionBlock(option)))
+	}
 	SendVoices(body.GetChatId(), cambridgeInfo)
 }
 
