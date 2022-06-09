@@ -26,7 +26,7 @@ func GetCambridgeHeaderBlock(info cambridge.CambridgeInfo) string {
 
 func GetCambridgeOptionBlock(info cambridge.Info) string {
 	var mainBlock string
-	mainBlock += fmt.Sprintf("*%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n"
+	mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n"
 	if len(info.Explanation) > 0 {
 		listExplanation := info.Explanation
 		if len(listExplanation) > 6 {
