@@ -11,7 +11,6 @@ import (
 
 func Get(query string) CambridgeInfo {
 	cambridgeInfo := CambridgeInfo{}
-	cambridgeInfo.RequestText = strings.TrimSpace(query)
 	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgePageKey, strings.ToLower(query)))
 	if errGetCache != nil {
 		html, err := htmlquery.LoadURL("https://dictionary.cambridge.org/dictionary/english-russian/" + query)
@@ -20,6 +19,9 @@ func Get(query string) CambridgeInfo {
 			return cambridgeInfo
 		}
 		nodes, _ := htmlquery.QueryAll(html, xpathBLockDescriptionEnRu)
+		if len(nodes) > 0 {
+			cambridgeInfo.RequestText = strings.TrimSpace(query)
+		}
 		for _, node := range nodes {
 			info := Info{}
 			if node, err := htmlquery.Query(node, xpathTitle); err == nil && node != nil {
@@ -90,7 +92,7 @@ func Get(query string) CambridgeInfo {
 		if infoInJson, err := json.Marshal(cambridgeInfo); err != nil {
 			fmt.Println(err)
 		} else {
-			redis.Set(fmt.Sprintf(redis.InfoCambridgePageKey, strings.ToLower(query)), infoInJson)
+			redis.Set(fmt.Sprintf(redis.InfoCambridgePageKey, cambridgeInfo.RequestText), infoInJson)
 		}
 
 	} else {
