@@ -7,8 +7,7 @@ import (
 )
 
 func GetBaseMsg(name string, id int) string {
-	return fmt.Sprintf("Hey, [%s](tg://user?id=%d)\n", name, id) +
-		DecodeForTelegram("\n")
+	return fmt.Sprintf("Hey, [%s](tg://user?id=%d)\n", name, id) + "\n"
 }
 func GetIGotYourNewRequest(base string) string {
 	return fmt.Sprintf(
