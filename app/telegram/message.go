@@ -24,8 +24,7 @@ func GetBlockWithCambridge(info cambridge.CambridgeInfo) string {
 	mainBlock := DecodeForTelegram("Cambridge-dictionary: ")
 	if info.IsValid() {
 		for _, option := range info.Options {
-			mainBlock += fmt.Sprintf("*%s*\\[%s\\]", DecodeForTelegram(option.Text), DecodeForTelegram(option.Transcription)) + "\n"
-			mainBlock += GetFieldIfCan(option.Type, "Type")
+			mainBlock += fmt.Sprintf("*%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(option.Text), DecodeForTelegram(option.Transcription), DecodeForTelegram(option.Type)) + "\n"
 			if len(option.Explanation) > 0 {
 				listExplanation := option.Explanation
 				if len(listExplanation) > 6 {
@@ -42,9 +41,6 @@ func GetBlockWithCambridge(info cambridge.CambridgeInfo) string {
 					if len(explanation.Example) > 0 {
 						mainBlock += GetFieldIfCan(explanation.Example[0], "Example")
 					}
-				}
-				if len(option.Explanation) > 6 {
-					mainBlock += "\n" + DecodeForTelegram("...this is short info...") + "\n"
 				}
 			}
 		}
