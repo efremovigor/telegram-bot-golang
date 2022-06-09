@@ -97,7 +97,7 @@ func Get(query string) CambridgeInfo {
 		}
 	} else {
 		fmt.Println("get cambridge info from cache")
-		if err := json.Unmarshal([]byte(cachedInfo), &cachedInfo); err != nil {
+		if err := json.Unmarshal([]byte(cachedInfo), &cambridgeInfo); err != nil {
 			fmt.Println(err)
 		}
 	}
