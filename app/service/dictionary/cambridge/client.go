@@ -92,9 +92,9 @@ func Get(query string) CambridgeInfo {
 		if infoInJson, err := json.Marshal(cambridgeInfo); err != nil {
 			fmt.Println(err)
 		} else {
+			fmt.Println(string(infoInJson))
 			redis.Set(fmt.Sprintf(redis.InfoCambridgePageKey, cambridgeInfo.RequestText), infoInJson)
 		}
-
 	} else {
 		fmt.Println("get cambridge info from cache")
 		if err := json.Unmarshal([]byte(cachedInfo), &cachedInfo); err != nil {
