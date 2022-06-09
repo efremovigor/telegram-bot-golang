@@ -51,7 +51,7 @@ func GetResultFromCambridge(body WebhookMessage) {
 	if !cambridgeInfo.IsValid() {
 		return
 	}
-	statistic.Consider(cambridgeInfo.Text, body.GetUserId())
+	statistic.Consider(cambridgeInfo.RequestText, body.GetUserId())
 	SendMessage(GetTelegramRequest(
 		body.GetChatId(), GetBlockWithCambridge(cambridgeInfo)))
 	SendVoices(body.GetChatId(), cambridgeInfo)
@@ -111,24 +111,24 @@ func SendMessage(response SendMessageReqBody) {
 	}
 }
 
-func SendVoices(chatId int, info cambridge.Info) {
+func SendVoices(chatId int, info cambridge.CambridgeInfo) {
 
-	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, "uk")); err == nil && len([]rune(voiceId)) > 0 {
+	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.RequestText, "uk")); err == nil && len([]rune(voiceId)) > 0 {
 		fmt.Println("find key uk voice in cache")
-		sendVoiceFromCache(chatId, "uk", voiceId, info.Text)
+		sendVoiceFromCache(chatId, "uk", voiceId, info.RequestText)
 	} else {
 		sendVoice(chatId, "uk", info)
 	}
 
-	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, "us")); err == nil && len([]rune(voiceId)) > 0 {
+	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.RequestText, "us")); err == nil && len([]rune(voiceId)) > 0 {
 		fmt.Println("find key us voice in cache")
-		sendVoiceFromCache(chatId, "us", voiceId, info.Text)
+		sendVoiceFromCache(chatId, "us", voiceId, info.RequestText)
 	} else {
 		sendVoice(chatId, "us", info)
 	}
 }
 
-func sendVoice(chatId int, country string, info cambridge.Info) {
+func sendVoice(chatId int, country string, info cambridge.CambridgeInfo) {
 	var path string
 	switch country {
 	case "uk":
@@ -152,7 +152,7 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 	}
 
 	_ = writer.WriteField("performer", country)
-	_ = writer.WriteField("title", info.Text)
+	_ = writer.WriteField("title", info.RequestText)
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
 	err = writer.Close()
 	if err != nil {
@@ -183,7 +183,7 @@ func sendVoice(chatId int, country string, info cambridge.Info) {
 	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&audioResponse); err != nil && !audioResponse.Ok {
 		fmt.Println("could not decode telegram response", err)
 	} else {
-		redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.Text, country), audioResponse.Result.Audio.FileId)
+		redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.RequestText, country), audioResponse.Result.Audio.FileId)
 	}
 }
 

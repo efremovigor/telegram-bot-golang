@@ -17,36 +17,38 @@ func GetIGotYourNewRequest(base string) string {
 
 func GetBlockWithRapidInfo(translate string) string {
 	return fmt.Sprintf(
-		DecodeForTelegram("Translates of rapid-microsoft: ")+"*%s*\n\n", DecodeForTelegram(translate))
+		DecodeForTelegram("Rapid-microsoft: ")+"*%s*\n\n", DecodeForTelegram(translate))
 }
 
-func GetBlockWithCambridge(info cambridge.Info) string {
-	mainBlock := DecodeForTelegram("Information from cambridge-dictionary: ")
+func GetBlockWithCambridge(info cambridge.CambridgeInfo) string {
+	mainBlock := DecodeForTelegram("Cambridge-dictionary: ")
 	if info.IsValid() {
-		mainBlock += fmt.Sprintf("*%s*", DecodeForTelegram(info.Text)) + "\n"
-		mainBlock += GetFieldIfCan(info.Type, "Type")
-		mainBlock += GetFieldIfCan(info.Transcription, "Transcription")
-		if len(info.Explanation) > 0 {
-			listExplanation := info.Explanation
-			if len(listExplanation) > 6 {
-				listExplanation = info.Explanation[0:5]
-			}
-			for n, explanation := range listExplanation {
-				if n > 0 {
-					mainBlock += GetRowSeparation()
+		for _, option := range info.Options {
+			mainBlock += fmt.Sprintf("*%s*\\[%s\\]", DecodeForTelegram(option.Text), DecodeForTelegram(option.Transcription)) + "\n"
+			mainBlock += GetFieldIfCan(option.Type, "Type")
+			if len(option.Explanation) > 0 {
+				listExplanation := option.Explanation
+				if len(listExplanation) > 6 {
+					listExplanation = option.Explanation[0:5]
 				}
-				mainBlock += GetFieldIfCan(explanation.Level, "Level")
-				mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic")
-				mainBlock += GetFieldIfCan(explanation.Description, "Description")
-				mainBlock += GetFieldIfCan(explanation.Translate, "Translate")
-				if len(explanation.Example) > 0 {
-					mainBlock += GetFieldIfCan(explanation.Example[0], "Example")
+				for n, explanation := range listExplanation {
+					if n > 0 {
+						mainBlock += GetRowSeparation()
+					}
+					mainBlock += GetFieldIfCan(explanation.Level, "Level")
+					mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic")
+					mainBlock += GetFieldIfCan(explanation.Description, "Description")
+					mainBlock += GetFieldIfCan(explanation.Translate, "Translate")
+					if len(explanation.Example) > 0 {
+						mainBlock += GetFieldIfCan(explanation.Example[0], "Example")
+					}
 				}
-			}
-			if len(info.Explanation) > 6 {
-				mainBlock += "\n" + DecodeForTelegram("...this is short info...") + "\n"
+				if len(option.Explanation) > 6 {
+					mainBlock += "\n" + DecodeForTelegram("...this is short info...") + "\n"
+				}
 			}
 		}
+
 	} else {
 		mainBlock += DecodeForTelegram("*-*") + "\n"
 	}
