@@ -46,4 +46,4 @@ const xpathExplanationsSemanticDescription = "//h3[contains(@class, 'dsense_h')]
 const xpathExplanationsLevel = "//div[contains(@class, 'sense-body')]//div[contains(@class, 'ddef_h')]/span/span"
 const xpathExplanationsDescription = "//div[contains(@class, 'sense-body')]//div[contains(@class, 'ddef_h')]/div"
 const xpathExplanationsTranslate = "//div[contains(@class, 'sense-body')]//div[contains(@class, 'def-body')]/span"
-const xpathExplanationsExamples = "//div[contains(@class, 'sense-body')]//div[contains(@class, 'examp')]"
+const xpathExplanationsExamples = "//div[contains(@class, 'sense-body')]//div[contains(@class, 'dexamp')]"

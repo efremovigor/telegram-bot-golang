@@ -79,7 +79,7 @@ func Get(query string) CambridgeInfo {
 					explanation.Translate = strings.TrimSpace(htmlquery.InnerText(node))
 				}
 
-				if xpathExamples, err := htmlquery.QueryAll(html, xpathExplanationsExamples); xpathExamples != nil && err == nil && len(xpathExamples) > 0 {
+				if xpathExamples, err := htmlquery.QueryAll(xpathExplanation, xpathExplanationsExamples); xpathExamples != nil && err == nil && len(xpathExamples) > 0 {
 					for _, xpathExample := range xpathExamples {
 						explanation.Example = append(explanation.Example, strings.TrimSpace(htmlquery.InnerText(xpathExample)))
 					}
