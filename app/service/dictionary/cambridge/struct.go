@@ -23,6 +23,7 @@ type VoicePath struct {
 }
 
 type Explanation struct {
+	Text                string   `json:"text"`
 	SemanticDescription string   `json:"semantic_description"`
 	Level               string   `json:"level"`
 	Description         string   `json:"description"`
@@ -41,8 +42,9 @@ const xpathComplexType = "//span[contains(@class, 'di-info')]/div"
 const xpathTranscription = "//span/span[contains(@class, 'pron')]"
 const xpathUK = "//span[contains(@class, 'uk')]//amp-audio//source[contains(@type,'audio/mpeg')]"
 const xpathUS = "//span[contains(@class, 'us')]//amp-audio//source[contains(@type,'audio/mpeg')]"
-const xpathExplanations = "//div[contains(@class, 'dsense-noh')]"
+const xpathExplanations = "//div[contains(concat(\" \", normalize-space(@class), \" \"), \" dsense \")]"
 const xpathExplanationsSemanticDescription = "//h3[contains(@class, 'dsense_h')]"
+const xpathExplanationsWord = "//span[contains(@class, 'phrase-title')]"
 const xpathExplanationsLevel = "//div[contains(@class, 'sense-body')]//div[contains(@class, 'ddef_h')]/span/span"
 const xpathExplanationsDescription = "//div[contains(@class, 'sense-body')]//div[contains(@class, 'ddef_h')]/div"
 const xpathExplanationsTranslate = "//div[contains(@class, 'sense-body')]//div[contains(@class, 'def-body')]/span"

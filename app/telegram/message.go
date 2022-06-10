@@ -35,6 +35,7 @@ func GetCambridgeOptionBlock(info cambridge.Info) string {
 			if n > 0 {
 				mainBlock += GetRowSeparation()
 			}
+			mainBlock += GetFieldIfCan(explanation.Text, "Phrase")
 			mainBlock += GetFieldIfCan(explanation.Level, "Level")
 			mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic")
 			mainBlock += GetFieldIfCan(explanation.Description, "Description")
