@@ -18,7 +18,7 @@ const url = "https://microsoft-translator-text.p.rapidapi.com/translate?to=%s&fr
 func GetTranslate(text string, to string, from string) string {
 	var microsoftTranslateResponse []MicrosoftTranslate
 	var err error
-	translate, errGetCache := redis.Get(fmt.Sprintf(redis.TranslateRapidMicrosoftKey, from, to, strings.ToLower(text)))
+	translate, errGetCache := redis.Get(fmt.Sprintf(redis.TranslateRapidMicrosoftKey, from, to, text))
 	if errGetCache != nil {
 		fmt.Println("get translate from service")
 
@@ -42,7 +42,7 @@ func GetTranslate(text string, to string, from string) string {
 		if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&microsoftTranslateResponse); err != nil {
 			fmt.Println("could not decode microsoft response", err)
 		} else {
-			redis.Set(fmt.Sprintf(redis.TranslateRapidMicrosoftKey, from, to, strings.ToLower(text)), buf)
+			redis.Set(fmt.Sprintf(redis.TranslateRapidMicrosoftKey, from, to, text), buf)
 		}
 	} else {
 		fmt.Println("get translate from redis")

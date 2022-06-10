@@ -39,7 +39,7 @@ func GetResultFromRapidMicrosoft(body WebhookMessage, state string) {
 		to = "en"
 	}
 
-	translate := rapid_microsoft.GetTranslate(body.Message.Text, to, from)
+	translate := rapid_microsoft.GetTranslate(body.GetChatText(), to, from)
 	if helper.IsEmpty(translate) {
 		return
 	}
@@ -47,7 +47,7 @@ func GetResultFromRapidMicrosoft(body WebhookMessage, state string) {
 }
 
 func GetResultFromCambridge(body WebhookMessage) {
-	cambridgeInfo := cambridge.Get(body.Message.Text)
+	cambridgeInfo := cambridge.Get(body.GetChatText())
 	if !cambridgeInfo.IsValid() {
 		return
 	}

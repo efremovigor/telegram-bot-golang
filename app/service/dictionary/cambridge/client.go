@@ -11,7 +11,7 @@ import (
 
 func Get(query string) CambridgeInfo {
 	cambridgeInfo := CambridgeInfo{}
-	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgePageKey, strings.ToLower(query)))
+	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgePageKey, query))
 	if errGetCache != nil {
 		html, err := htmlquery.LoadURL("https://dictionary.cambridge.org/dictionary/english-russian/" + query)
 		if err != nil {

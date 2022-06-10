@@ -1,5 +1,7 @@
 package telegram
 
+import "strings"
+
 type WebhookMessage struct {
 	Message struct {
 		Text      string `json:"text"`
@@ -84,9 +86,9 @@ func (body WebhookMessage) GetChatId() int {
 }
 func (body WebhookMessage) GetChatText() string {
 	if body.Message.Chat.ID != 0 {
-		return body.Message.Text
+		return strings.ToLower(strings.TrimSpace(body.Message.Text))
 	} else {
-		return body.EditedMessage.Text
+		return strings.ToLower(strings.TrimSpace(body.EditedMessage.Text))
 	}
 }
 
