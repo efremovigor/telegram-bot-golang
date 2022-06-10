@@ -64,7 +64,7 @@ func GetTranslate(text string, to string, from string) string {
 		}
 	}
 
-	return stringTranslation
+	return strings.ToLower(stringTranslation)
 }
 
 func CloseConnection(connect io.ReadCloser) {
