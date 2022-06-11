@@ -29,6 +29,9 @@ func Get(query string) CambridgeInfo {
 				return cambridgeInfo
 			}
 			nodes, _ = htmlquery.QueryAll(html, xpathBLockDescriptionEnRu)
+			if len(nodes) > 0 {
+				cambridgeInfo.RequestText = strings.TrimSpace(query)
+			}
 		}
 		for _, node := range nodes {
 			info := Info{}
