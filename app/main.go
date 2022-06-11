@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"telegram-bot-golang/command"
 	"telegram-bot-golang/config"
+	"telegram-bot-golang/env"
 	"telegram-bot-golang/service/dictionary/cambridge"
 	"telegram-bot-golang/statistic"
 	"telegram-bot-golang/telegram"
@@ -72,15 +73,17 @@ func main() {
 		return c.JSON(http.StatusOK, "")
 	})
 
-	e.GET("/dictionary/:query", func(c echo.Context) error {
-		query := c.Param("query")
-		cambridgeInfo := cambridge.Get(query)
-		if cambridgeInfo.IsValid() {
-			statistic.Consider(query, 1)
-		}
-		return c.JSON(http.StatusOK, cambridgeInfo)
-	})
-
-	e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
-	//e.Logger.Fatal(e.Start(":443"))
+	if !env.IsProd() {
+		e.GET("/dictionary/:query", func(c echo.Context) error {
+			query := c.Param("query")
+			cambridgeInfo := cambridge.Get(query)
+			if cambridgeInfo.IsValid() {
+				statistic.Consider(query, 1)
+			}
+			return c.JSON(http.StatusOK, cambridgeInfo)
+		})
+		e.Logger.Fatal(e.Start(":443"))
+	} else {
+		e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
+	}
 }

@@ -13,14 +13,22 @@ func Get(query string) CambridgeInfo {
 	cambridgeInfo := CambridgeInfo{}
 	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgePageKey, query))
 	if errGetCache != nil {
-		html, err := htmlquery.LoadURL("https://dictionary.cambridge.org/dictionary/english-russian/" + query)
+		html, err := htmlquery.LoadURL(Url + "/dictionary/english-russian/" + query)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("error getting html data: " + err.Error())
 			return cambridgeInfo
 		}
 		nodes, _ := htmlquery.QueryAll(html, xpathBLockDescriptionEnRu)
+
 		if len(nodes) > 0 {
 			cambridgeInfo.RequestText = strings.TrimSpace(query)
+		} else {
+			html, err = htmlquery.LoadURL(Url + "/dictionary/english/" + query)
+			if err != nil {
+				fmt.Println("error getting html data: " + err.Error())
+				return cambridgeInfo
+			}
+			nodes, _ = htmlquery.QueryAll(html, xpathBLockDescriptionEnRu)
 		}
 		for _, node := range nodes {
 			info := Info{}

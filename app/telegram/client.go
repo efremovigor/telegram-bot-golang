@@ -119,14 +119,14 @@ func SendVoices(chatId int, info cambridge.CambridgeInfo) {
 
 	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.RequestText, "uk")); err == nil && len([]rune(voiceId)) > 0 {
 		fmt.Println("find key uk voice in cache")
-		sendVoiceFromCache(chatId, "uk", voiceId, info.RequestText)
+		sendVoiceFromCache(chatId, "uk", voiceId, info)
 	} else {
 		sendVoice(chatId, "uk", info)
 	}
 
 	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.RequestText, "us")); err == nil && len([]rune(voiceId)) > 0 {
 		fmt.Println("find key us voice in cache")
-		sendVoiceFromCache(chatId, "us", voiceId, info.RequestText)
+		sendVoiceFromCache(chatId, "us", voiceId, info)
 	} else {
 		sendVoice(chatId, "us", info)
 	}
@@ -156,7 +156,14 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo) {
 	}
 
 	_ = writer.WriteField("performer", country)
-	_ = writer.WriteField("title", info.RequestText)
+
+	var title string
+	if !helper.IsEmpty(info.Options[0].Text) {
+		title = info.Options[0].Text
+	} else {
+		title = info.RequestText
+	}
+	_ = writer.WriteField("title", title)
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
 	err = writer.Close()
 	if err != nil {
@@ -191,8 +198,14 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo) {
 	}
 }
 
-func sendVoiceFromCache(chatId int, country string, audioId string, word string) {
-	request := SendEarlierVoiceRequest{Performer: country, Title: word, Audio: audioId, ChatId: chatId}
+func sendVoiceFromCache(chatId int, country string, audioId string, info cambridge.CambridgeInfo) {
+	var title string
+	if !helper.IsEmpty(info.Options[0].Text) {
+		title = info.Options[0].Text
+	} else {
+		title = info.RequestText
+	}
+	request := SendEarlierVoiceRequest{Performer: country, Title: title, Audio: audioId, ChatId: chatId}
 	requestInJson, err := json.Marshal(request)
 	if err != nil {
 		fmt.Println(err)

@@ -18,3 +18,11 @@ func GetEnvVariable(key string) string {
 
 	return os.Getenv(key)
 }
+
+func IsProd() bool {
+	return GetEnvVariable("ENV") == "prod"
+}
+
+func CacheIsEnabled() bool {
+	return GetEnvVariable("CACHE_MODE") == "on"
+}
