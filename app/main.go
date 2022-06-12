@@ -13,6 +13,7 @@ import (
 	"telegram-bot-golang/config"
 	"telegram-bot-golang/env"
 	"telegram-bot-golang/service/dictionary/cambridge"
+	"telegram-bot-golang/service/dictionary/multitran"
 	"telegram-bot-golang/statistic"
 	"telegram-bot-golang/telegram"
 	telegramConfig "telegram-bot-golang/telegram/config"
@@ -74,12 +75,17 @@ func main() {
 	})
 
 	if !env.IsProd() {
-		e.GET("/dictionary/:query", func(c echo.Context) error {
+		e.GET("/cambridge/:query", func(c echo.Context) error {
 			query := c.Param("query")
 			cambridgeInfo := cambridge.Get(query)
 			if cambridgeInfo.IsValid() {
 				statistic.Consider(query, 1)
 			}
+			return c.JSON(http.StatusOK, cambridgeInfo)
+		})
+		e.GET("/multitran/:query", func(c echo.Context) error {
+			query := c.Param("query")
+			cambridgeInfo := multitran.Get(query)
 			return c.JSON(http.StatusOK, cambridgeInfo)
 		})
 		e.Logger.Fatal(e.Start(":443"))
