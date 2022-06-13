@@ -5,6 +5,8 @@ import (
 	"telegram-bot-golang/service/dictionary/cambridge"
 )
 
+const MaxRequestSize = 3000
+
 type TelegramListener struct {
 	Msg chan TelegramTree
 }

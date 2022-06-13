@@ -50,7 +50,7 @@ func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, body WebhookM
 	var msgs []SendMessageReqBody
 	msgs = append(msgs, GetTelegramRequest(body.GetChatId(), GetCambridgeHeaderBlock(cambridgeInfo)))
 	for _, option := range cambridgeInfo.Options {
-		msgs = append(msgs, GetTelegramRequest(body.GetChatId(), GetCambridgeOptionBlock(option)))
+		msgs = append(msgs, GetCambridgeOptionBlock(body.GetChatId(), option)...)
 	}
 	return msgs
 }
@@ -87,7 +87,7 @@ func DecodeForTelegram(text string) string {
 	return replacer.Replace(text)
 }
 
-func SendMessage(response SendMessageReqBody) {
+func sendMessage(response SendMessageReqBody) {
 	if len([]rune(response.Text)) > 0 {
 		toTelegram, err := json.Marshal(response)
 		if err != nil {
@@ -109,7 +109,7 @@ func SendMessage(response SendMessageReqBody) {
 	}
 }
 
-func SendVoices(chatId int, info cambridge.CambridgeInfo) {
+func sendVoices(chatId int, info cambridge.CambridgeInfo) {
 
 	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.RequestText, "uk")); err == nil && len([]rune(voiceId)) > 0 {
 		fmt.Println("find key uk voice in cache")
@@ -210,14 +210,4 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	req.Header.Add("Content-Type", "application/json")
 	res, _ := http.DefaultClient.Do(req)
 	defer rapid_microsoft.CloseConnection(res.Body)
-}
-
-//{"ok":true,"result":{"message_id":841,"from":{"id":5125700707,"is_bot":true,"first_name":"EnglishHelper","username":"IdontSpeakBot"},"chat":{"id":184357122,"first_name":"Igor","last_name":"Efremov","username":"Igor198811","type":"private"},"date":1654357898,"document":{"file_name":"ukheft_029.ogg","mime_type":"audio/ogg","file_id":"BQACAgQAAxkDAAIDSWKbf4rOWkrezgXn9ZZSvqqWNF7NAAIGAwACJpTkUF3cWGDxH4YgJAQ","file_unique_id":"AgADBgMAAiaU5FA","file_size":8769}}}
-type T2 struct {
-	Title               string      `json:"title"`
-	ChatId              int         `json:"chat_id"`
-	Audio               string      `json:"audio"`
-	Duration            interface{} `json:"duration"`
-	DisableNotification bool        `json:"disable_notification"`
-	ReplyToMessageId    interface{} `json:"reply_to_message_id"`
 }

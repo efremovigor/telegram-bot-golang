@@ -6,3 +6,6 @@ func IsEmpty(s string) bool {
 	}
 	return true
 }
+func Len(s string) int {
+	return len([]rune(s))
+}

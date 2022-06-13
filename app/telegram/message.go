@@ -3,6 +3,7 @@ package telegram
 import (
 	"fmt"
 	"telegram-bot-golang/db/postgree/model"
+	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
 )
 
@@ -23,15 +24,17 @@ func GetCambridgeHeaderBlock(info cambridge.CambridgeInfo) string {
 	return fmt.Sprintf("Cambridge\\-dictionary\\: *%s*", info.RequestText) + "\n"
 }
 
-func GetCambridgeOptionBlock(info cambridge.Info) string {
+func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []SendMessageReqBody {
+	var messages []SendMessageReqBody
 	var mainBlock string
 	mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n"
 	if len(info.Explanation) > 0 {
 		listExplanation := info.Explanation
-		if len(listExplanation) > 6 {
-			listExplanation = info.Explanation[0:5]
-		}
 		for n, explanation := range listExplanation {
+			if helper.Len(mainBlock) > MaxRequestSize {
+				messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
+				mainBlock = ""
+			}
 			if n > 0 {
 				mainBlock += GetRowSeparation()
 			}
@@ -41,11 +44,19 @@ func GetCambridgeOptionBlock(info cambridge.Info) string {
 			mainBlock += GetFieldIfCan(explanation.Description, "Description")
 			mainBlock += GetFieldIfCan(explanation.Translate, "Translate")
 			if len(explanation.Example) > 0 {
-				mainBlock += GetFieldIfCan(explanation.Example[0], "Example")
+				mainBlock += "Example:\n"
+			}
+			for _, example := range explanation.Example {
+				if helper.Len(mainBlock) > MaxRequestSize {
+					messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
+					mainBlock = ""
+				}
+				mainBlock += DecodeForTelegram(example) + "\n"
 			}
 		}
 	}
-	return mainBlock + "\n"
+	messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
+	return messages
 }
 
 func GetFieldIfCan(value string, field string) string {
