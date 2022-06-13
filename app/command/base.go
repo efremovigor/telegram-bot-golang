@@ -23,7 +23,7 @@ func General(body telegram.WebhookMessage) []telegram.TelegramTree {
 	}
 
 	cambridgeInfo := cambridge.Get(body.GetChatText())
-	if !cambridgeInfo.IsValid() {
+	if cambridgeInfo.IsValid() {
 		for _, msg := range telegram.GetResultFromCambridge(cambridgeInfo, body) {
 			msgs = append(msgs, telegram.TelegramTree{Type: "text", Msg: msg})
 		}
