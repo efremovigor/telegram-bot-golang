@@ -28,10 +28,10 @@ type Explanation struct {
 
 func generalTypes() []string {
 	return []string{
-		"general", "agriculture", "dialectal", "programming", "religion", "slang", "vulgar", "american",
-		"biology", "diplomacy", "drilling", "electronics", "figurative", "informal", "folklore", "poetic",
-		"figurative", "dated", "information technology", "mathematics", "mining", "technology", "telecommunications",
-		"military", "literature", "cooking", "automated equipment", "astronautics",
+		"general", // "agriculture", "dialectal", "programming", "religion", "slang", "vulgar", "american",
+		//"biology", "diplomacy", "drilling", "electronics", "figurative", "informal", "folklore", "poetic",
+		//"figurative", "dated", "information technology", "mathematics", "mining", "technology", "telecommunications",
+		//"military", "literature", "cooking", "automated equipment", "astronautics",
 	}
 }
 
