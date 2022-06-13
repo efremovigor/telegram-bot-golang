@@ -6,13 +6,13 @@ import (
 	"telegram-bot-golang/telegram"
 )
 
-func ChangeTranslateTransition(command string, body telegram.WebhookMessage) {
+func ChangeTranslateTransition(command string, body telegram.WebhookMessage, listener telegram.TelegramListener) {
 	redis.Set(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()), Transitions()[command].key)
 
-	telegram.SendMessage(telegram.GetTelegramRequest(
+	listener.Msg <- telegram.GetTelegramRequest(
 		body.GetChatId(),
 		telegram.GetBaseMsg(body.GetUsername(), body.GetUserId())+telegram.GetChangeTranslateMsg(Transitions()[command].Desc),
-	))
+	)
 }
 func Transitions() map[string]struct {
 	key  string

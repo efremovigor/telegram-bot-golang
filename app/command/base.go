@@ -6,22 +6,22 @@ import (
 	"telegram-bot-golang/telegram"
 )
 
-func SayHello(body telegram.WebhookMessage) {
-	telegram.SendMessage(telegram.GetTelegramRequest(
+func SayHello(body telegram.WebhookMessage, listener telegram.TelegramListener) {
+	listener.Msg <- telegram.GetTelegramRequest(
 		body.GetChatId(),
 		telegram.DecodeForTelegram("Hello Friend. How can I help you?"),
-	))
+	)
 }
 
-func General(body telegram.WebhookMessage) {
+func General(body telegram.WebhookMessage, listener telegram.TelegramListener) {
 	fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
 	state, _ := redis.Get(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()))
-	telegram.GetHelloIGotYourMSGRequest(body)
-	telegram.GetResultFromRapidMicrosoft(body, state)
-	telegram.GetResultFromCambridge(body)
+	listener.Msg <- telegram.GetHelloIGotYourMSGRequest(body)
+	listener.Msg <- telegram.GetResultFromRapidMicrosoft(body, state)
+	telegram.GetResultFromCambridge(body, listener)
 }
 
-func Help(body telegram.WebhookMessage) {
+func Help(body telegram.WebhookMessage, listener telegram.TelegramListener) {
 	telegram.SendMessage(telegram.GetTelegramRequest(
 		body.GetChatId(),
 		"*List of commands available to you:*\n"+

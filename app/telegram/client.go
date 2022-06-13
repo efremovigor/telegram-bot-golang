@@ -20,16 +20,15 @@ import (
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-func GetHelloIGotYourMSGRequest(body WebhookMessage) {
-	SendMessage(GetTelegramRequest(
+func GetHelloIGotYourMSGRequest(body WebhookMessage) SendMessageReqBody {
+	return GetTelegramRequest(
 		body.GetChatId(),
 		GetBaseMsg(body.GetUsername(), body.GetUserId())+
 			GetIGotYourNewRequest(body.GetChatText()),
-	))
-
+	)
 }
 
-func GetResultFromRapidMicrosoft(body WebhookMessage, state string) {
+func GetResultFromRapidMicrosoft(body WebhookMessage, state string) SendMessageReqBody {
 	var from, to string
 	if state == "" || state == "en_ru" {
 		from = "en"
@@ -41,22 +40,22 @@ func GetResultFromRapidMicrosoft(body WebhookMessage, state string) {
 
 	translate := rapid_microsoft.GetTranslate(body.GetChatText(), to, from)
 	if helper.IsEmpty(translate) {
-		return
+		return SendMessageReqBody{}
 	}
-	SendMessage(GetTelegramRequest(body.GetChatId(), GetBlockWithRapidInfo(translate)))
+	return GetTelegramRequest(body.GetChatId(), GetBlockWithRapidInfo(translate))
 }
 
-func GetResultFromCambridge(body WebhookMessage) {
+func GetResultFromCambridge(body WebhookMessage, listener TelegramListener) {
 	cambridgeInfo := cambridge.Get(body.GetChatText())
 	if !cambridgeInfo.IsValid() {
 		return
 	}
 	statistic.Consider(cambridgeInfo.RequestText, body.GetUserId())
-	SendMessage(GetTelegramRequest(
-		body.GetChatId(), GetCambridgeHeaderBlock(cambridgeInfo)))
+	listener.Msg <- GetTelegramRequest(
+		body.GetChatId(), GetCambridgeHeaderBlock(cambridgeInfo))
 	for _, option := range cambridgeInfo.Options {
-		SendMessage(GetTelegramRequest(
-			body.GetChatId(), GetCambridgeOptionBlock(option)))
+		listener.Msg <- GetTelegramRequest(
+			body.GetChatId(), GetCambridgeOptionBlock(option))
 	}
 	SendVoices(body.GetChatId(), cambridgeInfo)
 }

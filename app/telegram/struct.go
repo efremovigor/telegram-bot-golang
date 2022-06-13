@@ -2,6 +2,10 @@ package telegram
 
 import "strings"
 
+type TelegramListener struct {
+	Msg chan SendMessageReqBody
+}
+
 type WebhookMessage struct {
 	Message struct {
 		Text      string `json:"text"`
