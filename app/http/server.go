@@ -23,7 +23,7 @@ type Context struct {
 	echo.Context
 }
 
-func bindListener(listener telegram.TelegramListener) echo.MiddlewareFunc {
+func bindListener(listener telegram.Listener) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			c.Set("listener", listener)
@@ -32,7 +32,7 @@ func bindListener(listener telegram.TelegramListener) echo.MiddlewareFunc {
 	}
 }
 
-func Handle(listener telegram.TelegramListener) {
+func Handle(listener telegram.Listener) {
 	e := echo.New()
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -97,23 +97,23 @@ func (c Context) reply(body telegram.WebhookMessage) error {
 		return err
 	}
 	fmt.Println("from telegram json:" + string(fromTelegram))
-	listener := c.Get("listener").(telegram.TelegramListener)
+	listener := c.Get("listener").(telegram.Listener)
 	switch body.GetChatText() {
 	case command.StartCommand:
-		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.SayHello(body)}
+		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.SayHello(body)}
 	case command.HelpCommand:
-		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.Help(body)}
+		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.Help(body)}
 	case command.RuEnCommand:
-		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.ChangeTranslateTransition(command.RuEnCommand, body)}
+		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.ChangeTranslateTransition(command.RuEnCommand, body)}
 	case command.EnRuCommand:
-		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.ChangeTranslateTransition(command.EnRuCommand, body)}
+		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.ChangeTranslateTransition(command.EnRuCommand, body)}
 	case command.GetAllTopCommand:
-		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.GetTop10(body)}
+		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.GetTop10(body)}
 	case command.GetMyTopCommand:
-		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.GetTop10ForUser(body)}
+		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.GetTop10ForUser(body)}
 	default:
 		for _, message := range command.General(body) {
-			listener.Msg <- message
+			listener.Message <- message
 		}
 	}
 

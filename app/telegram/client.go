@@ -15,6 +15,7 @@ import (
 	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
+	"telegram-bot-golang/service/dictionary/multitran"
 	rapid_microsoft "telegram-bot-golang/service/translate/rapid-microsoft"
 	"telegram-bot-golang/statistic"
 	telegramConfig "telegram-bot-golang/telegram/config"
@@ -47,12 +48,22 @@ func GetResultFromRapidMicrosoft(body WebhookMessage, state string) SendMessageR
 
 func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, body WebhookMessage) []SendMessageReqBody {
 	statistic.Consider(cambridgeInfo.RequestText, body.GetUserId())
-	var msgs []SendMessageReqBody
-	msgs = append(msgs, GetTelegramRequest(body.GetChatId(), GetCambridgeHeaderBlock(cambridgeInfo)))
+	var messages []SendMessageReqBody
+	messages = append(messages, GetTelegramRequest(body.GetChatId(), GetCambridgeHeaderBlock(cambridgeInfo)))
 	for _, option := range cambridgeInfo.Options {
-		msgs = append(msgs, GetCambridgeOptionBlock(body.GetChatId(), option)...)
+		messages = append(messages, GetCambridgeOptionBlock(body.GetChatId(), option)...)
 	}
-	return msgs
+	return messages
+}
+
+func GetResultFromMultitran(info multitran.Page, body WebhookMessage) []SendMessageReqBody {
+	statistic.Consider(info.RequestText, body.GetUserId())
+	var messages []SendMessageReqBody
+	messages = append(messages, GetTelegramRequest(body.GetChatId(), GetMultitranHeaderBlock(info)))
+	for _, option := range info.Options {
+		messages = append(messages, GetMultitranOptionBlock(body.GetChatId(), option)...)
+	}
+	return messages
 }
 
 func GetTelegramRequest(chatId int, text string) SendMessageReqBody {

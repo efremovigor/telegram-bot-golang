@@ -7,16 +7,16 @@ import (
 
 const MaxRequestSize = 3000
 
-type TelegramListener struct {
-	Msg chan TelegramTree
+type Listener struct {
+	Message chan RequestChannelTelegram
 }
 
-type TelegramTree struct {
-	Type string
-	Msg  interface{}
+type RequestChannelTelegram struct {
+	Type    string
+	Message interface{}
 }
 
-type TelegramCambridgeVoice struct {
+type CambridgeTelegramVoice struct {
 	Info   cambridge.CambridgeInfo
 	ChatId int
 }

@@ -1,10 +1,17 @@
 package multitran
 
-import "strings"
+import (
+	"strings"
+	"telegram-bot-golang/helper"
+)
 
-type MultitranInfo struct {
+type Page struct {
 	RequestText string `json:"request_text"`
 	Options     []Info `json:"options"`
+}
+
+func (i Page) IsValid() bool {
+	return !helper.IsEmpty(i.RequestText)
 }
 
 type Info struct {

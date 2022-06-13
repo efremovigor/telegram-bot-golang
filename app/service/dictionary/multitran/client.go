@@ -7,8 +7,8 @@ import (
 	"telegram-bot-golang/helper"
 )
 
-func Get(query string) MultitranInfo {
-	info := MultitranInfo{RequestText: query}
+func Get(query string) Page {
+	info := Page{}
 
 	html, err := htmlquery.LoadURL(fmt.Sprintf("https://www.multitran.com/m.exe?l1=1&l2=2&s=%s&langlist=2", query))
 
@@ -22,7 +22,6 @@ func Get(query string) MultitranInfo {
 		cols := htmlquery.Find(row, "//td")
 		switch len(cols) {
 		case 1:
-
 			if htmlquery.SelectAttr(cols[0], "class") == "gray" {
 				if !helper.IsEmpty(option.Text) && len(option.Explanation) > 0 {
 					info.Options = append(info.Options, option)
@@ -56,6 +55,9 @@ func Get(query string) MultitranInfo {
 	}
 	if !helper.IsEmpty(option.Text) && len(option.Explanation) > 0 {
 		info.Options = append(info.Options, option)
+	}
+	if len(info.Options) > 0 {
+		info.RequestText = query
 	}
 	return info
 }

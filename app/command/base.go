@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/service/dictionary/cambridge"
+	"telegram-bot-golang/service/dictionary/multitran"
 	"telegram-bot-golang/telegram"
 )
 
@@ -14,22 +15,29 @@ func SayHello(body telegram.WebhookMessage) telegram.SendMessageReqBody {
 	)
 }
 
-func General(body telegram.WebhookMessage) []telegram.TelegramTree {
+func General(body telegram.WebhookMessage) []telegram.RequestChannelTelegram {
 	fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
 	state, _ := redis.Get(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()))
-	msgs := []telegram.TelegramTree{
-		{Type: "text", Msg: telegram.GetHelloIGotYourMSGRequest(body)},
-		{Type: "text", Msg: telegram.GetResultFromRapidMicrosoft(body, state)},
+	messages := []telegram.RequestChannelTelegram{
+		{Type: "text", Message: telegram.GetHelloIGotYourMSGRequest(body)},
+		{Type: "text", Message: telegram.GetResultFromRapidMicrosoft(body, state)},
 	}
 
 	cambridgeInfo := cambridge.Get(body.GetChatText())
 	if cambridgeInfo.IsValid() {
-		for _, msg := range telegram.GetResultFromCambridge(cambridgeInfo, body) {
-			msgs = append(msgs, telegram.TelegramTree{Type: "text", Msg: msg})
+		for _, message := range telegram.GetResultFromCambridge(cambridgeInfo, body) {
+			messages = append(messages, telegram.RequestChannelTelegram{Type: "text", Message: message})
 		}
-		msgs = append(msgs, telegram.TelegramTree{Type: "voice", Msg: telegram.TelegramCambridgeVoice{Info: cambridgeInfo, ChatId: body.GetChatId()}})
+		messages = append(messages, telegram.RequestChannelTelegram{Type: "voice", Message: telegram.CambridgeTelegramVoice{Info: cambridgeInfo, ChatId: body.GetChatId()}})
 	}
-	return msgs
+	multitranInfo := multitran.Get(body.GetChatText())
+	if multitranInfo.IsValid() {
+		for _, message := range telegram.GetResultFromMultitran(multitranInfo, body) {
+			messages = append(messages, telegram.RequestChannelTelegram{Type: "text", Message: message})
+		}
+	}
+
+	return messages
 }
 
 func Help(body telegram.WebhookMessage) telegram.SendMessageReqBody {

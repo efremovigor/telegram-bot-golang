@@ -5,6 +5,7 @@ import (
 	"telegram-bot-golang/db/postgree/model"
 	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
+	"telegram-bot-golang/service/dictionary/multitran"
 )
 
 func GetBaseMsg(name string, id int) string {
@@ -24,35 +25,62 @@ func GetCambridgeHeaderBlock(info cambridge.CambridgeInfo) string {
 	return fmt.Sprintf("Cambridge\\-dictionary\\: *%s*", info.RequestText) + "\n"
 }
 
+func GetMultitranHeaderBlock(info multitran.Page) string {
+	return fmt.Sprintf("Multitran\\-dictionary\\: *%s*", info.RequestText) + "\n"
+}
+
 func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []SendMessageReqBody {
 	var messages []SendMessageReqBody
 	var mainBlock string
 	mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n"
-	if len(info.Explanation) > 0 {
-		listExplanation := info.Explanation
-		for n, explanation := range listExplanation {
+	for n, explanation := range info.Explanation {
+		if helper.Len(mainBlock) > MaxRequestSize {
+			messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
+			mainBlock = ""
+		}
+		if n > 0 {
+			mainBlock += GetRowSeparation()
+		}
+		mainBlock += GetFieldIfCan(explanation.Text, "Phrase")
+		mainBlock += GetFieldIfCan(explanation.Level, "Level")
+		mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic")
+		mainBlock += GetFieldIfCan(explanation.Description, "Description")
+		mainBlock += GetFieldIfCan(explanation.Translate, "Translate")
+		if len(explanation.Example) > 0 {
+			mainBlock += "*Example*:\n"
+		}
+		for _, example := range explanation.Example {
 			if helper.Len(mainBlock) > MaxRequestSize {
 				messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
 				mainBlock = ""
 			}
-			if n > 0 {
-				mainBlock += GetRowSeparation()
+			mainBlock += DecodeForTelegram(example) + "\n"
+		}
+	}
+	messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
+	return messages
+}
+
+func GetMultitranOptionBlock(chatId int, info multitran.Info) []SendMessageReqBody {
+	var messages []SendMessageReqBody
+	var mainBlock string
+	mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n"
+	for n, explanation := range info.Explanation {
+		if helper.Len(mainBlock) > MaxRequestSize {
+			messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
+			mainBlock = ""
+		}
+		if n > 0 {
+			mainBlock += GetRowSeparation()
+		}
+		mainBlock += "*Type*:\n"
+
+		for _, translate := range explanation.Text {
+			if helper.Len(mainBlock) > MaxRequestSize {
+				messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
+				mainBlock = ""
 			}
-			mainBlock += GetFieldIfCan(explanation.Text, "Phrase")
-			mainBlock += GetFieldIfCan(explanation.Level, "Level")
-			mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic")
-			mainBlock += GetFieldIfCan(explanation.Description, "Description")
-			mainBlock += GetFieldIfCan(explanation.Translate, "Translate")
-			if len(explanation.Example) > 0 {
-				mainBlock += "*Example*:\n"
-			}
-			for _, example := range explanation.Example {
-				if helper.Len(mainBlock) > MaxRequestSize {
-					messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
-					mainBlock = ""
-				}
-				mainBlock += DecodeForTelegram(example) + "\n"
-			}
+			mainBlock += DecodeForTelegram(translate) + ", "
 		}
 	}
 	messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))

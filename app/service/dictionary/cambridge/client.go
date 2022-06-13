@@ -20,18 +20,13 @@ func Get(query string) CambridgeInfo {
 		}
 		nodes, _ := htmlquery.QueryAll(html, xpathBLockDescriptionEnRu)
 
-		if len(nodes) > 0 {
-			cambridgeInfo.RequestText = strings.TrimSpace(query)
-		} else {
+		if len(nodes) == 0 {
 			html, err = htmlquery.LoadURL(Url + "/dictionary/english/" + query)
 			if err != nil {
 				fmt.Println("error getting html data: " + err.Error())
 				return cambridgeInfo
 			}
 			nodes, _ = htmlquery.QueryAll(html, xpathBLockDescriptionEnRu)
-			if len(nodes) > 0 {
-				cambridgeInfo.RequestText = strings.TrimSpace(query)
-			}
 		}
 		for _, node := range nodes {
 			info := Info{}
@@ -102,6 +97,9 @@ func Get(query string) CambridgeInfo {
 				info.Explanation = append(info.Explanation, explanation)
 			}
 			cambridgeInfo.Options = append(cambridgeInfo.Options, info)
+		}
+		if len(cambridgeInfo.Options) > 0 {
+			cambridgeInfo.RequestText = strings.TrimSpace(query)
 		}
 
 		if infoInJson, err := json.Marshal(cambridgeInfo); err != nil {
