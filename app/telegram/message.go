@@ -72,12 +72,16 @@ func GetMultitranOptionBlock(chatId int, info multitran.Info) []SendMessageReqBo
 		}
 		mainBlock += "*Type*:\n"
 
-		for _, translate := range explanation.Text {
+		for i, translate := range explanation.Text {
 			if helper.Len(mainBlock) > MaxRequestSize {
 				messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
 				mainBlock = ""
 			}
-			mainBlock += DecodeForTelegram(translate) + ", "
+			mainBlock += DecodeForTelegram(translate)
+
+			if i < len(explanation.Text) {
+				mainBlock += ", "
+			}
 		}
 		mainBlock += "\n"
 	}
