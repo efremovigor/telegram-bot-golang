@@ -60,9 +60,7 @@ func GetResultFromMultitran(info multitran.Page, body WebhookMessage) []SendMess
 	statistic.Consider(info.RequestText, body.GetUserId())
 	var messages []SendMessageReqBody
 	messages = append(messages, GetTelegramRequest(body.GetChatId(), GetMultitranHeaderBlock(info)))
-	for _, option := range info.Options {
-		messages = append(messages, GetMultitranOptionBlock(body.GetChatId(), option)...)
-	}
+	messages = append(messages, GetMultitranOptionBlock(body.GetChatId(), info)...)
 	return messages
 }
 

@@ -61,29 +61,32 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []SendMessageReqBo
 	return messages
 }
 
-func GetMultitranOptionBlock(chatId int, info multitran.Info) []SendMessageReqBody {
+func GetMultitranOptionBlock(chatId int, page multitran.Page) []SendMessageReqBody {
 	var messages []SendMessageReqBody
 	var mainBlock string
-	mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n"
-	for _, explanation := range info.Explanation {
-		if helper.Len(mainBlock) > MaxRequestSize {
-			messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
-			mainBlock = ""
-		}
-		mainBlock += "*Type*:\n"
-
-		for i, translate := range explanation.Text {
+	for _, info := range page.Options {
+		mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n"
+		for _, explanation := range info.Explanation {
 			if helper.Len(mainBlock) > MaxRequestSize {
 				messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
 				mainBlock = ""
 			}
-			mainBlock += DecodeForTelegram(translate)
+			mainBlock += GetFieldIfCan(explanation.Type, "Type")
+			mainBlock += "*Explanation*:\n"
 
-			if i < len(explanation.Text) {
-				mainBlock += ", "
+			for i, translate := range explanation.Text {
+				if helper.Len(mainBlock) > MaxRequestSize {
+					messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
+					mainBlock = ""
+				}
+				mainBlock += DecodeForTelegram(translate)
+
+				if i < len(explanation.Text) {
+					mainBlock += ", "
+				}
 			}
+			mainBlock += "\n"
 		}
-		mainBlock += "\n"
 	}
 	messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
 	return messages
