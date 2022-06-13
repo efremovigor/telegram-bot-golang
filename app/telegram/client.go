@@ -45,19 +45,14 @@ func GetResultFromRapidMicrosoft(body WebhookMessage, state string) SendMessageR
 	return GetTelegramRequest(body.GetChatId(), GetBlockWithRapidInfo(translate))
 }
 
-func GetResultFromCambridge(body WebhookMessage, listener TelegramListener) {
-	cambridgeInfo := cambridge.Get(body.GetChatText())
-	if !cambridgeInfo.IsValid() {
-		return
-	}
+func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, body WebhookMessage) []SendMessageReqBody {
 	statistic.Consider(cambridgeInfo.RequestText, body.GetUserId())
-	listener.Msg <- GetTelegramRequest(
-		body.GetChatId(), GetCambridgeHeaderBlock(cambridgeInfo))
+	var msgs []SendMessageReqBody
+	msgs = append(msgs, GetTelegramRequest(body.GetChatId(), GetCambridgeHeaderBlock(cambridgeInfo)))
 	for _, option := range cambridgeInfo.Options {
-		listener.Msg <- GetTelegramRequest(
-			body.GetChatId(), GetCambridgeOptionBlock(option))
+		msgs = append(msgs, GetTelegramRequest(body.GetChatId(), GetCambridgeOptionBlock(option)))
 	}
-	SendVoices(body.GetChatId(), cambridgeInfo)
+	return msgs
 }
 
 func GetTelegramRequest(chatId int, text string) SendMessageReqBody {
@@ -144,7 +139,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer rapid_microsoft.CloseConnection(res.Body)
+	defer helper.CloseConnection(res.Body)
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, _ := writer.CreateFormFile("audio", filepath.Base("audio.mp3"))

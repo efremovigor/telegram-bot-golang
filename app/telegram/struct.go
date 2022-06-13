@@ -1,9 +1,22 @@
 package telegram
 
-import "strings"
+import (
+	"strings"
+	"telegram-bot-golang/service/dictionary/cambridge"
+)
 
 type TelegramListener struct {
-	Msg chan SendMessageReqBody
+	Msg chan TelegramTree
+}
+
+type TelegramTree struct {
+	Type string
+	Msg  interface{}
+}
+
+type TelegramCambridgeVoice struct {
+	Info   cambridge.CambridgeInfo
+	ChatId int
 }
 
 type WebhookMessage struct {

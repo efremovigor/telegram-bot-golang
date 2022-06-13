@@ -100,19 +100,21 @@ func (c Context) reply(body telegram.WebhookMessage) error {
 	listener := c.Get("listener").(telegram.TelegramListener)
 	switch body.GetChatText() {
 	case command.StartCommand:
-		command.SayHello(body, listener)
+		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.SayHello(body)}
 	case command.HelpCommand:
-		command.Help(body, listener)
+		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.Help(body)}
 	case command.RuEnCommand:
-		command.ChangeTranslateTransition(command.RuEnCommand, body, listener)
+		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.ChangeTranslateTransition(command.RuEnCommand, body)}
 	case command.EnRuCommand:
-		command.ChangeTranslateTransition(command.EnRuCommand, body, listener)
+		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.ChangeTranslateTransition(command.EnRuCommand, body)}
 	case command.GetAllTopCommand:
-		command.GetTop10(body, listener)
+		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.GetTop10(body)}
 	case command.GetMyTopCommand:
-		command.GetTop10ForUser(body, listener)
+		listener.Msg <- telegram.TelegramTree{Type: "text", Msg: command.GetTop10ForUser(body)}
 	default:
-		command.General(body, listener)
+		for _, message := range command.General(body) {
+			listener.Msg <- message
+		}
 	}
 
 	return nil

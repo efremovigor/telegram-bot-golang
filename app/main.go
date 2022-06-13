@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	listener := telegram.TelegramListener{Msg: make(chan telegram.SendMessageReqBody, 100)}
+	listener := telegram.TelegramListener{Msg: make(chan telegram.TelegramTree, 100)}
 	go http.Handle(listener)
 	go telegram.HandleRequests(listener)
 	select {}
