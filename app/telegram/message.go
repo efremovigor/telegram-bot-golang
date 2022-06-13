@@ -65,13 +65,10 @@ func GetMultitranOptionBlock(chatId int, info multitran.Info) []SendMessageReqBo
 	var messages []SendMessageReqBody
 	var mainBlock string
 	mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n"
-	for n, explanation := range info.Explanation {
+	for _, explanation := range info.Explanation {
 		if helper.Len(mainBlock) > MaxRequestSize {
 			messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
 			mainBlock = ""
-		}
-		if n > 0 {
-			mainBlock += GetRowSeparation()
 		}
 		mainBlock += "*Type*:\n"
 
@@ -82,6 +79,7 @@ func GetMultitranOptionBlock(chatId int, info multitran.Info) []SendMessageReqBo
 			}
 			mainBlock += DecodeForTelegram(translate) + ", "
 		}
+		mainBlock += "\n"
 	}
 	messages = append(messages, GetTelegramRequest(chatId, mainBlock+"\n"))
 	return messages
