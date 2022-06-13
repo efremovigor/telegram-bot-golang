@@ -44,7 +44,7 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []SendMessageReqBo
 			mainBlock += GetFieldIfCan(explanation.Description, "Description")
 			mainBlock += GetFieldIfCan(explanation.Translate, "Translate")
 			if len(explanation.Example) > 0 {
-				mainBlock += "Example:\n"
+				mainBlock += "*Example*:\n"
 			}
 			for _, example := range explanation.Example {
 				if helper.Len(mainBlock) > MaxRequestSize {
