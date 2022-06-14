@@ -17,10 +17,11 @@ func IsEn(text string) bool {
 		for _, en := range ens {
 			if en == letter {
 				count++
+				continue
 			}
 		}
 	}
-	if count > len(ens)/2 {
+	if count > Len(text)/2 {
 		return true
 	}
 	return false

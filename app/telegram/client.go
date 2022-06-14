@@ -32,7 +32,6 @@ func GetHelloIGotYourMSGRequest(body WebhookMessage) SendMessageReqBody {
 func GetResultFromRapidMicrosoft(body WebhookMessage, state string) SendMessageReqBody {
 	var from, to string
 
-	fmt.Println("transition: " + state)
 	if state == "" {
 		if helper.IsEn(state) {
 			from = "en"
@@ -48,7 +47,6 @@ func GetResultFromRapidMicrosoft(body WebhookMessage, state string) SendMessageR
 		from = "ru"
 		to = "en"
 	}
-	fmt.Println("from: " + from + " to:" + to)
 
 	translate := rapid_microsoft.GetTranslate(body.GetChatText(), to, from)
 	if helper.IsEmpty(translate) {

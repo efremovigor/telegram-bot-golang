@@ -12,6 +12,7 @@ import (
 	"telegram-bot-golang/command"
 	"telegram-bot-golang/config"
 	"telegram-bot-golang/env"
+	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
 	"telegram-bot-golang/service/dictionary/multitran"
 	"telegram-bot-golang/statistic"
@@ -83,6 +84,11 @@ func Handle(listener telegram.Listener) {
 			query := c.Param("query")
 			cambridgeInfo := multitran.Get(query)
 			return c.JSON(http.StatusOK, cambridgeInfo)
+		})
+
+		e.GET("/is-en/:query", func(c echo.Context) error {
+			query := c.Param("query")
+			return c.JSON(http.StatusOK, helper.IsEn(query))
 		})
 		e.Logger.Fatal(e.Start(":443"))
 	} else {
