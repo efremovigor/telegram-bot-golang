@@ -101,10 +101,6 @@ func sendMessage(response SendMessageReqBody) {
 		if err != nil {
 			fmt.Println("error of serialisation telegram struct:" + string(toTelegram))
 		}
-		fmt.Println("----")
-		fmt.Println("to telegram json:" + string(toTelegram))
-		fmt.Println("+++")
-		fmt.Println("+++")
 
 		res, err := http.Post(telegramConfig.GetTelegramUrl("sendMessage"), "application/json", bytes.NewBuffer(toTelegram))
 		if err != nil {
