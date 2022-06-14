@@ -31,7 +31,15 @@ func GetHelloIGotYourMSGRequest(body WebhookMessage) SendMessageReqBody {
 
 func GetResultFromRapidMicrosoft(body WebhookMessage, state string) SendMessageReqBody {
 	var from, to string
-	if state == "" || state == "en_ru" {
+	if state == "" {
+		if helper.IsEn(state) {
+			from = "en"
+			to = "ru"
+		} else {
+			from = "ru"
+			to = "en"
+		}
+	} else if state == "en_ru" {
 		from = "en"
 		to = "ru"
 	} else {

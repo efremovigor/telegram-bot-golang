@@ -107,6 +107,8 @@ func (c Context) reply(body telegram.WebhookMessage) error {
 		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.ChangeTranslateTransition(command.RuEnCommand, body)}
 	case command.EnRuCommand:
 		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.ChangeTranslateTransition(command.EnRuCommand, body)}
+	case command.AutoTranslateCommand:
+		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.ChangeTranslateTransition(command.AutoTranslateCommand, body)}
 	case command.GetAllTopCommand:
 		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.GetTop10(body)}
 	case command.GetMyTopCommand:

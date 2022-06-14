@@ -37,3 +37,10 @@ func Set(key string, value interface{}) {
 		fmt.Println("redis:error of writing cache:" + err.Error())
 	}
 }
+
+func Del(key string) {
+	err := getRedis().Del(ctx, key).Err()
+	if err != nil {
+		fmt.Println("redis:error of deleting cache:" + err.Error())
+	}
+}

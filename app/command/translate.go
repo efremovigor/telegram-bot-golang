@@ -7,7 +7,11 @@ import (
 )
 
 func ChangeTranslateTransition(command string, body telegram.WebhookMessage) telegram.SendMessageReqBody {
-	redis.Set(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()), Transitions()[command].key)
+	if command == AutoTranslateCommand {
+		redis.Del(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()))
+	} else {
+		redis.Set(fmt.Sprintf("chat_%d_user_%d", body.GetChatId(), body.GetUserId()), Transitions()[command].key)
+	}
 
 	return telegram.GetTelegramRequest(
 		body.GetChatId(),
@@ -21,5 +25,9 @@ func Transitions() map[string]struct {
 	return map[string]struct {
 		key  string
 		Desc string
-	}{RuEnCommand: {key: "ru_en", Desc: "RU -> EN"}, EnRuCommand: {key: "en_ru", Desc: "EN -> RU"}}
+	}{
+		RuEnCommand:          {key: "ru_en", Desc: "RU -> EN"},
+		EnRuCommand:          {key: "en_ru", Desc: "EN -> RU"},
+		AutoTranslateCommand: {key: "auto_translate", Desc: "AUTO"},
+	}
 }
