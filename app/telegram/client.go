@@ -74,7 +74,7 @@ func GetTelegramRequest(chatId int, text string) SendMessageReqBody {
 }
 
 func DecodeForTelegram(text string) string {
-	replacer := strings.NewReplacer(
+	return strings.NewReplacer(
 		">", "\\>",
 		"<", "\\<",
 		".", "\\.",
@@ -92,8 +92,7 @@ func DecodeForTelegram(text string) string {
 		"(", "\\(",
 		")", "\\)",
 		"=", "\\=",
-	)
-	return replacer.Replace(text)
+	).Replace(text)
 }
 
 func sendMessage(response SendMessageReqBody) {
