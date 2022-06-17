@@ -21,15 +21,17 @@ import (
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-func GetHelloIGotYourMSGRequest(body WebhookMessage) SendMessageReqBody {
-	return GetTelegramRequest(
-		body.GetChatId(),
-		GetBaseMsg(body.GetUsername(), body.GetUserId())+
+const NextRequestMessage = "/next_message"
+
+func GetHelloIGotYourMSGRequest(body WebhookMessage) RequestTelegramText {
+	return RequestTelegramText{
+		Text: GetBaseMsg(body.GetUsername(), body.GetUserId()) +
 			GetIGotYourNewRequest(body.GetChatText()),
-	)
+		ChatId: body.GetChatId(),
+	}
 }
 
-func GetResultFromRapidMicrosoft(body WebhookMessage, state string) SendMessageReqBody {
+func GetResultFromRapidMicrosoft(body WebhookMessage, state string) RequestTelegramText {
 	var from, to string
 
 	if state == "" {
@@ -50,27 +52,39 @@ func GetResultFromRapidMicrosoft(body WebhookMessage, state string) SendMessageR
 
 	translate := rapid_microsoft.GetTranslate(body.GetChatText(), to, from)
 	if helper.IsEmpty(translate) {
-		return SendMessageReqBody{}
+		return RequestTelegramText{}
 	}
-	return GetTelegramRequest(body.GetChatId(), GetBlockWithRapidInfo(translate))
+	return RequestTelegramText{
+		Text:   GetBlockWithRapidInfo(translate),
+		ChatId: body.GetChatId(),
+	}
 }
 
-func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, body WebhookMessage) []SendMessageReqBody {
+func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, body WebhookMessage) []RequestTelegramText {
 	statistic.Consider(cambridgeInfo.RequestText, body.GetUserId())
-	var messages []SendMessageReqBody
-	messages = append(messages, GetTelegramRequest(body.GetChatId(), GetCambridgeHeaderBlock(cambridgeInfo)))
+	var messages []RequestTelegramText
+	messages = append(messages, RequestTelegramText{Text: GetCambridgeHeaderBlock(cambridgeInfo), ChatId: body.GetChatId()})
 	for _, option := range cambridgeInfo.Options {
 		messages = append(messages, GetCambridgeOptionBlock(body.GetChatId(), option)...)
 	}
 	return messages
 }
 
-func GetResultFromMultitran(info multitran.Page, body WebhookMessage) []SendMessageReqBody {
+func GetResultFromMultitran(info multitran.Page, body WebhookMessage) []RequestTelegramText {
 	statistic.Consider(info.RequestText, body.GetUserId())
-	var messages []SendMessageReqBody
-	messages = append(messages, GetTelegramRequest(body.GetChatId(), GetMultitranHeaderBlock(info)))
+	var messages []RequestTelegramText
+	messages = append(messages, RequestTelegramText{Text: GetMultitranHeaderBlock(info), ChatId: body.GetChatId()})
 	messages = append(messages, GetMultitranOptionBlock(body.GetChatId(), info)...)
 	return messages
+}
+
+func GetTelegramKeyboardRequest(chatId int, text string, keyboards [][]Keyboard) SendMessageReqBody {
+	return SendMessageReqBody{
+		ChatID:      chatId,
+		Text:        text,
+		ParseMode:   "MarkdownV2",
+		ReplyMarkup: ReplyMarkup{Keyboard: keyboards, OneTimeKeyboard: true, ResizeKeyboard: true},
+	}
 }
 
 func GetTelegramRequest(chatId int, text string) SendMessageReqBody {
@@ -104,9 +118,10 @@ func DecodeForTelegram(text string) string {
 	).Replace(text)
 }
 
-func sendMessage(response SendMessageReqBody) {
-	if len([]rune(response.Text)) > 0 {
-		toTelegram, err := json.Marshal(response)
+func sendMessage(telegramText RequestTelegramText) {
+	request := GetTelegramKeyboardRequest(telegramText.ChatId, telegramText.Text, [][]Keyboard{{{Text: NextRequestMessage}}})
+	if len([]rune(request.Text)) > 0 {
+		toTelegram, err := json.Marshal(request)
 		if err != nil {
 			fmt.Println("error of serialisation telegram struct:" + string(toTelegram))
 		}
@@ -124,14 +139,14 @@ func sendMessage(response SendMessageReqBody) {
 
 func sendVoices(chatId int, info cambridge.CambridgeInfo) {
 
-	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.RequestText, "uk")); err == nil && len([]rune(voiceId)) > 0 {
+	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, "uk")); err == nil && len([]rune(voiceId)) > 0 {
 		fmt.Println("find key uk voice in cache")
 		sendVoiceFromCache(chatId, "uk", voiceId, info)
 	} else {
 		sendVoice(chatId, "uk", info)
 	}
 
-	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.RequestText, "us")); err == nil && len([]rune(voiceId)) > 0 {
+	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, "us")); err == nil && len([]rune(voiceId)) > 0 {
 		fmt.Println("find key us voice in cache")
 		sendVoiceFromCache(chatId, "us", voiceId, info)
 	} else {
@@ -201,7 +216,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo) {
 	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&audioResponse); err != nil && !audioResponse.Ok {
 		fmt.Println("could not decode telegram response", err)
 	} else {
-		redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKeys, info.RequestText, country), audioResponse.Result.Audio.FileId)
+		redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, country), audioResponse.Result.Audio.FileId)
 	}
 }
 

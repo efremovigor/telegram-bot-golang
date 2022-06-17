@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"telegram-bot-golang/command"
 	"telegram-bot-golang/config"
+	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/env"
 	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
@@ -119,8 +120,14 @@ func (c Context) reply(body telegram.WebhookMessage) error {
 		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.GetTop10(body)}
 	case command.GetMyTopCommand:
 		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.GetTop10ForUser(body)}
+	case telegram.NextRequestMessage:
+		if message, err := command.GetNextMessage(body.GetUserId()); err == nil {
+			listener.Message <- message
+		}
 	default:
-		for _, message := range command.General(body) {
+		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()))
+		command.General(body)
+		if message, err := command.GetNextMessage(body.GetUserId()); err == nil {
 			listener.Message <- message
 		}
 	}

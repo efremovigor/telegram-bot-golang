@@ -12,12 +12,17 @@ type Listener struct {
 }
 
 type RequestChannelTelegram struct {
-	Type    string
-	Message interface{}
+	Type    string      `json:"type"`
+	Message interface{} `json:"message"`
 }
 
-type CambridgeTelegramVoice struct {
+type CambridgeRequestTelegramVoice struct {
 	Info   cambridge.CambridgeInfo
+	ChatId int
+}
+
+type RequestTelegramText struct {
+	Text   string
 	ChatId int
 }
 
@@ -151,4 +156,9 @@ type SendEarlierVoiceRequest struct {
 	Duration            interface{} `json:"duration"`
 	DisableNotification bool        `json:"disable_notification"`
 	ReplyToMessageId    interface{} `json:"reply_to_message_id"`
+}
+
+type UserRequest struct {
+	Request string                   `json:"request"`
+	Output  []RequestChannelTelegram `json:"output"`
 }
