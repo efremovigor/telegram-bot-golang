@@ -21,7 +21,7 @@ import (
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-const NextRequestMessage = "/next_message"
+const NextRequestMessage = "_next_"
 
 func GetHelloIGotYourMSGRequest(body WebhookMessage) RequestTelegramText {
 	return RequestTelegramText{
@@ -63,9 +63,21 @@ func GetResultFromRapidMicrosoft(body WebhookMessage, state string) RequestTeleg
 func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, body WebhookMessage) []RequestTelegramText {
 	statistic.Consider(cambridgeInfo.RequestText, body.GetUserId())
 	var messages []RequestTelegramText
-	messages = append(messages, RequestTelegramText{Text: GetCambridgeHeaderBlock(cambridgeInfo), ChatId: body.GetChatId()})
+
 	for _, option := range cambridgeInfo.Options {
-		messages = append(messages, GetCambridgeOptionBlock(body.GetChatId(), option)...)
+		requests := GetCambridgeOptionBlock(body.GetChatId(), option)
+		if len(messages) == 0 && len(requests) > 0 {
+			messages = append(
+				messages,
+				MergeRequestTelegram(
+					RequestTelegramText{Text: GetCambridgeHeaderBlock(cambridgeInfo), ChatId: body.GetChatId()},
+					requests[0],
+				),
+			)
+		}
+		if len(requests) > 1 {
+			messages = append(messages, requests[1:]...)
+		}
 	}
 	return messages
 }
@@ -73,8 +85,19 @@ func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, body WebhookM
 func GetResultFromMultitran(info multitran.Page, body WebhookMessage) []RequestTelegramText {
 	statistic.Consider(info.RequestText, body.GetUserId())
 	var messages []RequestTelegramText
-	messages = append(messages, RequestTelegramText{Text: GetMultitranHeaderBlock(info), ChatId: body.GetChatId()})
-	messages = append(messages, GetMultitranOptionBlock(body.GetChatId(), info)...)
+	requests := GetMultitranOptionBlock(body.GetChatId(), info)
+	if len(requests) > 0 {
+		messages = append(
+			messages,
+			MergeRequestTelegram(
+				RequestTelegramText{Text: GetMultitranHeaderBlock(info), ChatId: body.GetChatId()},
+				requests[0],
+			),
+		)
+	}
+	if len(requests) > 1 {
+		messages = append(messages, requests[1:]...)
+	}
 	return messages
 }
 

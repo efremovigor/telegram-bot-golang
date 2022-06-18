@@ -35,6 +35,11 @@ type RequestTelegramText struct {
 	ChatId int    `json:"chatId"`
 }
 
+func MergeRequestTelegram(one RequestTelegramText, two RequestTelegramText) RequestTelegramText {
+	one.Text += two.Text
+	return one
+}
+
 type WebhookMessage struct {
 	Message struct {
 		Text      string `json:"text"`

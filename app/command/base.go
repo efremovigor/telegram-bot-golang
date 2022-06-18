@@ -17,13 +17,17 @@ func SayHello(body telegram.WebhookMessage) telegram.RequestTelegramText {
 }
 
 func General(body telegram.WebhookMessage) {
-	fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
+	redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()))
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, body.GetChatId(), body.GetUserId()))
 	messages := []telegram.RequestChannelTelegram{
-		telegram.NewRequestChannelTelegram("text", telegram.GetHelloIGotYourMSGRequest(body)),
-		telegram.NewRequestChannelTelegram("text", telegram.GetResultFromRapidMicrosoft(body, state)),
+		telegram.NewRequestChannelTelegram(
+			"text",
+			telegram.MergeRequestTelegram(
+				telegram.GetHelloIGotYourMSGRequest(body),
+				telegram.GetResultFromRapidMicrosoft(body, state),
+			),
+		),
 	}
-
 	cambridgeInfo := cambridge.Get(body.GetChatText())
 	if cambridgeInfo.IsValid() {
 		for _, message := range telegram.GetResultFromCambridge(cambridgeInfo, body) {
