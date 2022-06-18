@@ -51,11 +51,11 @@ func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err er
 	var messages []telegram.RequestChannelTelegram
 	state, _ := redis.Get(fmt.Sprintf(redis.NextRequestMessageKey, userId))
 	if err := json.Unmarshal([]byte(state), &request); err != nil {
-		fmt.Println(err)
+		fmt.Println("Unmarshal request : " + err.Error())
 	}
 
 	if err := json.Unmarshal(request.Output, &messages); err != nil {
-		fmt.Println(err)
+		fmt.Println("Unmarshal messages : " + err.Error())
 	}
 
 	message = messages[0]
