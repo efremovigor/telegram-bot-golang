@@ -16,7 +16,7 @@ func SayHello(body telegram.WebhookMessage) telegram.RequestTelegramText {
 	}
 }
 
-func General(listener telegram.Listener, body telegram.WebhookMessage) {
+func General(body telegram.WebhookMessage) {
 	fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, body.GetChatId(), body.GetUserId()))
 	messages := []telegram.RequestChannelTelegram{
@@ -37,7 +37,7 @@ func General(listener telegram.Listener, body telegram.WebhookMessage) {
 			messages = append(messages, telegram.RequestChannelTelegram{Type: "text", Message: message})
 		}
 	}
-	listener.Message <- messages[0]
+
 	if infoInJson, err := json.Marshal(telegram.UserRequest{Request: body.GetChatText(), Output: messages}); err == nil {
 		redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()), infoInJson)
 	} else {
@@ -45,12 +45,13 @@ func General(listener telegram.Listener, body telegram.WebhookMessage) {
 	}
 }
 
-func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err error) {
+func GetNextMessage(listener telegram.Listener, userId int) (message telegram.RequestChannelTelegram, err error) {
 	var request telegram.UserRequest
 	state, _ := redis.Get(fmt.Sprintf(redis.NextRequestMessageKey, userId))
 	if err := json.Unmarshal([]byte(state), &request); err != nil {
 		fmt.Println(err)
 	}
+	listener.Message <- request.Output[0]
 	message = request.Output[0]
 	request.Output = request.Output[1:]
 	if len(request.Output) > 0 {
