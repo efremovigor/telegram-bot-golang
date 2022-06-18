@@ -159,6 +159,6 @@ type SendEarlierVoiceRequest struct {
 }
 
 type UserRequest struct {
-	Request string                   `json:"request"`
-	Output  []RequestChannelTelegram `json:"output"`
+	Request string `json:"request"`
+	Output  []byte `json:"output"`
 }

@@ -16,7 +16,7 @@ func SayHello(body telegram.WebhookMessage) telegram.RequestTelegramText {
 	}
 }
 
-func General(listener telegram.Listener, body telegram.WebhookMessage) {
+func General(body telegram.WebhookMessage) {
 	fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, body.GetChatId(), body.GetUserId()))
 	messages := []telegram.RequestChannelTelegram{
@@ -37,35 +37,32 @@ func General(listener telegram.Listener, body telegram.WebhookMessage) {
 			messages = append(messages, telegram.RequestChannelTelegram{Type: "text", Message: message})
 		}
 	}
-	listener.Message <- messages[0]
-	if infoInJson, err := json.Marshal(telegram.UserRequest{Request: body.GetChatText(), Output: messages}); err == nil {
-		redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()), infoInJson)
-	} else {
-		fmt.Println(err)
+	if messagesTelegramInJson, err := json.Marshal(messages); err == nil {
+		if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: body.GetChatText(), Output: messagesTelegramInJson}); err == nil {
+			redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()), requestTelegramInJson)
+		} else {
+			fmt.Println(err)
+		}
 	}
 }
 
 func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err error) {
 	var request telegram.UserRequest
+	var messages []telegram.RequestChannelTelegram
 	state, _ := redis.Get(fmt.Sprintf(redis.NextRequestMessageKey, userId))
 	if err := json.Unmarshal([]byte(state), &request); err != nil {
 		fmt.Println(err)
 	}
 
-	message = telegram.RequestChannelTelegram{Type: request.Output[0].Type}
-	switch request.Output[0].Type {
-	case "text":
-		message.Message = telegram.RequestTelegramText{}
-	case "voice":
-		message.Message = telegram.CambridgeRequestTelegramVoice{}
-	}
-	if err = json.Unmarshal([]byte(request.Output[0].Message.(string)), &message.Message); err != nil {
+	if err := json.Unmarshal(request.Output, &messages); err != nil {
 		fmt.Println(err)
-		return message, err
 	}
 
-	request.Output = request.Output[1:]
-	if len(request.Output) > 0 {
+	message = messages[0]
+	if len(messages[1:]) > 0 {
+		if request.Output, err = json.Marshal(messages[1:]); err == nil {
+			fmt.Println(err)
+		}
 		if infoInJson, err := json.Marshal(request); err == nil {
 			redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, userId), infoInJson)
 		} else {
