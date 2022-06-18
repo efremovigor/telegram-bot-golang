@@ -20,49 +20,40 @@ func General(body telegram.WebhookMessage) {
 	fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, body.GetChatId(), body.GetUserId()))
 	messages := []telegram.RequestChannelTelegram{
-		{Type: "text", Message: telegram.GetHelloIGotYourMSGRequest(body)},
-		{Type: "text", Message: telegram.GetResultFromRapidMicrosoft(body, state)},
+		telegram.NewRequestChannelTelegram("text", telegram.GetHelloIGotYourMSGRequest(body)),
+		telegram.NewRequestChannelTelegram("text", telegram.GetResultFromRapidMicrosoft(body, state)),
 	}
 
 	cambridgeInfo := cambridge.Get(body.GetChatText())
 	if cambridgeInfo.IsValid() {
 		for _, message := range telegram.GetResultFromCambridge(cambridgeInfo, body) {
-			messages = append(messages, telegram.RequestChannelTelegram{Type: "text", Message: message})
+			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
-		messages = append(messages, telegram.RequestChannelTelegram{Type: "voice", Message: telegram.CambridgeRequestTelegramVoice{Info: cambridgeInfo, ChatId: body.GetChatId()}})
+		messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Info: cambridgeInfo, ChatId: body.GetChatId()}))
 	}
 	multitranInfo := multitran.Get(body.GetChatText())
 	if multitranInfo.IsValid() {
 		for _, message := range telegram.GetResultFromMultitran(multitranInfo, body) {
-			messages = append(messages, telegram.RequestChannelTelegram{Type: "text", Message: message})
+			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
 	}
-	if messagesTelegramInJson, err := json.Marshal(messages); err == nil {
-		if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: body.GetChatText(), Output: messagesTelegramInJson}); err == nil {
-			redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()), requestTelegramInJson)
-		} else {
-			fmt.Println(err)
-		}
+	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: body.GetChatText(), Output: messages}); err == nil {
+		redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()), requestTelegramInJson)
+	} else {
+		fmt.Println(err)
 	}
 }
 
 func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err error) {
 	var request telegram.UserRequest
-	var messages []telegram.RequestChannelTelegram
 	state, _ := redis.Get(fmt.Sprintf(redis.NextRequestMessageKey, userId))
 	if err := json.Unmarshal([]byte(state), &request); err != nil {
 		fmt.Println("Unmarshal request : " + err.Error())
 	}
 
-	if err := json.Unmarshal(request.Output, &messages); err != nil {
-		fmt.Println("Unmarshal messages : " + err.Error())
-	}
-
-	message = messages[0]
-	if len(messages[1:]) > 0 {
-		if request.Output, err = json.Marshal(messages[1:]); err == nil {
-			fmt.Println(err)
-		}
+	message = request.Output[0]
+	if len(request.Output[1:]) > 0 {
+		request.Output = request.Output[1:]
 		if infoInJson, err := json.Marshal(request); err == nil {
 			redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, userId), infoInJson)
 		} else {

@@ -107,19 +107,19 @@ func (c Context) reply(body telegram.WebhookMessage) error {
 	listener := c.Get("listener").(telegram.Listener)
 	switch body.GetChatText() {
 	case command.StartCommand:
-		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.SayHello(body)}
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.SayHello(body))
 	case command.HelpCommand:
-		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.Help(body)}
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.Help(body))
 	case command.RuEnCommand:
-		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.ChangeTranslateTransition(command.RuEnCommand, body)}
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.RuEnCommand, body))
 	case command.EnRuCommand:
-		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.ChangeTranslateTransition(command.EnRuCommand, body)}
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.EnRuCommand, body))
 	case command.AutoTranslateCommand:
-		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.ChangeTranslateTransition(command.AutoTranslateCommand, body)}
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.AutoTranslateCommand, body))
 	case command.GetAllTopCommand:
-		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.GetTop10(body)}
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10(body))
 	case command.GetMyTopCommand:
-		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.GetTop10ForUser(body)}
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10ForUser(body))
 	case telegram.NextRequestMessage:
 		if message, err := command.GetNextMessage(body.GetUserId()); err == nil {
 			listener.Message <- message

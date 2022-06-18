@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"encoding/json"
 	"strings"
 	"telegram-bot-golang/service/dictionary/cambridge"
 )
@@ -12,8 +13,15 @@ type Listener struct {
 }
 
 type RequestChannelTelegram struct {
-	Type    string      `json:"type"`
-	Message interface{} `json:"message"`
+	Type    string `json:"type"`
+	Message []byte `json:"message"`
+}
+
+func NewRequestChannelTelegram(requestType string, request interface{}) RequestChannelTelegram {
+	if requestInJson, err := json.Marshal(request); err == nil {
+		return RequestChannelTelegram{Type: requestType, Message: requestInJson}
+	}
+	return RequestChannelTelegram{}
 }
 
 type CambridgeRequestTelegramVoice struct {
@@ -159,6 +167,6 @@ type SendEarlierVoiceRequest struct {
 }
 
 type UserRequest struct {
-	Request string `json:"request"`
-	Output  []byte `json:"output"`
+	Request string                   `json:"request"`
+	Output  []RequestChannelTelegram `json:"output"`
 }

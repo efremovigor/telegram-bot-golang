@@ -11,17 +11,19 @@ func HandleRequests(listener Listener) {
 		case request := <-listener.Message:
 			switch request.Type {
 			case "text":
-				message := request.Message
-
-				if infoInJson, err := json.Marshal(message); err == nil {
-					fmt.Println(string(infoInJson))
+				var textRequest RequestTelegramText
+				if err := json.Unmarshal(request.Message, &textRequest); err == nil {
+					sendMessage(textRequest)
 				} else {
 					fmt.Println(err)
 				}
-				sendMessage(message.(RequestTelegramText))
 			case "voice":
-				voice := request.Message.(CambridgeRequestTelegramVoice)
-				sendVoices(voice.ChatId, voice.Info)
+				var voiceRequest CambridgeRequestTelegramVoice
+				if err := json.Unmarshal(request.Message, &voiceRequest); err == nil {
+					sendVoices(voiceRequest.ChatId, voiceRequest.Info)
+				} else {
+					fmt.Println(err)
+				}
 			}
 		}
 	}
