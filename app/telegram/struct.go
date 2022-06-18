@@ -14,6 +14,7 @@ type Listener struct {
 
 type RequestChannelTelegram struct {
 	Type    string `json:"type"`
+	HasMore bool   `json:"hasMore"`
 	Message []byte `json:"message"`
 }
 
@@ -152,6 +153,10 @@ type ReplyMarkup struct {
 	ResizeKeyboard  bool         `json:"resize_keyboard"`
 }
 
+func (r *ReplyMarkup) SetHasMore() {
+	r.Keyboard = [][]Keyboard{{{Text: NextRequestMessage}}}
+}
+
 type Keyboard struct {
 	Text string `json:"text"`
 }
@@ -164,6 +169,7 @@ type SendEarlierVoiceRequest struct {
 	Duration            interface{} `json:"duration"`
 	DisableNotification bool        `json:"disable_notification"`
 	ReplyToMessageId    interface{} `json:"reply_to_message_id"`
+	ReplyMarkup         ReplyMarkup `json:"reply_markup"`
 }
 
 type UserRequest struct {

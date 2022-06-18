@@ -78,15 +78,6 @@ func GetResultFromMultitran(info multitran.Page, body WebhookMessage) []RequestT
 	return messages
 }
 
-func GetTelegramKeyboardRequest(chatId int, text string, keyboards [][]Keyboard) SendMessageReqBody {
-	return SendMessageReqBody{
-		ChatID:      chatId,
-		Text:        text,
-		ParseMode:   "MarkdownV2",
-		ReplyMarkup: ReplyMarkup{Keyboard: keyboards, OneTimeKeyboard: true, ResizeKeyboard: true},
-	}
-}
-
 func GetTelegramRequest(chatId int, text string) SendMessageReqBody {
 	return SendMessageReqBody{
 		ChatID:      chatId,
@@ -118,8 +109,11 @@ func DecodeForTelegram(text string) string {
 	).Replace(text)
 }
 
-func sendMessage(telegramText RequestTelegramText) {
-	request := GetTelegramKeyboardRequest(telegramText.ChatId, telegramText.Text, [][]Keyboard{{{Text: NextRequestMessage}}})
+func sendMessage(telegramText RequestTelegramText, hasMore bool) {
+	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text)
+	if hasMore {
+		request.ReplyMarkup.SetHasMore()
+	}
 	if len([]rune(request.Text)) > 0 {
 		toTelegram, err := json.Marshal(request)
 		if err != nil {
@@ -137,24 +131,24 @@ func sendMessage(telegramText RequestTelegramText) {
 	}
 }
 
-func sendVoices(chatId int, info cambridge.CambridgeInfo) {
+func sendVoices(chatId int, info cambridge.CambridgeInfo, hasMore bool) {
 
 	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, "uk")); err == nil && len([]rune(voiceId)) > 0 {
 		fmt.Println("find key uk voice in cache")
-		sendVoiceFromCache(chatId, "uk", voiceId, info)
+		sendVoiceFromCache(chatId, "uk", voiceId, info, hasMore)
 	} else {
-		sendVoice(chatId, "uk", info)
+		sendVoice(chatId, "uk", info, hasMore)
 	}
 
 	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, "us")); err == nil && len([]rune(voiceId)) > 0 {
 		fmt.Println("find key us voice in cache")
-		sendVoiceFromCache(chatId, "us", voiceId, info)
+		sendVoiceFromCache(chatId, "us", voiceId, info, hasMore)
 	} else {
-		sendVoice(chatId, "us", info)
+		sendVoice(chatId, "us", info, hasMore)
 	}
 }
 
-func sendVoice(chatId int, country string, info cambridge.CambridgeInfo) {
+func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore bool) {
 	var path string
 	switch country {
 	case "uk":
@@ -187,6 +181,9 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo) {
 	}
 	_ = writer.WriteField("title", title)
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
+	if hasMore {
+		_ = writer.WriteField("reply_markup.keyboard[][text]", NextRequestMessage)
+	}
 	err = writer.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -220,7 +217,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo) {
 	}
 }
 
-func sendVoiceFromCache(chatId int, country string, audioId string, info cambridge.CambridgeInfo) {
+func sendVoiceFromCache(chatId int, country string, audioId string, info cambridge.CambridgeInfo, hasMore bool) {
 	var title string
 	if !helper.IsEmpty(info.Options[0].Text) {
 		title = info.Options[0].Text
@@ -228,6 +225,9 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 		title = info.RequestText
 	}
 	request := SendEarlierVoiceRequest{Performer: country, Title: title, Audio: audioId, ChatId: chatId}
+	if hasMore {
+		request.ReplyMarkup.SetHasMore()
+	}
 	requestInJson, err := json.Marshal(request)
 	if err != nil {
 		fmt.Println(err)

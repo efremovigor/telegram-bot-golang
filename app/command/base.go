@@ -53,6 +53,7 @@ func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err er
 
 	message = request.Output[0]
 	if len(request.Output[1:]) > 0 {
+		message.HasMore = true
 		request.Output = request.Output[1:]
 		if infoInJson, err := json.Marshal(request); err == nil {
 			redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, userId), infoInJson)
