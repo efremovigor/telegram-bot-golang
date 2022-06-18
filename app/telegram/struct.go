@@ -155,6 +155,8 @@ type ReplyMarkup struct {
 
 func (r *ReplyMarkup) SetHasMore() {
 	r.Keyboard = [][]Keyboard{{{Text: NextRequestMessage}}}
+	r.OneTimeKeyboard = true
+	r.ResizeKeyboard = true
 }
 
 type Keyboard struct {
