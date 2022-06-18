@@ -126,7 +126,7 @@ func (c Context) reply(body telegram.WebhookMessage) error {
 		}
 	default:
 		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()))
-		command.General(body)
+		command.General(listener, body)
 		if message, err := command.GetNextMessage(body.GetUserId()); err == nil {
 			listener.Message <- message
 		}
