@@ -17,13 +17,13 @@ type RequestChannelTelegram struct {
 }
 
 type CambridgeRequestTelegramVoice struct {
-	Info   cambridge.CambridgeInfo
-	ChatId int
+	Info   cambridge.CambridgeInfo `json:"info"`
+	ChatId int                     `json:"chatId"`
 }
 
 type RequestTelegramText struct {
-	Text   string
-	ChatId int
+	Text   string `json:"text"`
+	ChatId int    `json:"chatId"`
 }
 
 type WebhookMessage struct {
