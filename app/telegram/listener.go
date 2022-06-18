@@ -12,7 +12,7 @@ func HandleRequests(listener Listener) {
 			switch request.Type {
 			case "text":
 				if infoInJson, err := json.Marshal(request); err == nil {
-					fmt.Println(infoInJson)
+					fmt.Println(string(infoInJson))
 				} else {
 					fmt.Println(err)
 				}
