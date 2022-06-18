@@ -65,6 +65,8 @@ func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err er
 			} else {
 				fmt.Println(err)
 			}
+		} else {
+			redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, userId))
 		}
 	} else {
 		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, userId))
