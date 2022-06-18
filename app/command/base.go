@@ -16,7 +16,7 @@ func SayHello(body telegram.WebhookMessage) telegram.RequestTelegramText {
 	}
 }
 
-func General(body telegram.WebhookMessage) {
+func General(listener telegram.Listener, body telegram.WebhookMessage) {
 	fmt.Println(fmt.Sprintf("chat text: %s", body.GetChatText()))
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, body.GetChatId(), body.GetUserId()))
 	messages := []telegram.RequestChannelTelegram{
@@ -37,7 +37,7 @@ func General(body telegram.WebhookMessage) {
 			messages = append(messages, telegram.RequestChannelTelegram{Type: "text", Message: message})
 		}
 	}
-
+	listener.Message <- messages[0]
 	if infoInJson, err := json.Marshal(telegram.UserRequest{Request: body.GetChatText(), Output: messages}); err == nil {
 		redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()), infoInJson)
 	} else {
