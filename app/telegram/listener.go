@@ -6,6 +6,7 @@ func HandleRequests(listener Listener) {
 		case request := <-listener.Message:
 			switch request.Type {
 			case "text":
+				println(request.Message)
 				sendMessage(request.Message.(RequestTelegramText))
 			case "voice":
 				voice := request.Message.(CambridgeRequestTelegramVoice)
