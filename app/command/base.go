@@ -59,8 +59,7 @@ func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err er
 	case "voice":
 		message.Message = telegram.CambridgeRequestTelegramVoice{}
 	}
-	fmt.Println(request.Output[0].Message.(string))
-	if err = json.Unmarshal([]byte(request.Output[0].Message.(string)), &message.Message); err != nil {
+	if err = json.Unmarshal([]byte(fmt.Sprintf("%v", request.Output[0].Message)), &message.Message); err != nil {
 		fmt.Println(err)
 		return message, err
 	}
