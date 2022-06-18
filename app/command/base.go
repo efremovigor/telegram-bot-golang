@@ -59,9 +59,9 @@ func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err er
 	case "voice":
 		message.Message = telegram.CambridgeRequestTelegramVoice{}
 	}
-	if err := json.Unmarshal([]byte(request.Output[0].Message.(string)), &message.Message); err != nil {
+	if err = json.Unmarshal([]byte(request.Output[0].Message.(string)), &message.Message); err != nil {
 		fmt.Println(err)
-		return
+		return message, err
 	}
 
 	request.Output = request.Output[1:]
@@ -75,7 +75,7 @@ func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err er
 		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, userId))
 	}
 
-	return
+	return message, err
 }
 
 func Help(body telegram.WebhookMessage) telegram.RequestTelegramText {
