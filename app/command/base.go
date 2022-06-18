@@ -45,14 +45,25 @@ func General(listener telegram.Listener, body telegram.WebhookMessage) {
 	}
 }
 
-func GetNextMessage(listener telegram.Listener, userId int) (message telegram.RequestChannelTelegram, err error) {
+func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err error) {
 	var request telegram.UserRequest
 	state, _ := redis.Get(fmt.Sprintf(redis.NextRequestMessageKey, userId))
 	if err := json.Unmarshal([]byte(state), &request); err != nil {
 		fmt.Println(err)
 	}
-	listener.Message <- request.Output[0]
-	message = request.Output[0]
+
+	message = telegram.RequestChannelTelegram{Type: request.Output[0].Type}
+	switch request.Output[0].Type {
+	case "text":
+		message.Message = telegram.RequestTelegramText{}
+	case "voice":
+		message.Message = telegram.CambridgeRequestTelegramVoice{}
+	}
+	if err := json.Unmarshal([]byte(request.Output[0].Message.(string)), &message.Message); err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	request.Output = request.Output[1:]
 	if len(request.Output) > 0 {
 		if infoInJson, err := json.Marshal(request); err == nil {

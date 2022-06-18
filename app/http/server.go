@@ -121,13 +121,13 @@ func (c Context) reply(body telegram.WebhookMessage) error {
 	case command.GetMyTopCommand:
 		listener.Message <- telegram.RequestChannelTelegram{Type: "text", Message: command.GetTop10ForUser(body)}
 	case telegram.NextRequestMessage:
-		if message, err := command.GetNextMessage(listener, body.GetUserId()); err == nil {
+		if message, err := command.GetNextMessage(body.GetUserId()); err == nil {
 			listener.Message <- message
 		}
 	default:
 		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()))
 		command.General(listener, body)
-		if message, err := command.GetNextMessage(listener, body.GetUserId()); err == nil {
+		if message, err := command.GetNextMessage(body.GetUserId()); err == nil {
 			listener.Message <- message
 		}
 	}
