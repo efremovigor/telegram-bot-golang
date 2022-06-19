@@ -10,43 +10,43 @@ import (
 	"telegram-bot-golang/telegram"
 )
 
-func SayHello(body telegram.WebhookMessage) telegram.RequestTelegramText {
+func SayHello(query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
 	return telegram.RequestTelegramText{
 		Text:   telegram.DecodeForTelegram("Hello Friend. How can I help you?"),
-		ChatId: body.GetChatId(),
+		ChatId: query.GetChatId(),
 	}
 }
 
-func General(body telegram.WebhookMessage) {
-	redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()))
-	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, body.GetChatId(), body.GetUserId()))
+func General(query telegram.TelegramQueryInterface) {
+	redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId()))
+	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId()))
 	messages := []telegram.RequestChannelTelegram{
 		telegram.NewRequestChannelTelegram(
 			"text",
 			telegram.MergeRequestTelegram(
-				telegram.GetHelloIGotYourMSGRequest(body),
-				telegram.GetResultFromRapidMicrosoft(body, state),
+				telegram.GetHelloIGotYourMSGRequest(query),
+				telegram.GetResultFromRapidMicrosoft(query, state),
 			),
 		),
 	}
-	cambridgeInfo := cambridge.Get(body.GetChatText())
+	cambridgeInfo := cambridge.Get(query.GetChatText())
 	if cambridgeInfo.IsValid() {
-		for _, message := range telegram.GetResultFromCambridge(cambridgeInfo, body) {
+		for _, message := range telegram.GetResultFromCambridge(cambridgeInfo, query) {
 			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
-		messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Info: cambridgeInfo, ChatId: body.GetChatId()}))
+		messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Info: cambridgeInfo, ChatId: query.GetChatId()}))
 	}
-	multitranInfo := multitran.Get(body.GetChatText())
+	multitranInfo := multitran.Get(query.GetChatText())
 	if multitranInfo.IsValid() {
-		for _, message := range telegram.GetResultFromMultitran(multitranInfo, body) {
+		for _, message := range telegram.GetResultFromMultitran(multitranInfo, query) {
 			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
 	}
 	if multitranInfo.IsValid() || cambridgeInfo.IsValid() {
-		statistic.Consider(body.GetChatText(), body.GetUserId())
+		statistic.Consider(query.GetChatText(), query.GetUserId())
 	}
-	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: body.GetChatText(), Output: messages}); err == nil {
-		redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()), requestTelegramInJson)
+	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: query.GetChatText(), Output: messages}); err == nil {
+		redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId()), requestTelegramInJson)
 	} else {
 		fmt.Println(err)
 	}
@@ -79,7 +79,7 @@ func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err er
 	return message, err
 }
 
-func Help(body telegram.WebhookMessage) telegram.RequestTelegramText {
+func Help(query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
 	return telegram.RequestTelegramText{
 		Text: "*List of commands available to you:*\n" +
 			telegram.GetRowSeparation() +
@@ -89,6 +89,6 @@ func Help(body telegram.WebhookMessage) telegram.RequestTelegramText {
 			"*" + telegram.DecodeForTelegram(HelpCommand) + "* \\- Show all the available commands\n" +
 			"*" + telegram.DecodeForTelegram(GetAllTopCommand) + "* \\- To see the most popular requests for translation or explanation  \n" +
 			"*" + telegram.DecodeForTelegram(GetMyTopCommand) + "* \\- To see your popular requests for translation or explanation  \n",
-		ChatId: body.GetChatId(),
+		ChatId: query.GetChatId(),
 	}
 }

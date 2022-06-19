@@ -48,7 +48,6 @@ func Handle(listener telegram.Listener) {
 
 	e.POST(telegramConfig.GetUrlPrefix(), func(c echo.Context) error {
 		cc := c.(*Context)
-		body := &telegram.WebhookMessage{}
 
 		buf, _ := ioutil.ReadAll(c.Request().Body)
 		b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
@@ -59,15 +58,22 @@ func Handle(listener telegram.Listener) {
 		fmt.Println("raw json from telegram:" + string(b))
 		fmt.Println("----")
 
-		if err := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(buf))).Decode(body); err != nil {
-			fmt.Println("could not decode request body", err)
-			return err
-		}
+		webhookMessage := &telegram.WebhookMessage{}
+		callbackQuery := &telegram.CallbackQuery{}
 
-		if err := cc.reply(*body); err != nil {
-			fmt.Println("error in sending reply:", err)
-			return err
+		if err := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(buf))).Decode(webhookMessage); err == nil && webhookMessage.IsValid() {
+			if err := cc.reply(*webhookMessage); err != nil {
+				fmt.Println("error in sending reply:", err)
+				return err
+			}
+		} else if err := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(buf))).Decode(callbackQuery); err == nil && callbackQuery.IsValid() {
+			if err := cc.reply(*callbackQuery); err != nil {
+				fmt.Println("error in sending reply:", err)
+				return err
+			}
 		}
+		fmt.Println("could not decode request body", err)
+		return err
 
 		return cc.JSON(http.StatusOK, "")
 	})
@@ -97,38 +103,38 @@ func Handle(listener telegram.Listener) {
 	}
 }
 
-func (c Context) reply(body telegram.WebhookMessage) error {
+func (c Context) reply(query telegram.TelegramQueryInterface) error {
 
-	fromTelegram, err := json.Marshal(body)
+	fromTelegram, err := json.Marshal(query)
 	if err != nil {
 		return err
 	}
 	fmt.Println("from telegram json:" + string(fromTelegram))
 
 	listener := c.Get("listener").(telegram.Listener)
-	switch body.GetChatText() {
+	switch query.GetChatText() {
 	case command.StartCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.SayHello(body))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.SayHello(query))
 	case command.HelpCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.Help(body))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.Help(query))
 	case command.RuEnCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.RuEnCommand, body))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.RuEnCommand, query))
 	case command.EnRuCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.EnRuCommand, body))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.EnRuCommand, query))
 	case command.AutoTranslateCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.AutoTranslateCommand, body))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.AutoTranslateCommand, query))
 	case command.GetAllTopCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10(body))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10(query))
 	case command.GetMyTopCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10ForUser(body))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10ForUser(query))
 	case telegram.NextRequestMessage:
-		if message, err := command.GetNextMessage(body.GetUserId()); err == nil {
+		if message, err := command.GetNextMessage(query.GetUserId()); err == nil {
 			listener.Message <- message
 		}
 	default:
-		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()))
-		command.General(body)
-		if message, err := command.GetNextMessage(body.GetUserId()); err == nil {
+		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId()))
+		command.General(query)
+		if message, err := command.GetNextMessage(query.GetUserId()); err == nil {
 			listener.Message <- message
 		}
 	}

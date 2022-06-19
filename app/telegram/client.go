@@ -22,19 +22,19 @@ import (
 
 const NextRequestMessage = "/next_message"
 
-func GetHelloIGotYourMSGRequest(body WebhookMessage) RequestTelegramText {
+func GetHelloIGotYourMSGRequest(query TelegramQueryInterface) RequestTelegramText {
 	return RequestTelegramText{
-		Text: GetBaseMsg(body.GetUsername(), body.GetUserId()) +
-			GetIGotYourNewRequest(body.GetChatText()),
-		ChatId: body.GetChatId(),
+		Text: GetBaseMsg(query.GetUsername(), query.GetUserId()) +
+			GetIGotYourNewRequest(query.GetChatText()),
+		ChatId: query.GetChatId(),
 	}
 }
 
-func GetResultFromRapidMicrosoft(body WebhookMessage, state string) RequestTelegramText {
+func GetResultFromRapidMicrosoft(query TelegramQueryInterface, state string) RequestTelegramText {
 	var from, to string
 
 	if state == "" {
-		if helper.IsEn(body.GetChatText()) {
+		if helper.IsEn(query.GetChatText()) {
 			from = "en"
 			to = "ru"
 		} else {
@@ -49,26 +49,26 @@ func GetResultFromRapidMicrosoft(body WebhookMessage, state string) RequestTeleg
 		to = "en"
 	}
 
-	translate := rapid_microsoft.GetTranslate(body.GetChatText(), to, from)
+	translate := rapid_microsoft.GetTranslate(query.GetChatText(), to, from)
 	if helper.IsEmpty(translate) {
 		return RequestTelegramText{}
 	}
 	return RequestTelegramText{
 		Text:   GetBlockWithRapidInfo(translate),
-		ChatId: body.GetChatId(),
+		ChatId: query.GetChatId(),
 	}
 }
 
-func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, body WebhookMessage) []RequestTelegramText {
+func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, query TelegramQueryInterface) []RequestTelegramText {
 	var messages []RequestTelegramText
 
 	for _, option := range cambridgeInfo.Options {
-		requests := GetCambridgeOptionBlock(body.GetChatId(), option)
+		requests := GetCambridgeOptionBlock(query.GetChatId(), option)
 		if len(messages) == 0 && len(requests) > 0 {
 			messages = append(
 				messages,
 				MergeRequestTelegram(
-					RequestTelegramText{Text: GetCambridgeHeaderBlock(cambridgeInfo), ChatId: body.GetChatId()},
+					RequestTelegramText{Text: GetCambridgeHeaderBlock(cambridgeInfo), ChatId: query.GetChatId()},
 					requests[0],
 				),
 			)
@@ -80,14 +80,14 @@ func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, body WebhookM
 	return messages
 }
 
-func GetResultFromMultitran(info multitran.Page, body WebhookMessage) []RequestTelegramText {
+func GetResultFromMultitran(info multitran.Page, query TelegramQueryInterface) []RequestTelegramText {
 	var messages []RequestTelegramText
-	requests := GetMultitranOptionBlock(body.GetChatId(), info)
+	requests := GetMultitranOptionBlock(query.GetChatId(), info)
 	if len(requests) > 0 {
 		messages = append(
 			messages,
 			MergeRequestTelegram(
-				RequestTelegramText{Text: GetMultitranHeaderBlock(info), ChatId: body.GetChatId()},
+				RequestTelegramText{Text: GetMultitranHeaderBlock(info), ChatId: query.GetChatId()},
 				requests[0],
 			),
 		)

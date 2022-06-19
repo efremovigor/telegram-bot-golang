@@ -5,24 +5,24 @@ import (
 	"telegram-bot-golang/telegram"
 )
 
-func GetTop10(body telegram.WebhookMessage) telegram.RequestTelegramText {
+func GetTop10(query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
 	text := ""
 	list, err := model.GetWordStatistics(10)
 	if err == nil {
 		text = telegram.GetRatingHeader(10, true)
 		text += handleList(list)
 	}
-	return telegram.RequestTelegramText{Text: text, ChatId: body.GetChatId()}
+	return telegram.RequestTelegramText{Text: text, ChatId: query.GetChatId()}
 }
 
-func GetTop10ForUser(body telegram.WebhookMessage) telegram.RequestTelegramText {
+func GetTop10ForUser(query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
 	text := ""
-	list, err := model.GetWordStatisticsForUser(10, body.GetUserId())
+	list, err := model.GetWordStatisticsForUser(10, query.GetUserId())
 	if err == nil {
 		text = telegram.GetRatingHeader(10, false)
 		text += handleList(list)
 	}
-	return telegram.RequestTelegramText{Text: text, ChatId: body.GetChatId()}
+	return telegram.RequestTelegramText{Text: text, ChatId: query.GetChatId()}
 }
 
 func handleList(list []model.WordStatistic) string {

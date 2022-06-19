@@ -40,12 +40,65 @@ func MergeRequestTelegram(one RequestTelegramText, two RequestTelegramText) Requ
 	return one
 }
 
+type CallbackQuery struct {
+	UpdateId      int `json:"update_id"`
+	CallbackQuery struct {
+		Id   string `json:"id"`
+		From struct {
+			Id           int    `json:"id"`
+			IsBot        bool   `json:"is_bot"`
+			FirstName    string `json:"first_name"`
+			LastName     string `json:"last_name"`
+			Username     string `json:"username"`
+			LanguageCode string `json:"language_code"`
+		} `json:"from"`
+		Message struct {
+			MessageId int `json:"message_id"`
+			From      struct {
+				Id        int64  `json:"id"`
+				IsBot     bool   `json:"is_bot"`
+				FirstName string `json:"first_name"`
+				Username  string `json:"username"`
+			} `json:"from"`
+			Chat struct {
+				Id        int    `json:"id"`
+				FirstName string `json:"first_name"`
+				LastName  string `json:"last_name"`
+				Username  string `json:"username"`
+				Type      string `json:"type"`
+			} `json:"chat"`
+			Date     int    `json:"date"`
+			Text     string `json:"text"`
+			Entities []struct {
+				Offset int    `json:"offset"`
+				Length int    `json:"length"`
+				Type   string `json:"type"`
+				User   struct {
+					Id           int    `json:"id"`
+					IsBot        bool   `json:"is_bot"`
+					FirstName    string `json:"first_name"`
+					LastName     string `json:"last_name"`
+					Username     string `json:"username"`
+					LanguageCode string `json:"language_code"`
+				} `json:"user,omitempty"`
+			} `json:"entities"`
+			ReplyMarkup struct {
+				InlineKeyboard [][]struct {
+					Text         string `json:"text"`
+					CallbackData string `json:"callback_data"`
+				} `json:"inline_keyboard"`
+			} `json:"reply_markup"`
+		} `json:"message"`
+		ChatInstance string `json:"chat_instance"`
+		Data         string `json:"data"`
+	} `json:"callback_query"`
+}
 type WebhookMessage struct {
 	Message struct {
 		Text      string `json:"text"`
 		MessageId int    `json:"message_id"`
 		Chat      struct {
-			ID        int    `json:"id"`
+			Id        int    `json:"id"`
 			FirstName string `json:"first_name"`
 			LastName  string `json:"last_name"`
 			Type      string `json:"type"`
@@ -115,15 +168,53 @@ type AudioResponse struct {
 	} `json:"result"`
 }
 
+type TelegramQueryInterface interface {
+	IsValid() bool
+	GetChatId() int
+	GetChatText() string
+	GetUsername() string
+	GetUserId() int
+}
+
+func (body CallbackQuery) IsValid() bool {
+	if body.UpdateId != 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (body CallbackQuery) GetChatId() int {
+	return body.CallbackQuery.Message.Chat.Id
+}
+func (body CallbackQuery) GetChatText() string {
+	return body.CallbackQuery.Data
+}
+
+func (body CallbackQuery) GetUsername() string {
+	return body.CallbackQuery.From.Username
+}
+func (body CallbackQuery) GetUserId() int {
+	return body.CallbackQuery.From.Id
+}
+
+func (body WebhookMessage) IsValid() bool {
+	if body.Message.Chat.Id != 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
 func (body WebhookMessage) GetChatId() int {
-	if body.Message.Chat.ID != 0 {
-		return body.Message.Chat.ID
+	if body.Message.Chat.Id != 0 {
+		return body.Message.Chat.Id
 	} else {
 		return body.EditedMessage.Chat.ID
 	}
 }
 func (body WebhookMessage) GetChatText() string {
-	if body.Message.Chat.ID != 0 {
+	if body.Message.Chat.Id != 0 {
 		return strings.ToLower(strings.TrimSpace(body.Message.Text))
 	} else {
 		return strings.ToLower(strings.TrimSpace(body.EditedMessage.Text))
@@ -131,14 +222,14 @@ func (body WebhookMessage) GetChatText() string {
 }
 
 func (body WebhookMessage) GetUsername() string {
-	if body.Message.Chat.ID != 0 {
+	if body.Message.Chat.Id != 0 {
 		return body.Message.From.FirstName
 	} else {
 		return body.EditedMessage.From.FirstName
 	}
 }
 func (body WebhookMessage) GetUserId() int {
-	if body.Message.Chat.ID != 0 {
+	if body.Message.Chat.Id != 0 {
 		return body.Message.From.ID
 	} else {
 		return body.EditedMessage.From.ID
@@ -159,7 +250,7 @@ type ReplyMarkup struct {
 }
 
 func (r *ReplyMarkup) SetHasMore() {
-	r.Keyboard = [][]Keyboard{{{Text: NextRequestMessage, CallbackData: "next"}}}
+	r.Keyboard = [][]Keyboard{{{Text: "next", CallbackData: NextRequestMessage}}}
 	r.OneTimeKeyboard = true
 	r.ResizeKeyboard = true
 }
