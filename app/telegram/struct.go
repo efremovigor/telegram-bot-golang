@@ -153,7 +153,7 @@ type SendMessageReqBody struct {
 }
 
 type ReplyMarkup struct {
-	Keyboard        [][]Keyboard `json:"keyboard"`
+	Keyboard        [][]Keyboard `json:"inline_keyboard"`
 	OneTimeKeyboard bool         `json:"one_time_keyboard"`
 	ResizeKeyboard  bool         `json:"resize_keyboard"`
 }
