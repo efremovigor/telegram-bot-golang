@@ -43,8 +43,6 @@ func General(query telegram.TelegramQueryInterface) {
 	}
 	if cambridgeInfo.IsValid() {
 		messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Info: cambridgeInfo, ChatId: query.GetChatId()}))
-	}
-	if multitranInfo.IsValid() || cambridgeInfo.IsValid() {
 		statistic.Consider(query.GetChatText(), query.GetUserId())
 	}
 	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: query.GetChatText(), Output: messages}); err == nil {

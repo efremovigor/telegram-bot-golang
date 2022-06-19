@@ -4,6 +4,6 @@ import (
 	"telegram-bot-golang/db/postgree/repository"
 )
 
-func Consider(key string, userId int) {
-	repository.SaveNewWord(userId, key)
+func Consider(newWord string, userId int) {
+	repository.SaveNewWord(userId, newWord)
 }
