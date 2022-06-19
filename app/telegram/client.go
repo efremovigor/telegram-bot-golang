@@ -20,7 +20,7 @@ import (
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-const NextRequestMessage = "_next_"
+const NextRequestMessage = "/next_message"
 
 func GetHelloIGotYourMSGRequest(body WebhookMessage) RequestTelegramText {
 	return RequestTelegramText{
@@ -202,7 +202,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	_ = writer.WriteField("title", title)
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
 	if hasMore {
-		_ = writer.WriteField("reply_markup[keyboard][][][text]", NextRequestMessage)
+		_ = writer.WriteField("reply_markup[keyboard][][text]", NextRequestMessage)
 	}
 	err = writer.Close()
 	if err != nil {

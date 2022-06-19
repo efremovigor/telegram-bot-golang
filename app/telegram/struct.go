@@ -159,13 +159,14 @@ type ReplyMarkup struct {
 }
 
 func (r *ReplyMarkup) SetHasMore() {
-	r.Keyboard = [][]Keyboard{{{Text: NextRequestMessage}}}
+	r.Keyboard = [][]Keyboard{{{Text: NextRequestMessage, CallbackData: "next"}}}
 	r.OneTimeKeyboard = true
 	r.ResizeKeyboard = true
 }
 
 type Keyboard struct {
-	Text string `json:"text"`
+	Text         string `json:"text"`
+	CallbackData string `json:"callback_data"`
 }
 
 type SendEarlierVoiceRequest struct {
