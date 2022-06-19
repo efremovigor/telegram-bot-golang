@@ -104,7 +104,7 @@ func GetTelegramRequest(chatId int, text string) SendMessageReqBody {
 		ChatID:      chatId,
 		Text:        text,
 		ParseMode:   "MarkdownV2",
-		ReplyMarkup: ReplyMarkup{Keyboard: []Keyboard{}, OneTimeKeyboard: true, ResizeKeyboard: true},
+		ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{}, OneTimeKeyboard: true, ResizeKeyboard: true},
 	}
 }
 
@@ -245,7 +245,7 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	} else {
 		title = info.RequestText
 	}
-	request := SendEarlierVoiceRequest{Performer: country, Title: title, Audio: audioId, ChatId: chatId}
+	request := SendEarlierVoiceRequest{Performer: country, Title: title, Audio: audioId, ChatId: chatId, ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{}}}
 	if hasMore {
 		request.ReplyMarkup.SetHasMore()
 	}

@@ -245,13 +245,13 @@ type SendMessageReqBody struct {
 }
 
 type ReplyMarkup struct {
-	Keyboard        []Keyboard `json:"inline_keyboard"`
-	OneTimeKeyboard bool       `json:"one_time_keyboard"`
-	ResizeKeyboard  bool       `json:"resize_keyboard"`
+	Keyboard        [][]Keyboard `json:"inline_keyboard"`
+	OneTimeKeyboard bool         `json:"one_time_keyboard"`
+	ResizeKeyboard  bool         `json:"resize_keyboard"`
 }
 
 func (r *ReplyMarkup) SetHasMore() {
-	r.Keyboard = []Keyboard{{Text: "more", CallbackData: NextRequestMessage}, {Text: "enough", CallbackData: EnoughMessage}}
+	r.Keyboard = [][]Keyboard{{{Text: "more", CallbackData: NextRequestMessage}, {Text: "enough", CallbackData: EnoughMessage}}}
 	r.OneTimeKeyboard = true
 	r.ResizeKeyboard = true
 }
