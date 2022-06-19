@@ -34,13 +34,15 @@ func General(query telegram.TelegramQueryInterface) {
 		for _, message := range telegram.GetResultFromCambridge(cambridgeInfo, query) {
 			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
-		messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Info: cambridgeInfo, ChatId: query.GetChatId()}))
 	}
 	multitranInfo := multitran.Get(query.GetChatText())
 	if multitranInfo.IsValid() {
 		for _, message := range telegram.GetResultFromMultitran(multitranInfo, query) {
 			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
+	}
+	if cambridgeInfo.IsValid() {
+		messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Info: cambridgeInfo, ChatId: query.GetChatId()}))
 	}
 	if multitranInfo.IsValid() || cambridgeInfo.IsValid() {
 		statistic.Consider(query.GetChatText(), query.GetUserId())
