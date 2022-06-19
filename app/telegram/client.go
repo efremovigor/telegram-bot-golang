@@ -21,6 +21,7 @@ import (
 )
 
 const NextRequestMessage = "/next_message"
+const EnoughMessage = "/enough_message"
 
 func GetHelloIGotYourMSGRequest(query TelegramQueryInterface) RequestTelegramText {
 	return RequestTelegramText{

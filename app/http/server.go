@@ -131,6 +131,8 @@ func (c Context) reply(query telegram.TelegramQueryInterface) error {
 		if message, err := command.GetNextMessage(query.GetUserId()); err == nil {
 			listener.Message <- message
 		}
+	case telegram.EnoughMessage:
+		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId()))
 	default:
 		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId()))
 		command.General(query)
