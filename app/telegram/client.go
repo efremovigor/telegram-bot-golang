@@ -257,6 +257,9 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	req, _ := http.NewRequest("POST", telegramConfig.GetTelegramUrl("sendAudio"), strings.NewReader(string(requestInJson)))
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
-	res, _ := http.DefaultClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Println(err)
+	}
 	defer rapid_microsoft.CloseConnection(res.Body)
 }
