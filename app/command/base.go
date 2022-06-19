@@ -6,6 +6,7 @@ import (
 	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/service/dictionary/cambridge"
 	"telegram-bot-golang/service/dictionary/multitran"
+	"telegram-bot-golang/statistic"
 	"telegram-bot-golang/telegram"
 )
 
@@ -40,6 +41,9 @@ func General(body telegram.WebhookMessage) {
 		for _, message := range telegram.GetResultFromMultitran(multitranInfo, body) {
 			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
+	}
+	if multitranInfo.IsValid() || cambridgeInfo.IsValid() {
+		statistic.Consider(body.GetChatText(), body.GetUserId())
 	}
 	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: body.GetChatText(), Output: messages}); err == nil {
 		redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, body.GetUserId()), requestTelegramInJson)
