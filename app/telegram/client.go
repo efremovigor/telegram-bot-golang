@@ -260,6 +260,9 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		fmt.Println(err)
+	} else {
+		body, _ := ioutil.ReadAll(res.Body)
+		fmt.Println("bad response from telegram:" + res.Status + " Message:" + string(body) + "\n")
 	}
 	defer rapid_microsoft.CloseConnection(res.Body)
 }
