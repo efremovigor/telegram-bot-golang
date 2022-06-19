@@ -1,0 +1,2 @@
+ALTER TABLE word
+    ADD COLUMN lang VARCHAR DEFAULT 'en';

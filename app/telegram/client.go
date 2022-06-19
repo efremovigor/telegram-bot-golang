@@ -17,7 +17,6 @@ import (
 	"telegram-bot-golang/service/dictionary/cambridge"
 	"telegram-bot-golang/service/dictionary/multitran"
 	rapid_microsoft "telegram-bot-golang/service/translate/rapid-microsoft"
-	"telegram-bot-golang/statistic"
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
@@ -61,7 +60,6 @@ func GetResultFromRapidMicrosoft(body WebhookMessage, state string) RequestTeleg
 }
 
 func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, body WebhookMessage) []RequestTelegramText {
-	statistic.Consider(cambridgeInfo.RequestText, body.GetUserId())
 	var messages []RequestTelegramText
 
 	for _, option := range cambridgeInfo.Options {
@@ -83,7 +81,6 @@ func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, body WebhookM
 }
 
 func GetResultFromMultitran(info multitran.Page, body WebhookMessage) []RequestTelegramText {
-	statistic.Consider(info.RequestText, body.GetUserId())
 	var messages []RequestTelegramText
 	requests := GetMultitranOptionBlock(body.GetChatId(), info)
 	if len(requests) > 0 {

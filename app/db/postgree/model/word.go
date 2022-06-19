@@ -2,12 +2,14 @@ package model
 
 import (
 	"telegram-bot-golang/db/postgree"
+	"telegram-bot-golang/helper"
 	"time"
 )
 
 type Word struct {
 	Id        int    `db:"id"`
 	Name      string `db:"name"`
+	Lang      string `db:"lang"`
 	CreatedAt string `db:"created_at"`
 	UpdatedAt string `db:"updated_at"`
 }
@@ -27,6 +29,11 @@ func (word *Word) SetDefaultUpdated() {
 
 func NewWord(text string) (word Word) {
 	word.Name = text
+	if helper.IsEn(text) {
+		word.Lang = "en"
+	} else {
+		word.Lang = "ru"
+	}
 	word.SetDefaultDates()
 	return
 }
