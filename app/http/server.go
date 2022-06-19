@@ -71,8 +71,9 @@ func Handle(listener telegram.Listener) {
 				fmt.Println("error in sending reply:", err)
 				return err
 			}
+		} else {
+			fmt.Println("could not decode request body", err)
 		}
-		fmt.Println("could not decode request body", err)
 
 		return cc.JSON(http.StatusOK, "")
 	})
