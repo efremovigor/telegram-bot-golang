@@ -133,7 +133,7 @@ type CallbackQuery struct {
 					LastName     string `json:"last_name"`
 					Username     string `json:"username"`
 					LanguageCode string `json:"language_code"`
-				} `json:"user"`
+				} `json:"user,omitempty"`
 			} `json:"entities"`
 			ReplyMarkup struct {
 				InlineKeyboard [][]struct {
@@ -146,6 +146,7 @@ type CallbackQuery struct {
 		Data         string `json:"data"`
 	} `json:"callback_query"`
 }
+
 type WebhookMessage struct {
 	Message struct {
 		Text      string `json:"text"`
