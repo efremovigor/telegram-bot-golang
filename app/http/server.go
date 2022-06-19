@@ -73,7 +73,6 @@ func Handle(listener telegram.Listener) {
 			}
 		}
 		fmt.Println("could not decode request body", err)
-		return err
 
 		return cc.JSON(http.StatusOK, "")
 	})
