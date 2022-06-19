@@ -101,9 +101,10 @@ func (c Context) reply(body telegram.WebhookMessage) error {
 
 	fromTelegram, err := json.Marshal(body)
 	if err != nil {
-		fmt.Println("from telegram json:" + string(fromTelegram))
 		return err
 	}
+	fmt.Println("from telegram json:" + string(fromTelegram))
+
 	listener := c.Get("listener").(telegram.Listener)
 	switch body.GetChatText() {
 	case command.StartCommand:
