@@ -250,7 +250,7 @@ type ReplyMarkup struct {
 }
 
 func (r *ReplyMarkup) SetHasMore() {
-	r.Keyboard = [][]Keyboard{{{Text: "more", CallbackData: NextRequestMessage}, {Text: "enough", CallbackData: NextRequestMessage}}}
+	r.Keyboard = [][]Keyboard{{{Text: "more", CallbackData: NextRequestMessage}, {Text: "enough", CallbackData: EnoughMessage}}}
 	r.OneTimeKeyboard = true
 	r.ResizeKeyboard = true
 }
