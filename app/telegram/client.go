@@ -203,8 +203,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	_ = writer.WriteField("title", title)
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
 	//if hasMore {
-	_ = writer.WriteField("reply_markup[inline_keyboard][0][text]", "more")
-	_ = writer.WriteField("reply_markup[inline_keyboard][0][callback_data]", NextRequestMessage)
+	_ = writer.WriteField("reply_markup", "{\"inline_keyboard\":[[{\"text\":\"more\",\"callback_data\":\"/next_message\"}]]}")
 	//}
 	err = writer.Close()
 	if err != nil {
