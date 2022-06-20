@@ -202,11 +202,9 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	}
 	_ = writer.WriteField("title", title)
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
-	if hasMore {
-		_ = writer.WriteField("reply_markup[keyboard][][text]", NextRequestMessage)
-	} else {
-		_ = writer.WriteField("reply_markup[keyboard][][text]", NextRequestMessage)
-	}
+	//if hasMore {
+	_ = writer.WriteField("reply_markup[keyboard][][text]", NextRequestMessage)
+	//}
 	err = writer.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -217,9 +215,9 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	r.Header.Add("Content-Type", writer.FormDataContentType())
 	client := &http.Client{}
 	res, err = client.Do(r)
-
-	body1, _ := ioutil.ReadAll(r.Body)
-	log.Println(fmt.Sprintf("%q", body1))
+	qwe, err := r.GetBody()
+	body1, _ := ioutil.ReadAll(qwe)
+	fmt.Println(string(body1))
 
 	if err != nil {
 		fmt.Println(err)
@@ -249,11 +247,9 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 		title = info.RequestText
 	}
 	request := SendEarlierVoiceRequest{Performer: country, Title: title, Audio: audioId, ChatId: chatId, ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{}}}
-	if hasMore {
-		request.ReplyMarkup.SetHasMore()
-	} else {
-		request.ReplyMarkup.SetHasMore()
-	}
+	//if hasMore {
+	request.ReplyMarkup.SetHasMore()
+	//}
 	requestInJson, err := json.Marshal(request)
 	if err != nil {
 		fmt.Println(err)
@@ -264,8 +260,9 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	req.Header.Add("Content-Type", "application/json")
 	res, err := http.DefaultClient.Do(req)
 
-	body, _ := ioutil.ReadAll(res.Body)
-	log.Println(fmt.Sprintf("%q", body))
+	qwe, err := req.GetBody()
+	body1, _ := ioutil.ReadAll(qwe)
+	fmt.Println(string(body1))
 
 	if err != nil {
 		fmt.Println(err)
