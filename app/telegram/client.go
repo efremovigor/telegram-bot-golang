@@ -219,7 +219,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	client := &http.Client{}
 	res, err = client.Do(r)
 
-	x, err := httputil.DumpRequest(r, false)
+	x, err := httputil.DumpRequestOut(r, true)
 	log.Println(fmt.Sprintf("%q", x))
 
 	if err != nil {
@@ -268,7 +268,7 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	req.Header.Add("Content-Type", "application/json")
 	res, err := http.DefaultClient.Do(req)
 
-	x, err := httputil.DumpRequest(req, false)
+	x, err := httputil.DumpRequestOut(req, true)
 	log.Println(fmt.Sprintf("%q", x))
 
 	if err != nil {
