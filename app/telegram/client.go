@@ -9,6 +9,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"net/http/httputil"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -218,9 +219,8 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	client := &http.Client{}
 	res, err = client.Do(r)
 
-	buf, _ := ioutil.ReadAll(r.Body)
-	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
-	fmt.Println("request with audio:" + string(b))
+	x, err := httputil.DumpRequest(r, true)
+	log.Println(fmt.Sprintf("%q", x))
 
 	if err != nil {
 		fmt.Println(err)
@@ -228,8 +228,8 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	}
 	defer rapid_microsoft.CloseConnection(res.Body)
 
-	buf, _ = ioutil.ReadAll(res.Body)
-	b, err = io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
+	buf, _ := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -268,9 +268,8 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	req.Header.Add("Content-Type", "application/json")
 	res, err := http.DefaultClient.Do(req)
 
-	buf, _ := ioutil.ReadAll(req.Body)
-	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
-	fmt.Println("request with audio:" + string(b))
+	x, err := httputil.DumpRequest(req, true)
+	log.Println(fmt.Sprintf("%q", x))
 
 	if err != nil {
 		fmt.Println(err)
