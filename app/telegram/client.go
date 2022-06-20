@@ -204,6 +204,8 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
 	if hasMore {
 		_ = writer.WriteField("reply_markup[keyboard][][text]", NextRequestMessage)
+	} else {
+		_ = writer.WriteField("reply_markup[keyboard][][text]", NextRequestMessage)
 	}
 	err = writer.Close()
 	if err != nil {
@@ -215,14 +217,21 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	r.Header.Add("Content-Type", writer.FormDataContentType())
 	client := &http.Client{}
 	res, err = client.Do(r)
+
+	buf, _ := ioutil.ReadAll(r.Body)
+	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
+	if err != nil {
+		fmt.Println("request with audio:" + string(b))
+	}
+
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	defer rapid_microsoft.CloseConnection(res.Body)
 
-	buf, _ := ioutil.ReadAll(res.Body)
-	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
+	buf, _ = ioutil.ReadAll(res.Body)
+	b, err = io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -248,6 +257,8 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	request := SendEarlierVoiceRequest{Performer: country, Title: title, Audio: audioId, ChatId: chatId, ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{}}}
 	if hasMore {
 		request.ReplyMarkup.SetHasMore()
+	} else {
+		request.ReplyMarkup.SetHasMore()
 	}
 	requestInJson, err := json.Marshal(request)
 	if err != nil {
@@ -258,6 +269,13 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 	res, err := http.DefaultClient.Do(req)
+
+	buf, _ := ioutil.ReadAll(req.Body)
+	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
+	if err != nil {
+		fmt.Println("request with audio:" + string(b))
+	}
+
 	if err != nil {
 		fmt.Println(err)
 	} else {
