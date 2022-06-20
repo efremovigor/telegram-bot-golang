@@ -221,6 +221,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 
 	x, err := httputil.DumpRequestOut(r, true)
 	log.Println(fmt.Sprintf("%q", x))
+	log.Println(fmt.Sprintf("%q", r.Body))
 
 	if err != nil {
 		fmt.Println(err)
@@ -270,6 +271,7 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 
 	x, err := httputil.DumpRequestOut(req, true)
 	log.Println(fmt.Sprintf("%q", x))
+	log.Println(fmt.Sprintf("%q", req.Body))
 
 	if err != nil {
 		fmt.Println(err)
