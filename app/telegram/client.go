@@ -220,9 +220,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 
 	buf, _ := ioutil.ReadAll(r.Body)
 	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
-	if err != nil {
-		fmt.Println("request with audio:" + string(b))
-	}
+	fmt.Println("request with audio:" + string(b))
 
 	if err != nil {
 		fmt.Println(err)
@@ -272,9 +270,7 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 
 	buf, _ := ioutil.ReadAll(req.Body)
 	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
-	if err != nil {
-		fmt.Println("request with audio:" + string(b))
-	}
+	fmt.Println("request with audio:" + string(b))
 
 	if err != nil {
 		fmt.Println(err)
