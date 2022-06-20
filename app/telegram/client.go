@@ -9,7 +9,6 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
-	"net/http/httputil"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -219,9 +218,8 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	client := &http.Client{}
 	res, err = client.Do(r)
 
-	x, err := httputil.DumpRequestOut(r, true)
-	log.Println(fmt.Sprintf("%q", x))
-	log.Println(fmt.Sprintf("%q", r.Body))
+	body1, _ := ioutil.ReadAll(r.Body)
+	log.Println(fmt.Sprintf("%q", body1))
 
 	if err != nil {
 		fmt.Println(err)
@@ -234,9 +232,6 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	if err != nil {
 		log.Fatalln(err)
 	}
-	s, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
-
-	fmt.Println(string(s))
 
 	var audioResponse AudioResponse
 	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&audioResponse); err != nil && !audioResponse.Ok {
@@ -269,9 +264,8 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	req.Header.Add("Content-Type", "application/json")
 	res, err := http.DefaultClient.Do(req)
 
-	x, err := httputil.DumpRequestOut(req, true)
-	log.Println(fmt.Sprintf("%q", x))
-	log.Println(fmt.Sprintf("%q", req.Body))
+	body, _ := ioutil.ReadAll(res.Body)
+	log.Println(fmt.Sprintf("%q", body))
 
 	if err != nil {
 		fmt.Println(err)
