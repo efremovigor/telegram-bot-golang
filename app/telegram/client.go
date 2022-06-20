@@ -203,14 +203,14 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	_ = writer.WriteField("title", title)
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
 	//if hasMore {
-	_ = writer.WriteField("reply_markup[keyboard][][text]", NextRequestMessage)
+	_ = writer.WriteField("reply_markup[inline_keyboard][0][text]", "more")
+	_ = writer.WriteField("reply_markup[inline_keyboard][0][callback_data]", NextRequestMessage)
 	//}
 	err = writer.Close()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
 	r, _ := http.NewRequest("POST", telegramConfig.GetTelegramUrl("sendAudio"), body)
 	r.Header.Add("Content-Type", writer.FormDataContentType())
 	client := &http.Client{}
