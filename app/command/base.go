@@ -29,22 +29,22 @@ func General(query telegram.TelegramQueryInterface) {
 			),
 		),
 	}
-	cambridgeInfo := cambridge.Get(query.GetChatText())
-	if cambridgeInfo.IsValid() {
+
+	if cambridgeInfo := cambridge.Get(query.GetChatText()); cambridgeInfo.IsValid() {
 		for _, message := range telegram.GetResultFromCambridge(cambridgeInfo, query) {
 			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
+		messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Info: cambridgeInfo, ChatId: query.GetChatId()}))
+		statistic.Consider(query.GetChatText(), query.GetUserId())
+
 	}
-	multitranInfo := multitran.Get(query.GetChatText())
-	if multitranInfo.IsValid() {
+
+	if multitranInfo := multitran.Get(query.GetChatText()); multitranInfo.IsValid() {
 		for _, message := range telegram.GetResultFromMultitran(multitranInfo, query) {
 			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
 	}
-	if cambridgeInfo.IsValid() {
-		messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Info: cambridgeInfo, ChatId: query.GetChatId()}))
-		statistic.Consider(query.GetChatText(), query.GetUserId())
-	}
+
 	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: query.GetChatText(), Output: messages}); err == nil {
 		redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId()), requestTelegramInJson)
 	} else {
