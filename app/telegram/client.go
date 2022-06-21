@@ -202,9 +202,9 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	}
 	_ = writer.WriteField("title", title)
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
-	//if hasMore {
-	_ = writer.WriteField("reply_markup", "{\"inline_keyboard\":[[{\"text\":\"more\",\"callback_data\":\"/next_message\"}]]}")
-	//}
+	if hasMore {
+		_ = writer.WriteField("reply_markup", "{\"inline_keyboard\":[[{\"text\":\"more\",\"callback_data\":\"/next_message\"}]]}")
+	}
 	err = writer.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -246,9 +246,9 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 		title = info.RequestText
 	}
 	request := SendEarlierVoiceRequest{Performer: country, Title: title, Audio: audioId, ChatId: chatId, ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{}}}
-	//if hasMore {
-	request.ReplyMarkup.SetHasMore()
-	//}
+	if hasMore {
+		request.ReplyMarkup.SetHasMore()
+	}
 	requestInJson, err := json.Marshal(request)
 	if err != nil {
 		fmt.Println(err)
