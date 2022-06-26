@@ -31,6 +31,7 @@ type CambridgeRequestTelegramVoice struct {
 }
 
 type RequestTelegramText struct {
+	Word   string `json:"word"`
 	Text   string `json:"text"`
 	ChatId int    `json:"chatId"`
 }
@@ -250,8 +251,8 @@ type ReplyMarkup struct {
 	ResizeKeyboard  bool         `json:"resize_keyboard"`
 }
 
-func (r *ReplyMarkup) SetHasMore() {
-	r.Keyboard = [][]Keyboard{{{Text: "more", CallbackData: NextRequestMessage}}}
+func (r *ReplyMarkup) SetHasMore(word string) {
+	r.Keyboard = [][]Keyboard{{{Text: "more", CallbackData: NextRequestMessage + " " + word}}}
 	r.OneTimeKeyboard = true
 	r.ResizeKeyboard = true
 }

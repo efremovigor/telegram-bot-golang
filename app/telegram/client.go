@@ -21,10 +21,10 @@ import (
 )
 
 const NextRequestMessage = "/next_message"
-const EnoughMessage = "/enough_message"
 
 func GetHelloIGotYourMSGRequest(query TelegramQueryInterface) RequestTelegramText {
 	return RequestTelegramText{
+		Word: query.GetChatText(),
 		Text: GetBaseMsg(query.GetUsername(), query.GetUserId()) +
 			GetIGotYourNewRequest(query.GetChatText()),
 		ChatId: query.GetChatId(),
@@ -55,6 +55,7 @@ func GetResultFromRapidMicrosoft(query TelegramQueryInterface, state string) Req
 		return RequestTelegramText{}
 	}
 	return RequestTelegramText{
+		Word:   query.GetChatText(),
 		Text:   GetBlockWithRapidInfo(translate),
 		ChatId: query.GetChatId(),
 	}
@@ -69,7 +70,11 @@ func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, query Telegra
 			messages = append(
 				messages,
 				MergeRequestTelegram(
-					RequestTelegramText{Text: GetCambridgeHeaderBlock(cambridgeInfo), ChatId: query.GetChatId()},
+					RequestTelegramText{
+						Word:   query.GetChatText(),
+						Text:   GetCambridgeHeaderBlock(cambridgeInfo),
+						ChatId: query.GetChatId(),
+					},
 					requests[0],
 				),
 			)
@@ -88,7 +93,11 @@ func GetResultFromMultitran(info multitran.Page, query TelegramQueryInterface) [
 		messages = append(
 			messages,
 			MergeRequestTelegram(
-				RequestTelegramText{Text: GetMultitranHeaderBlock(info), ChatId: query.GetChatId()},
+				RequestTelegramText{
+					Word:   query.GetChatText(),
+					Text:   GetMultitranHeaderBlock(info),
+					ChatId: query.GetChatId(),
+				},
 				requests[0],
 			),
 		)
@@ -133,7 +142,7 @@ func DecodeForTelegram(text string) string {
 func sendMessage(telegramText RequestTelegramText, hasMore bool) {
 	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text)
 	if hasMore {
-		request.ReplyMarkup.SetHasMore()
+		request.ReplyMarkup.SetHasMore(telegramText.Word)
 	}
 	if len([]rune(request.Text)) > 0 {
 		toTelegram, err := json.Marshal(request)
@@ -202,8 +211,9 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	}
 	_ = writer.WriteField("title", title)
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
+
 	if hasMore {
-		_ = writer.WriteField("reply_markup", "{\"inline_keyboard\":[[{\"text\":\"more\",\"callback_data\":\"/next_message\"}]]}")
+		_ = writer.WriteField("reply_markup", fmt.Sprintf("{\"inline_keyboard\":[[{\"text\":\"more\",\"callback_data\":\"/next_message %s\"}]]}", info.RequestText))
 	}
 	err = writer.Close()
 	if err != nil {
@@ -247,7 +257,7 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	}
 	request := SendEarlierVoiceRequest{Performer: country, Title: title, Audio: audioId, ChatId: chatId, ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{}}}
 	if hasMore {
-		request.ReplyMarkup.SetHasMore()
+		request.ReplyMarkup.SetHasMore(info.RequestText)
 	}
 	requestInJson, err := json.Marshal(request)
 	if err != nil {

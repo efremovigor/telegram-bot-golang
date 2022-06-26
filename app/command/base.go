@@ -18,7 +18,8 @@ func SayHello(query telegram.TelegramQueryInterface) telegram.RequestTelegramTex
 }
 
 func General(query telegram.TelegramQueryInterface) {
-	redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId()))
+	key := fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText())
+	redis.Del(key)
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId()))
 	messages := []telegram.RequestChannelTelegram{
 		telegram.NewRequestChannelTelegram(
@@ -46,15 +47,16 @@ func General(query telegram.TelegramQueryInterface) {
 	}
 
 	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: query.GetChatText(), Output: messages}); err == nil {
-		redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId()), requestTelegramInJson)
+		redis.Set(key, requestTelegramInJson)
 	} else {
 		fmt.Println(err)
 	}
 }
 
-func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err error) {
+func GetNextMessage(userId int, word string) (message telegram.RequestChannelTelegram, err error) {
 	var request telegram.UserRequest
-	state, _ := redis.Get(fmt.Sprintf(redis.NextRequestMessageKey, userId))
+	key := fmt.Sprintf(redis.NextRequestMessageKey, userId, word)
+	state, _ := redis.Get(key)
 	if err := json.Unmarshal([]byte(state), &request); err != nil {
 		fmt.Println("Unmarshal request : " + err.Error())
 	}
@@ -65,15 +67,15 @@ func GetNextMessage(userId int) (message telegram.RequestChannelTelegram, err er
 			message.HasMore = true
 			request.Output = request.Output[1:]
 			if infoInJson, err := json.Marshal(request); err == nil {
-				redis.Set(fmt.Sprintf(redis.NextRequestMessageKey, userId), infoInJson)
+				redis.Set(key, infoInJson)
 			} else {
 				fmt.Println(err)
 			}
 		} else {
-			redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, userId))
+			redis.Del(key)
 		}
 	} else {
-		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, userId))
+		redis.Del(key)
 	}
 
 	return message, err

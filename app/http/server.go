@@ -9,12 +9,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"telegram-bot-golang/command"
 	"telegram-bot-golang/config"
 	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/env"
 	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
+	"telegram-bot-golang/service/dictionary/collins"
 	"telegram-bot-golang/service/dictionary/multitran"
 	"telegram-bot-golang/statistic"
 	"telegram-bot-golang/telegram"
@@ -81,16 +83,24 @@ func Handle(listener telegram.Listener) {
 	if !env.IsProd() {
 		e.GET("/cambridge/:query", func(c echo.Context) error {
 			query := c.Param("query")
-			cambridgeInfo := cambridge.Get(query)
-			if cambridgeInfo.IsValid() {
+			info := cambridge.Get(query)
+			if info.IsValid() {
 				statistic.Consider(query, 1)
 			}
-			return c.JSON(http.StatusOK, cambridgeInfo)
+			return c.JSON(http.StatusOK, info)
+		})
+		e.GET("/collins/:query", func(c echo.Context) error {
+			query := c.Param("query")
+			info := collins.Get(query)
+			if info.IsValid() {
+				statistic.Consider(query, 1)
+			}
+			return c.JSON(http.StatusOK, info)
 		})
 		e.GET("/multitran/:query", func(c echo.Context) error {
 			query := c.Param("query")
-			cambridgeInfo := multitran.Get(query)
-			return c.JSON(http.StatusOK, cambridgeInfo)
+			info := multitran.Get(query)
+			return c.JSON(http.StatusOK, info)
 		})
 
 		e.GET("/is-en/:query", func(c echo.Context) error {
@@ -105,13 +115,16 @@ func Handle(listener telegram.Listener) {
 
 func (c Context) reply(query telegram.TelegramQueryInterface) error {
 
-	fromTelegram, err := json.Marshal(query)
-	if err != nil {
-		return err
-	}
-	fmt.Println("from telegram json:" + string(fromTelegram))
-
+	fmt.Println("from telegram message:" + string(query.GetChatText()))
 	listener := c.Get("listener").(telegram.Listener)
+	if words := strings.Split(query.GetChatText(), " "); len(words) == 2 {
+		switch words[0] {
+		case telegram.NextRequestMessage:
+			if message, err := command.GetNextMessage(query.GetUserId(), words[1]); err == nil {
+				listener.Message <- message
+			}
+		}
+	}
 	switch query.GetChatText() {
 	case command.StartCommand:
 		listener.Message <- telegram.NewRequestChannelTelegram("text", command.SayHello(query))
@@ -127,16 +140,10 @@ func (c Context) reply(query telegram.TelegramQueryInterface) error {
 		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10(query))
 	case command.GetMyTopCommand:
 		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10ForUser(query))
-	case telegram.NextRequestMessage:
-		if message, err := command.GetNextMessage(query.GetUserId()); err == nil {
-			listener.Message <- message
-		}
-	case telegram.EnoughMessage:
-		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId()))
 	default:
 		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId()))
 		command.General(query)
-		if message, err := command.GetNextMessage(query.GetUserId()); err == nil {
+		if message, err := command.GetNextMessage(query.GetUserId(), query.GetChatText()); err == nil {
 			listener.Message <- message
 		}
 	}

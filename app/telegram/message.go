@@ -35,7 +35,13 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 	mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n"
 	for n, explanation := range info.Explanation {
 		if helper.Len(mainBlock) > MaxRequestSize {
-			messages = append(messages, RequestTelegramText{Text: mainBlock + "\n", ChatId: chatId})
+			messages = append(messages,
+				RequestTelegramText{
+					Word:   info.Text,
+					Text:   mainBlock + "\n",
+					ChatId: chatId,
+				},
+			)
 			mainBlock = ""
 		}
 		if n > 0 {
@@ -51,7 +57,13 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 		}
 		for _, example := range explanation.Example {
 			if helper.Len(mainBlock) > MaxRequestSize {
-				messages = append(messages, RequestTelegramText{Text: mainBlock + "\n", ChatId: chatId})
+				messages = append(messages,
+					RequestTelegramText{
+						Word:   info.Text,
+						Text:   mainBlock + "\n",
+						ChatId: chatId,
+					},
+				)
 				mainBlock = ""
 			}
 			mainBlock += DecodeForTelegram(example) + "\n"
@@ -68,7 +80,13 @@ func GetMultitranOptionBlock(chatId int, page multitran.Page) []RequestTelegramT
 		mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n"
 		for _, explanation := range info.Explanation {
 			if helper.Len(mainBlock) > MaxRequestSize {
-				messages = append(messages, RequestTelegramText{Text: mainBlock + "\n", ChatId: chatId})
+				messages = append(messages,
+					RequestTelegramText{
+						Word:   info.Text,
+						Text:   mainBlock + "\n",
+						ChatId: chatId,
+					},
+				)
 				mainBlock = ""
 			}
 			mainBlock += GetFieldIfCan(explanation.Type, "Type")
@@ -76,7 +94,13 @@ func GetMultitranOptionBlock(chatId int, page multitran.Page) []RequestTelegramT
 
 			for i, translate := range explanation.Text {
 				if helper.Len(mainBlock) > MaxRequestSize {
-					messages = append(messages, RequestTelegramText{Text: mainBlock + "\n", ChatId: chatId})
+					messages = append(messages,
+						RequestTelegramText{
+							Word:   info.Text,
+							Text:   mainBlock + "\n",
+							ChatId: chatId,
+						},
+					)
 					mainBlock = ""
 				}
 				mainBlock += DecodeForTelegram(translate)
