@@ -16,7 +16,6 @@ import (
 	"telegram-bot-golang/env"
 	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
-	"telegram-bot-golang/service/dictionary/collins"
 	"telegram-bot-golang/service/dictionary/multitran"
 	"telegram-bot-golang/statistic"
 	"telegram-bot-golang/telegram"
@@ -89,14 +88,14 @@ func Handle(listener telegram.Listener) {
 			}
 			return c.JSON(http.StatusOK, info)
 		})
-		e.GET("/collins/:query", func(c echo.Context) error {
-			query := c.Param("query")
-			info := collins.Get(query)
-			if info.IsValid() {
-				statistic.Consider(query, 1)
-			}
-			return c.JSON(http.StatusOK, info)
-		})
+		//e.GET("/collins/:query", func(c echo.Context) error {
+		//	query := c.Param("query")
+		//	info := collins.Get(query)
+		//	if info.IsValid() {
+		//		statistic.Consider(query, 1)
+		//	}
+		//	return c.JSON(http.StatusOK, info)
+		//})
 		e.GET("/multitran/:query", func(c echo.Context) error {
 			query := c.Param("query")
 			info := multitran.Get(query)
