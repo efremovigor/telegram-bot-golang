@@ -12,7 +12,6 @@ import (
 	"strings"
 	"telegram-bot-golang/command"
 	"telegram-bot-golang/config"
-	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/env"
 	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
@@ -122,6 +121,7 @@ func (c Context) reply(query telegram.TelegramQueryInterface) error {
 			if message, err := command.GetNextMessage(query.GetUserId(), words[1]); err == nil {
 				listener.Message <- message
 			}
+			return nil
 		}
 	}
 	switch query.GetChatText() {
@@ -140,7 +140,6 @@ func (c Context) reply(query telegram.TelegramQueryInterface) error {
 	case command.GetMyTopCommand:
 		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10ForUser(query))
 	default:
-		redis.Del(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId()))
 		command.General(query)
 		if message, err := command.GetNextMessage(query.GetUserId(), query.GetChatText()); err == nil {
 			listener.Message <- message
