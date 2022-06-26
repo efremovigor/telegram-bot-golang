@@ -71,22 +71,27 @@ func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, query Telegra
 
 	for _, option := range cambridgeInfo.Options {
 		requests := GetCambridgeOptionBlock(query.GetChatId(), option)
-		if len(messages) == 0 && len(requests) > 0 {
-			messages = append(
-				messages,
-				MergeRequestTelegram(
-					MakeRequestTelegramText(
-						query.GetChatText(),
-						GetCambridgeHeaderBlock(cambridgeInfo),
-						query.GetChatId(),
+		if len(requests) > 0 {
+			if len(messages) == 0 {
+				messages = append(
+					messages,
+					MergeRequestTelegram(
+						MakeRequestTelegramText(
+							query.GetChatText(),
+							GetCambridgeHeaderBlock(cambridgeInfo),
+							query.GetChatId(),
+						),
+						requests[0],
 					),
-					requests[0],
-				),
-			)
+				)
+				if len(requests) > 1 {
+					messages = append(messages, requests[1:]...)
+				}
+			} else {
+				messages = append(messages, requests...)
+			}
 		}
-		if len(requests) > 1 {
-			messages = append(messages, requests[1:]...)
-		}
+
 	}
 	return messages
 }
