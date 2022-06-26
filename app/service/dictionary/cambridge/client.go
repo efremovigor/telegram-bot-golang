@@ -6,6 +6,7 @@ import (
 	"github.com/antchfx/htmlquery"
 	"strings"
 	"telegram-bot-golang/db/redis"
+	"telegram-bot-golang/helper"
 	"unicode"
 )
 
@@ -55,10 +56,10 @@ func Get(query string) CambridgeInfo {
 			if node, err := htmlquery.Query(node, xpathTranscription); err == nil && node != nil {
 				info.Transcription = strings.TrimSpace(htmlquery.InnerText(node))
 			}
-			if node, err := htmlquery.Query(node, xpathUK); len(cambridgeInfo.VoicePath.UK) == 0 && err == nil && node != nil {
+			if node, err := htmlquery.Query(node, xpathUK); helper.Len(cambridgeInfo.VoicePath.UK) == 0 && err == nil && node != nil {
 				cambridgeInfo.VoicePath.UK = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
 			}
-			if node, err := htmlquery.Query(node, xpathUS); len(cambridgeInfo.VoicePath.US) == 0 && err == nil && node != nil {
+			if node, err := htmlquery.Query(node, xpathUS); helper.Len(cambridgeInfo.VoicePath.US) == 0 && err == nil && node != nil {
 				cambridgeInfo.VoicePath.US = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
 			}
 			xpathExplanations, _ := htmlquery.QueryAll(node, xpathExplanations)

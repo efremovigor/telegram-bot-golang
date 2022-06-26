@@ -3,7 +3,6 @@ package telegram
 import (
 	"encoding/json"
 	"strings"
-	"telegram-bot-golang/service/dictionary/cambridge"
 )
 
 const MaxRequestSize = 3000
@@ -26,8 +25,10 @@ func NewRequestChannelTelegram(requestType string, request interface{}) RequestC
 }
 
 type CambridgeRequestTelegramVoice struct {
-	Info   cambridge.CambridgeInfo `json:"info"`
-	ChatId int                     `json:"chatId"`
+	Word   string `json:"word"`
+	Text   string `json:"text"`
+	ChatId int    `json:"chatId"`
+	Lang   string `json:"lang"`
 }
 
 type RequestTelegramText struct {
@@ -253,6 +254,12 @@ type ReplyMarkup struct {
 
 func (r *ReplyMarkup) SetHasMore(word string) {
 	r.Keyboard = [][]Keyboard{{{Text: "more", CallbackData: NextRequestMessage + " " + word}}}
+	r.OneTimeKeyboard = true
+	r.ResizeKeyboard = true
+}
+
+func (r *ReplyMarkup) ShowVoiceMessage(word string, lang string) {
+	r.Keyboard = [][]Keyboard{{{Text: "show", CallbackData: ShowRequestVoice + " " + lang + " " + word}}}
 	r.OneTimeKeyboard = true
 	r.ResizeKeyboard = true
 }

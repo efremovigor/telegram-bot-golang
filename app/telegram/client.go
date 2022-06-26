@@ -16,11 +16,16 @@ import (
 	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
 	"telegram-bot-golang/service/dictionary/multitran"
-	rapid_microsoft "telegram-bot-golang/service/translate/rapid-microsoft"
+	rapidMicrosoft "telegram-bot-golang/service/translate/rapid-microsoft"
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
 const NextRequestMessage = "/next_message"
+const ShowRequestVoice = "/show_voice"
+const LangEn = "en"
+const LangRu = "ru"
+const CountryUk = "uk"
+const CountryUs = "us"
 
 func GetHelloIGotYourMSGRequest(query TelegramQueryInterface) RequestTelegramText {
 	return RequestTelegramText{
@@ -36,21 +41,21 @@ func GetResultFromRapidMicrosoft(query TelegramQueryInterface, state string) Req
 
 	if state == "" {
 		if helper.IsEn(query.GetChatText()) {
-			from = "en"
-			to = "ru"
+			from = LangEn
+			to = LangRu
 		} else {
-			from = "ru"
-			to = "en"
+			from = LangRu
+			to = LangEn
 		}
-	} else if state == "en_ru" {
-		from = "en"
-		to = "ru"
+	} else if state == LangEn+"_"+LangRu {
+		from = LangEn
+		to = LangRu
 	} else {
-		from = "ru"
-		to = "en"
+		from = LangRu
+		to = LangEn
 	}
 
-	translate := rapid_microsoft.GetTranslate(query.GetChatText(), to, from)
+	translate := rapidMicrosoft.GetTranslate(query.GetChatText(), to, from)
 	if helper.IsEmpty(translate) {
 		return RequestTelegramText{}
 	}
@@ -139,18 +144,28 @@ func DecodeForTelegram(text string) string {
 	).Replace(text)
 }
 
-func sendMessage(telegramText RequestTelegramText, hasMore bool) {
+func sendBaseInfo(telegramText RequestTelegramText, hasMore bool) {
 	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text)
 	if hasMore {
 		request.ReplyMarkup.SetHasMore(telegramText.Word)
 	}
+	sendBaseMessage(request)
+}
+
+func sendVoiceMessage(telegramText CambridgeRequestTelegramVoice) {
+	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text)
+	request.ReplyMarkup.ShowVoiceMessage(telegramText.Word, telegramText.Lang)
+	sendBaseMessage(request)
+}
+
+func sendBaseMessage(request SendMessageReqBody) {
 	if len([]rune(request.Text)) > 0 {
 		toTelegram, err := json.Marshal(request)
 		if err != nil {
 			fmt.Println("error of serialisation telegram struct:" + string(toTelegram))
 		}
 
-		res, err := http.Post(telegramConfig.GetTelegramUrl("sendMessage"), "application/json", bytes.NewBuffer(toTelegram))
+		res, err := http.Post(telegramConfig.GetTelegramUrl("sendBaseInfo"), "application/json", bytes.NewBuffer(toTelegram))
 		if err != nil {
 			fmt.Println("error of sending message to telegram:" + string(toTelegram))
 		}
@@ -161,29 +176,22 @@ func sendMessage(telegramText RequestTelegramText, hasMore bool) {
 	}
 }
 
-func sendVoices(chatId int, info cambridge.CambridgeInfo, hasMore bool) {
+func SendVoices(chatId int, info cambridge.CambridgeInfo, lang string, hasMore bool) {
 
-	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, "uk")); err == nil && len([]rune(voiceId)) > 0 {
-		fmt.Println("find key uk voice in cache")
-		sendVoiceFromCache(chatId, "uk", voiceId, info, hasMore)
+	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, lang)); err == nil && len([]rune(voiceId)) > 0 {
+		fmt.Println("find key " + lang + " voice in cache")
+		sendVoiceFromCache(chatId, lang, voiceId, info, hasMore)
 	} else {
-		sendVoice(chatId, "uk", info, hasMore)
-	}
-
-	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, "us")); err == nil && len([]rune(voiceId)) > 0 {
-		fmt.Println("find key us voice in cache")
-		sendVoiceFromCache(chatId, "us", voiceId, info, hasMore)
-	} else {
-		sendVoice(chatId, "us", info, hasMore)
+		sendVoice(chatId, lang, info, hasMore)
 	}
 }
 
 func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore bool) {
 	var path string
 	switch country {
-	case "uk":
+	case CountryUk:
 		path = info.VoicePath.UK
-	case "us":
+	case CountryUs:
 		path = info.VoicePath.US
 	}
 	res, err := http.Get(cambridge.Url + path)
@@ -213,7 +221,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	_ = writer.WriteField("chat_id", strconv.Itoa(chatId))
 
 	if hasMore {
-		_ = writer.WriteField("reply_markup", fmt.Sprintf("{\"inline_keyboard\":[[{\"text\":\"more\",\"callback_data\":\"/next_message %s\"}]]}", info.RequestText))
+		_ = writer.WriteField("reply_markup", fmt.Sprintf("{\"inline_keyboard\":[[{\"text\":\"more\",\"callback_data\":\"%s %s\"}]]}", NextRequestMessage, info.RequestText))
 	}
 	err = writer.Close()
 	if err != nil {
@@ -232,7 +240,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 		fmt.Println(err)
 		return
 	}
-	defer rapid_microsoft.CloseConnection(res.Body)
+	defer rapidMicrosoft.CloseConnection(res.Body)
 
 	buf, _ := ioutil.ReadAll(res.Body)
 	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
@@ -279,5 +287,5 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 		body, _ := ioutil.ReadAll(res.Body)
 		fmt.Println("bad response from telegram:" + res.Status + " Message:" + string(body) + "\n")
 	}
-	defer rapid_microsoft.CloseConnection(res.Body)
+	defer rapidMicrosoft.CloseConnection(res.Body)
 }

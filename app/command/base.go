@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"telegram-bot-golang/db/redis"
+	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
 	"telegram-bot-golang/service/dictionary/multitran"
 	"telegram-bot-golang/statistic"
@@ -36,7 +37,12 @@ func General(query telegram.TelegramQueryInterface) {
 		for _, message := range telegram.GetResultFromCambridge(cambridgeInfo, query) {
 			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
-		messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Info: cambridgeInfo, ChatId: query.GetChatId()}))
+		if helper.Len(cambridgeInfo.VoicePath.UK) > 0 {
+			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found voice record for " + telegram.CountryUk, ChatId: query.GetChatId(), Lang: telegram.CountryUk}))
+		}
+		if helper.Len(cambridgeInfo.VoicePath.US) > 0 {
+			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found voice record for " + telegram.CountryUs, ChatId: query.GetChatId(), Lang: telegram.CountryUs}))
+		}
 		statistic.Consider(query.GetChatText(), query.GetUserId())
 
 	}
@@ -51,6 +57,18 @@ func General(query telegram.TelegramQueryInterface) {
 		redis.Set(key, requestTelegramInJson, time.Hour*24)
 	} else {
 		fmt.Println(err)
+	}
+}
+
+func GetVoice(query telegram.TelegramQueryInterface, lang string, word string) {
+	if cambridgeInfo := cambridge.Get(word); cambridgeInfo.IsValid() {
+		var request telegram.UserRequest
+		key := fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), word)
+		state, _ := redis.Get(key)
+		if err := json.Unmarshal([]byte(state), &request); err != nil {
+			fmt.Println("Unmarshal request : " + err.Error())
+		}
+		telegram.SendVoices(query.GetChatId(), cambridgeInfo, lang, len(request.Output) > 0)
 	}
 }
 

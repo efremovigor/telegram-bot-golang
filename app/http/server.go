@@ -115,15 +115,7 @@ func (c Context) reply(query telegram.TelegramQueryInterface) error {
 
 	fmt.Println("from telegram message:" + string(query.GetChatText()))
 	listener := c.Get("listener").(telegram.Listener)
-	if words := strings.Split(query.GetChatText(), " "); len(words) == 2 {
-		switch words[0] {
-		case telegram.NextRequestMessage:
-			if message, err := command.GetNextMessage(query.GetUserId(), words[1]); err == nil {
-				listener.Message <- message
-			}
-			return nil
-		}
-	}
+
 	switch query.GetChatText() {
 	case command.StartCommand:
 		listener.Message <- telegram.NewRequestChannelTelegram("text", command.SayHello(query))
@@ -140,6 +132,18 @@ func (c Context) reply(query telegram.TelegramQueryInterface) error {
 	case command.GetMyTopCommand:
 		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10ForUser(query))
 	default:
+		words := strings.Split(query.GetChatText(), " ")
+		switch words[0] {
+		case telegram.NextRequestMessage:
+			if message, err := command.GetNextMessage(query.GetUserId(), strings.Join(words[1:], " ")); err == nil {
+				listener.Message <- message
+			}
+			return nil
+		case telegram.ShowRequestVoice:
+			if words[1] == telegram.CountryUs || words[1] == telegram.CountryUk {
+				command.GetVoice(query, words[1], strings.Join(words[2:], " "))
+			}
+		}
 		command.General(query)
 		if message, err := command.GetNextMessage(query.GetUserId(), query.GetChatText()); err == nil {
 			listener.Message <- message
