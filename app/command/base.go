@@ -38,10 +38,10 @@ func General(query telegram.TelegramQueryInterface) {
 			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
 		if helper.Len(cambridgeInfo.VoicePath.UK) > 0 {
-			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found voice record for " + telegram.CountryUk, ChatId: query.GetChatId(), Lang: telegram.CountryUk}))
+			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found a " + telegram.CountryUk + " voice record for " + cambridgeInfo.RequestText, ChatId: query.GetChatId(), Lang: telegram.CountryUk}))
 		}
 		if helper.Len(cambridgeInfo.VoicePath.US) > 0 {
-			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found voice record for " + telegram.CountryUs, ChatId: query.GetChatId(), Lang: telegram.CountryUs}))
+			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found a " + telegram.CountryUs + " voice record for " + cambridgeInfo.RequestText, ChatId: query.GetChatId(), Lang: telegram.CountryUs}))
 		}
 		statistic.Consider(query.GetChatText(), query.GetUserId())
 
