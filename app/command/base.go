@@ -75,7 +75,10 @@ func GetVoice(query telegram.TelegramQueryInterface, lang string, word string) {
 func GetNextMessage(userId int, word string) (message telegram.RequestChannelTelegram, err error) {
 	var request telegram.UserRequest
 	key := fmt.Sprintf(redis.NextRequestMessageKey, userId, word)
-	state, _ := redis.Get(key)
+	state, err := redis.Get(key)
+	if err != nil {
+		return
+	}
 	if err := json.Unmarshal([]byte(state), &request); err != nil {
 		fmt.Println("Unmarshal request : " + err.Error())
 	}
