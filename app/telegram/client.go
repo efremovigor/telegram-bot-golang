@@ -152,9 +152,12 @@ func sendBaseInfo(telegramText RequestTelegramText, hasMore bool) {
 	sendBaseMessage(request)
 }
 
-func sendVoiceMessage(telegramText CambridgeRequestTelegramVoice) {
+func sendVoiceMessage(telegramText CambridgeRequestTelegramVoice, hasMore bool) {
 	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text)
 	request.ReplyMarkup.ShowVoiceMessage(telegramText.Word, telegramText.Lang)
+	if hasMore {
+		request.ReplyMarkup.SetHasMore(telegramText.Word)
+	}
 	sendBaseMessage(request)
 }
 

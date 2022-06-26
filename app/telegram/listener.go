@@ -21,7 +21,7 @@ func HandleRequests(listener Listener) {
 			case "voice":
 				var textRequest CambridgeRequestTelegramVoice
 				if err := json.Unmarshal(request.Message, &textRequest); err == nil {
-					sendVoiceMessage(textRequest)
+					sendVoiceMessage(textRequest, request.HasMore)
 				} else {
 					fmt.Println(err)
 				}

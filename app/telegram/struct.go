@@ -253,13 +253,13 @@ type ReplyMarkup struct {
 }
 
 func (r *ReplyMarkup) SetHasMore(word string) {
-	r.Keyboard = [][]Keyboard{{{Text: "more", CallbackData: NextRequestMessage + " " + word}}}
+	r.Keyboard = append(r.Keyboard, []Keyboard{{Text: "more", CallbackData: NextRequestMessage + " " + word}})
 	r.OneTimeKeyboard = true
 	r.ResizeKeyboard = true
 }
 
 func (r *ReplyMarkup) ShowVoiceMessage(word string, lang string) {
-	r.Keyboard = [][]Keyboard{{{Text: "show", CallbackData: ShowRequestVoice + " " + lang + " " + word}}}
+	r.Keyboard = append(r.Keyboard, []Keyboard{{Text: "show", CallbackData: ShowRequestVoice + " " + lang + " " + word}})
 	r.OneTimeKeyboard = true
 	r.ResizeKeyboard = true
 }

@@ -143,6 +143,7 @@ func (c Context) reply(query telegram.TelegramQueryInterface) error {
 			if words[1] == telegram.CountryUs || words[1] == telegram.CountryUk {
 				command.GetVoice(query, words[1], strings.Join(words[2:], " "))
 			}
+			return nil
 		}
 		command.General(query)
 		if message, err := command.GetNextMessage(query.GetUserId(), query.GetChatText()); err == nil {
