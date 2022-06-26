@@ -106,7 +106,7 @@ func Get(query string) CambridgeInfo {
 			fmt.Println(err)
 		} else {
 			fmt.Println(string(infoInJson))
-			redis.Set(fmt.Sprintf(redis.InfoCambridgePageKey, cambridgeInfo.RequestText), infoInJson)
+			redis.Set(fmt.Sprintf(redis.InfoCambridgePageKey, cambridgeInfo.RequestText), infoInJson, 0)
 		}
 	} else {
 		fmt.Println("get cambridge info from cache")

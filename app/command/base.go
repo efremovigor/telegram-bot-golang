@@ -8,6 +8,7 @@ import (
 	"telegram-bot-golang/service/dictionary/multitran"
 	"telegram-bot-golang/statistic"
 	"telegram-bot-golang/telegram"
+	"time"
 )
 
 func SayHello(query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
@@ -47,7 +48,7 @@ func General(query telegram.TelegramQueryInterface) {
 	}
 
 	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: query.GetChatText(), Output: messages}); err == nil {
-		redis.Set(key, requestTelegramInJson)
+		redis.Set(key, requestTelegramInJson, time.Hour*24)
 	} else {
 		fmt.Println(err)
 	}
@@ -67,7 +68,7 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 			message.HasMore = true
 			request.Output = request.Output[1:]
 			if infoInJson, err := json.Marshal(request); err == nil {
-				redis.Set(key, infoInJson)
+				redis.Set(key, infoInJson, time.Hour*24)
 			} else {
 				fmt.Println(err)
 			}

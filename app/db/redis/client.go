@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"telegram-bot-golang/env"
+	"time"
 )
 
 var ctx = context.Background()
@@ -31,8 +32,8 @@ func Get(key string) (value string, err error) {
 	return
 }
 
-func Set(key string, value interface{}) {
-	err := getRedis().Set(ctx, key, value, 0).Err()
+func Set(key string, value interface{}, expiration time.Duration) {
+	err := getRedis().Set(ctx, key, value, expiration).Err()
 	if err != nil {
 		fmt.Println("redis:error of writing cache:" + err.Error())
 	}

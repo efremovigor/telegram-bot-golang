@@ -78,7 +78,7 @@ func Get(query string) Page {
 			fmt.Println(err)
 		} else {
 			fmt.Println(string(infoInJson))
-			redis.Set(fmt.Sprintf(redis.InfoMultitranPageKey, page.RequestText), infoInJson)
+			redis.Set(fmt.Sprintf(redis.InfoMultitranPageKey, page.RequestText), infoInJson, 0)
 		}
 	} else {
 		fmt.Println("get multitran page from cache")

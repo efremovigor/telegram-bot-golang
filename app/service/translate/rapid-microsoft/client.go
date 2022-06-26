@@ -42,7 +42,7 @@ func GetTranslate(text string, to string, from string) string {
 		if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&microsoftTranslateResponse); err != nil {
 			fmt.Println("could not decode microsoft response", err)
 		} else {
-			redis.Set(fmt.Sprintf(redis.TranslateRapidMicrosoftKey, from, to, text), buf)
+			redis.Set(fmt.Sprintf(redis.TranslateRapidMicrosoftKey, from, to, text), buf, 0)
 		}
 	} else {
 		fmt.Println("get translate from redis")
