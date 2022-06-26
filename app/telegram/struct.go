@@ -37,6 +37,14 @@ type RequestTelegramText struct {
 	ChatId int    `json:"chatId"`
 }
 
+func MakeRequestTelegramText(word string, text string, chatId int) RequestTelegramText {
+	return RequestTelegramText{
+		Word:   word,
+		Text:   text,
+		ChatId: chatId,
+	}
+}
+
 func MergeRequestTelegram(one RequestTelegramText, two RequestTelegramText) RequestTelegramText {
 	one.Text += two.Text
 	return one

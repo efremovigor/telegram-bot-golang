@@ -28,12 +28,12 @@ const CountryUk = "uk"
 const CountryUs = "us"
 
 func GetHelloIGotYourMSGRequest(query TelegramQueryInterface) RequestTelegramText {
-	return RequestTelegramText{
-		Word: query.GetChatText(),
-		Text: GetBaseMsg(query.GetUsername(), query.GetUserId()) +
+	return MakeRequestTelegramText(
+		query.GetChatText(),
+		GetBaseMsg(query.GetUsername(), query.GetUserId())+
 			GetIGotYourNewRequest(query.GetChatText()),
-		ChatId: query.GetChatId(),
-	}
+		query.GetChatId(),
+	)
 }
 
 func GetResultFromRapidMicrosoft(query TelegramQueryInterface, state string) RequestTelegramText {
@@ -59,11 +59,11 @@ func GetResultFromRapidMicrosoft(query TelegramQueryInterface, state string) Req
 	if helper.IsEmpty(translate) {
 		return RequestTelegramText{}
 	}
-	return RequestTelegramText{
-		Word:   query.GetChatText(),
-		Text:   GetBlockWithRapidInfo(translate),
-		ChatId: query.GetChatId(),
-	}
+	return MakeRequestTelegramText(
+		query.GetChatText(),
+		GetBlockWithRapidInfo(translate),
+		query.GetChatId(),
+	)
 }
 
 func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, query TelegramQueryInterface) []RequestTelegramText {
@@ -75,11 +75,11 @@ func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, query Telegra
 			messages = append(
 				messages,
 				MergeRequestTelegram(
-					RequestTelegramText{
-						Word:   query.GetChatText(),
-						Text:   GetCambridgeHeaderBlock(cambridgeInfo),
-						ChatId: query.GetChatId(),
-					},
+					MakeRequestTelegramText(
+						query.GetChatText(),
+						GetCambridgeHeaderBlock(cambridgeInfo),
+						query.GetChatId(),
+					),
 					requests[0],
 				),
 			)
@@ -98,11 +98,11 @@ func GetResultFromMultitran(info multitran.Page, query TelegramQueryInterface) [
 		messages = append(
 			messages,
 			MergeRequestTelegram(
-				RequestTelegramText{
-					Word:   query.GetChatText(),
-					Text:   GetMultitranHeaderBlock(info),
-					ChatId: query.GetChatId(),
-				},
+				MakeRequestTelegramText(
+					query.GetChatText(),
+					GetMultitranHeaderBlock(info),
+					query.GetChatId(),
+				),
 				requests[0],
 			),
 		)

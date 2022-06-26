@@ -36,11 +36,11 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 	for n, explanation := range info.Explanation {
 		if helper.Len(mainBlock) > MaxRequestSize {
 			messages = append(messages,
-				RequestTelegramText{
-					Word:   info.Text,
-					Text:   mainBlock + "\n",
-					ChatId: chatId,
-				},
+				MakeRequestTelegramText(
+					info.Text,
+					mainBlock+"\n",
+					chatId,
+				),
 			)
 			mainBlock = ""
 		}
@@ -58,18 +58,18 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 		for _, example := range explanation.Example {
 			if helper.Len(mainBlock) > MaxRequestSize {
 				messages = append(messages,
-					RequestTelegramText{
-						Word:   info.Text,
-						Text:   mainBlock + "\n",
-						ChatId: chatId,
-					},
+					MakeRequestTelegramText(
+						info.Text,
+						mainBlock+"\n",
+						chatId,
+					),
 				)
 				mainBlock = ""
 			}
 			mainBlock += DecodeForTelegram(example) + "\n"
 		}
 	}
-	messages = append(messages, RequestTelegramText{Text: mainBlock + "\n", ChatId: chatId})
+	messages = append(messages, MakeRequestTelegramText(info.Text, mainBlock+"\n", chatId))
 	return messages
 }
 
@@ -81,11 +81,11 @@ func GetMultitranOptionBlock(chatId int, page multitran.Page) []RequestTelegramT
 		for _, explanation := range info.Explanation {
 			if helper.Len(mainBlock) > MaxRequestSize {
 				messages = append(messages,
-					RequestTelegramText{
-						Word:   info.Text,
-						Text:   mainBlock + "\n",
-						ChatId: chatId,
-					},
+					MakeRequestTelegramText(
+						info.Text,
+						mainBlock+"\n",
+						chatId,
+					),
 				)
 				mainBlock = ""
 			}
@@ -95,11 +95,11 @@ func GetMultitranOptionBlock(chatId int, page multitran.Page) []RequestTelegramT
 			for i, translate := range explanation.Text {
 				if helper.Len(mainBlock) > MaxRequestSize {
 					messages = append(messages,
-						RequestTelegramText{
-							Word:   info.Text,
-							Text:   mainBlock + "\n",
-							ChatId: chatId,
-						},
+						MakeRequestTelegramText(
+							info.Text,
+							mainBlock+"\n",
+							chatId,
+						),
 					)
 					mainBlock = ""
 				}
@@ -112,7 +112,11 @@ func GetMultitranOptionBlock(chatId int, page multitran.Page) []RequestTelegramT
 			mainBlock += "\n"
 		}
 	}
-	messages = append(messages, RequestTelegramText{Text: mainBlock + "\n", ChatId: chatId})
+	messages = append(messages, MakeRequestTelegramText(
+		page.RequestText,
+		mainBlock+"\n",
+		chatId,
+	))
 	return messages
 }
 

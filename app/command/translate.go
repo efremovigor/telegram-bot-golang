@@ -12,8 +12,13 @@ func ChangeTranslateTransition(command string, query telegram.TelegramQueryInter
 	} else {
 		redis.Set(fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId()), Transitions()[command].key, 0)
 	}
-	return telegram.RequestTelegramText{Text: telegram.GetBaseMsg(query.GetUsername(), query.GetUserId()) + telegram.GetChangeTranslateMsg(Transitions()[command].Desc), ChatId: query.GetChatId()}
+	return telegram.MakeRequestTelegramText(
+		query.GetChatText(),
+		telegram.GetBaseMsg(query.GetUsername(), query.GetUserId())+telegram.GetChangeTranslateMsg(Transitions()[command].Desc),
+		query.GetChatId(),
+	)
 }
+
 func Transitions() map[string]struct {
 	key  string
 	Desc string

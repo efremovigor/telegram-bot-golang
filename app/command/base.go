@@ -13,10 +13,11 @@ import (
 )
 
 func SayHello(query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
-	return telegram.RequestTelegramText{
-		Text:   telegram.DecodeForTelegram("Hello Friend. How can I help you?"),
-		ChatId: query.GetChatId(),
-	}
+	return telegram.MakeRequestTelegramText(
+		query.GetChatText(),
+		telegram.DecodeForTelegram("Hello Friend. How can I help you?"),
+		query.GetChatId(),
+	)
 }
 
 func General(query telegram.TelegramQueryInterface) {
@@ -104,15 +105,16 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 }
 
 func Help(query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
-	return telegram.RequestTelegramText{
-		Text: "*List of commands available to you:*\n" +
-			telegram.GetRowSeparation() +
-			"*" + telegram.DecodeForTelegram(RuEnCommand) + fmt.Sprintf("* \\- Change translate of transition %s \n", telegram.DecodeForTelegram(Transitions()[RuEnCommand].Desc)) +
-			"*" + telegram.DecodeForTelegram(EnRuCommand) + fmt.Sprintf("* \\- Change translate of transition %s \n", telegram.DecodeForTelegram(Transitions()[EnRuCommand].Desc)) +
-			"*" + telegram.DecodeForTelegram(AutoTranslateCommand) + "* \\- Change translation automatic \n" +
-			"*" + telegram.DecodeForTelegram(HelpCommand) + "* \\- Show all the available commands\n" +
-			"*" + telegram.DecodeForTelegram(GetAllTopCommand) + "* \\- To see the most popular requests for translation or explanation  \n" +
-			"*" + telegram.DecodeForTelegram(GetMyTopCommand) + "* \\- To see your popular requests for translation or explanation  \n",
-		ChatId: query.GetChatId(),
-	}
+	return telegram.MakeRequestTelegramText(
+		query.GetChatText(),
+		"*List of commands available to you:*\n"+
+			telegram.GetRowSeparation()+
+			"*"+telegram.DecodeForTelegram(RuEnCommand)+fmt.Sprintf("* \\- Change translate of transition %s \n", telegram.DecodeForTelegram(Transitions()[RuEnCommand].Desc))+
+			"*"+telegram.DecodeForTelegram(EnRuCommand)+fmt.Sprintf("* \\- Change translate of transition %s \n", telegram.DecodeForTelegram(Transitions()[EnRuCommand].Desc))+
+			"*"+telegram.DecodeForTelegram(AutoTranslateCommand)+"* \\- Change translation automatic \n"+
+			"*"+telegram.DecodeForTelegram(HelpCommand)+"* \\- Show all the available commands\n"+
+			"*"+telegram.DecodeForTelegram(GetAllTopCommand)+"* \\- To see the most popular requests for translation or explanation  \n"+
+			"*"+telegram.DecodeForTelegram(GetMyTopCommand)+"* \\- To see your popular requests for translation or explanation  \n",
+		query.GetChatId(),
+	)
 }

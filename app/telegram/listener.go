@@ -9,7 +9,6 @@ func HandleRequests(listener Listener) {
 	for {
 		select {
 		case request := <-listener.Message:
-			fmt.Println(fmt.Sprintf("hasMore to telegram: %t\n", request.HasMore))
 			fmt.Println("message to telegram:" + string(request.Message))
 			switch request.Type {
 			case "text":
