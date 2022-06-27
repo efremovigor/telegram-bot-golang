@@ -19,15 +19,21 @@ func Get(query string) CambridgeInfo {
 			fmt.Println("error getting html data: " + err.Error())
 			return cambridgeInfo
 		}
-		nodes, _ := htmlquery.QueryAll(html, xpathBLockDescriptionEnRu)
+		nodes, _ := htmlquery.QueryAll(html, xpathBlockDescriptionEnRu)
 
 		if len(nodes) == 0 {
-			html, err = htmlquery.LoadURL(Url + "/dictionary/english/" + query)
-			if err != nil {
-				fmt.Println("error getting html data: " + err.Error())
-				return cambridgeInfo
+			nodes, _ = htmlquery.QueryAll(html, xpathAltBlockDescriptionEnRu)
+			if len(nodes) == 0 {
+				html, err = htmlquery.LoadURL(Url + "/dictionary/english/" + query)
+				if err != nil {
+					fmt.Println("error getting html data: " + err.Error())
+					return cambridgeInfo
+				}
+				nodes, _ = htmlquery.QueryAll(html, xpathBlockDescriptionEnRu)
+				if len(nodes) == 0 {
+					nodes, _ = htmlquery.QueryAll(html, xpathAltBlockDescriptionEnRu)
+				}
 			}
-			nodes, _ = htmlquery.QueryAll(html, xpathBLockDescriptionEnRu)
 		}
 		for _, node := range nodes {
 			info := Info{}

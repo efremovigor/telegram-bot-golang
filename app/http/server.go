@@ -107,6 +107,14 @@ func Handle(listener telegram.Listener) {
 		})
 		e.Logger.Fatal(e.Start(":443"))
 	} else {
+		e.GET("/cambridge/:query", func(c echo.Context) error {
+			query := c.Param("query")
+			info := cambridge.Get(query)
+			if info.IsValid() {
+				statistic.Consider(query, 1)
+			}
+			return c.JSON(http.StatusOK, info)
+		})
 		e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
 	}
 }
