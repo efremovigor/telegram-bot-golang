@@ -179,12 +179,13 @@ type AudioResponse struct {
 	} `json:"result"`
 }
 
-type TelegramQueryInterface interface {
+type IncomingTelegramQueryInterface interface {
 	IsValid() bool
 	GetChatId() int
 	GetChatText() string
 	GetUsername() string
 	GetUserId() int
+	SetChatText(value string)
 }
 
 func (body CallbackQuery) IsValid() bool {
@@ -209,6 +210,10 @@ func (body CallbackQuery) GetUserId() int {
 	return body.CallbackQuery.From.Id
 }
 
+func (body *CallbackQuery) SetChatText(value string) {
+	body.CallbackQuery.Message.Text = value
+}
+
 func (body WebhookMessage) IsValid() bool {
 	if body.Message.Chat.Id != 0 {
 		return true
@@ -230,6 +235,10 @@ func (body WebhookMessage) GetChatText() string {
 	} else {
 		return strings.ToLower(strings.TrimSpace(body.EditedMessage.Text))
 	}
+}
+
+func (body *WebhookMessage) SetChatText(value string) {
+	body.Message.Text = value
 }
 
 func (body WebhookMessage) GetUsername() string {

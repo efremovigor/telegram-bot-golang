@@ -6,7 +6,7 @@ import (
 	"telegram-bot-golang/telegram"
 )
 
-func ChangeTranslateTransition(command string, query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
+func ChangeTranslateTransition(command string, query telegram.IncomingTelegramQueryInterface) telegram.RequestTelegramText {
 	if command == AutoTranslateCommand {
 		redis.Del(fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId()))
 	} else {

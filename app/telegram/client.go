@@ -22,12 +22,13 @@ import (
 
 const NextRequestMessage = "/next_message"
 const ShowRequestVoice = "/show_voice"
+const SearchRequest = "/search"
 const LangEn = "en"
 const LangRu = "ru"
 const CountryUk = "uk"
 const CountryUs = "us"
 
-func GetHelloIGotYourMSGRequest(query TelegramQueryInterface) RequestTelegramText {
+func GetHelloIGotYourMSGRequest(query IncomingTelegramQueryInterface) RequestTelegramText {
 	return MakeRequestTelegramText(
 		query.GetChatText(),
 		GetBaseMsg(query.GetUsername(), query.GetUserId())+
@@ -36,7 +37,7 @@ func GetHelloIGotYourMSGRequest(query TelegramQueryInterface) RequestTelegramTex
 	)
 }
 
-func GetResultFromRapidMicrosoft(query TelegramQueryInterface, state string) RequestTelegramText {
+func GetResultFromRapidMicrosoft(query IncomingTelegramQueryInterface, state string) RequestTelegramText {
 	var from, to string
 
 	if state == "" {
@@ -66,7 +67,7 @@ func GetResultFromRapidMicrosoft(query TelegramQueryInterface, state string) Req
 	)
 }
 
-func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, query TelegramQueryInterface) []RequestTelegramText {
+func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, query IncomingTelegramQueryInterface) []RequestTelegramText {
 	var messages []RequestTelegramText
 
 	for _, option := range cambridgeInfo.Options {
@@ -96,7 +97,7 @@ func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, query Telegra
 	return messages
 }
 
-func GetResultFromMultitran(info multitran.Page, query TelegramQueryInterface) []RequestTelegramText {
+func GetResultFromMultitran(info multitran.Page, query IncomingTelegramQueryInterface) []RequestTelegramText {
 	var messages []RequestTelegramText
 	requests := GetMultitranOptionBlock(query.GetChatId(), info)
 	if len(requests) > 0 {

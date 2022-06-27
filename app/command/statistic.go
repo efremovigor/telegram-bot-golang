@@ -5,7 +5,7 @@ import (
 	"telegram-bot-golang/telegram"
 )
 
-func GetTop10(query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
+func GetTop10(query telegram.IncomingTelegramQueryInterface) telegram.RequestTelegramText {
 	text := ""
 	list, err := model.GetWordStatistics(10)
 	if err == nil {
@@ -15,7 +15,7 @@ func GetTop10(query telegram.TelegramQueryInterface) telegram.RequestTelegramTex
 	return telegram.MakeRequestTelegramText(query.GetChatText(), text, query.GetChatId())
 }
 
-func GetTop10ForUser(query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
+func GetTop10ForUser(query telegram.IncomingTelegramQueryInterface) telegram.RequestTelegramText {
 	text := ""
 	list, err := model.GetWordStatisticsForUser(10, query.GetUserId())
 	if err == nil {

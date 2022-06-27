@@ -62,12 +62,12 @@ func Handle(listener telegram.Listener) {
 		callbackQuery := &telegram.CallbackQuery{}
 
 		if err := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(buf))).Decode(webhookMessage); err == nil && webhookMessage.IsValid() {
-			if err := cc.reply(*webhookMessage); err != nil {
+			if err := cc.reply(webhookMessage); err != nil {
 				fmt.Println("error in sending reply:", err)
 				return err
 			}
 		} else if err := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(buf))).Decode(callbackQuery); err == nil && callbackQuery.IsValid() {
-			if err := cc.reply(*callbackQuery); err != nil {
+			if err := cc.reply(callbackQuery); err != nil {
 				fmt.Println("error in sending reply:", err)
 				return err
 			}
@@ -111,7 +111,7 @@ func Handle(listener telegram.Listener) {
 	}
 }
 
-func (c Context) reply(query telegram.TelegramQueryInterface) error {
+func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 
 	fmt.Println("from telegram message:" + string(query.GetChatText()))
 	listener := c.Get("listener").(telegram.Listener)
@@ -142,6 +142,13 @@ func (c Context) reply(query telegram.TelegramQueryInterface) error {
 		case telegram.ShowRequestVoice:
 			if words[1] == telegram.CountryUs || words[1] == telegram.CountryUk {
 				command.GetVoice(query, words[1], strings.Join(words[2:], " "))
+			}
+			return nil
+		case telegram.SearchRequest:
+			query.SetChatText(strings.Join(words[2:], " "))
+			command.General(query)
+			if message, err := command.GetNextMessage(query.GetUserId(), query.GetChatText()); err == nil {
+				listener.Message <- message
 			}
 			return nil
 		}

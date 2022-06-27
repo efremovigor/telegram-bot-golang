@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func SayHello(query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
+func SayHello(query telegram.IncomingTelegramQueryInterface) telegram.RequestTelegramText {
 	return telegram.MakeRequestTelegramText(
 		query.GetChatText(),
 		telegram.DecodeForTelegram("Hello Friend. How can I help you?"),
@@ -20,7 +20,7 @@ func SayHello(query telegram.TelegramQueryInterface) telegram.RequestTelegramTex
 	)
 }
 
-func General(query telegram.TelegramQueryInterface) {
+func General(query telegram.IncomingTelegramQueryInterface) {
 	key := fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText())
 	redis.Del(key)
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId()))
@@ -63,7 +63,7 @@ func General(query telegram.TelegramQueryInterface) {
 	}
 }
 
-func GetVoice(query telegram.TelegramQueryInterface, lang string, word string) {
+func GetVoice(query telegram.IncomingTelegramQueryInterface, lang string, word string) {
 	if cambridgeInfo := cambridge.Get(word); cambridgeInfo.IsValid() {
 		var request telegram.UserRequest
 		key := fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), word)
@@ -106,7 +106,7 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 	return message, err
 }
 
-func Help(query telegram.TelegramQueryInterface) telegram.RequestTelegramText {
+func Help(query telegram.IncomingTelegramQueryInterface) telegram.RequestTelegramText {
 	return telegram.MakeRequestTelegramText(
 		query.GetChatText(),
 		"*List of commands available to you:*\n"+
