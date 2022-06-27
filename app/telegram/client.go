@@ -124,7 +124,7 @@ func GetTelegramRequest(chatId int, text string, buttons []Keyboard) SendMessage
 		ChatID:      chatId,
 		Text:        text,
 		ParseMode:   "MarkdownV2",
-		ReplyMarkup: ReplyMarkup{Keyboard: append([][]Keyboard{}, buttons), OneTimeKeyboard: true, ResizeKeyboard: true},
+		ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{buttons}, OneTimeKeyboard: true, ResizeKeyboard: false},
 	}
 }
 
