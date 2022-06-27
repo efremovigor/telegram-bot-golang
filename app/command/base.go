@@ -73,6 +73,10 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 	}
 }
 
+func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
+
+}
+
 func GetVoice(query telegram.IncomingTelegramQueryInterface, lang string, word string) {
 	if cambridgeInfo := cambridge.Get(word); cambridgeInfo.IsValid() {
 		var request telegram.UserRequest

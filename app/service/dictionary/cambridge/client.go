@@ -134,7 +134,7 @@ func Search(query string) (response SearchResponse) {
 		return
 	}
 
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&response.Founded); err != nil {
 		fmt.Println(err.Error())
 		return
 	}

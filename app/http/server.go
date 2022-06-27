@@ -137,6 +137,10 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 			}
 			return nil
 		case telegram.SearchRequest:
+			if words[1] == "cambridge" {
+				command.GetSubCambridge(query)
+				return nil
+			}
 			query.SetChatText(strings.Join(words[1:], " "))
 			command.General(query)
 			if message, err := command.GetNextMessage(query.GetUserId(), query.GetChatText()); err == nil {
