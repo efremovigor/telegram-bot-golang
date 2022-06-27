@@ -130,7 +130,7 @@ func Get(query string) Page {
 }
 
 func Search(query string) (response SearchResponse) {
-	res, err := http.Get(Url + "/dictionary/english-russian/" + query)
+	res, err := http.Get(fmt.Sprintf(SearchUrl, query))
 
 	if err != nil {
 		fmt.Println("error getting search of result: " + err.Error())

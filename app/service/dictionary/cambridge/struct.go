@@ -3,7 +3,7 @@ package cambridge
 import "telegram-bot-golang/helper"
 
 const Url = "https://dictionary.cambridge.org"
-const SearchUrl = Url + "/autocomplete/amp?dataset=english&q=get up&__amp_source_origin=" + Url
+const SearchUrl = Url + "/autocomplete/amp?dataset=english&q=%s&__amp_source_origin=" + Url
 
 type Page struct {
 	RequestText string    `json:"request_text"`
