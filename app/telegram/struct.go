@@ -288,7 +288,7 @@ type ReplyMarkup struct {
 func (r *ReplyMarkup) SetKeyboard(buttons []Keyboard) {
 	r.Keyboard = append(r.Keyboard, buttons)
 	r.OneTimeKeyboard = true
-	r.ResizeKeyboard = true
+	r.ResizeKeyboard = false
 }
 
 type Keyboard struct {
