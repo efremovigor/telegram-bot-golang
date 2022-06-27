@@ -1,9 +1,12 @@
 package cambridge
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/antchfx/htmlquery"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"telegram-bot-golang/db/redis"
@@ -133,7 +136,10 @@ func Search(query string) (response SearchResponse) {
 		fmt.Println("error getting search of result: " + err.Error())
 		return
 	}
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil || !response.IsValid() {
+	buf, _ := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
+	fmt.Println(string(buf))
+	if err := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&response); err != nil || !response.IsValid() {
 		return
 	}
 

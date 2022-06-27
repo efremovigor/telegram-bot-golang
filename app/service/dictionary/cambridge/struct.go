@@ -47,7 +47,7 @@ type SearchElement struct {
 }
 
 func (s SearchResponse) IsValid() bool {
-	return len(s.Founded) > 0
+	return !helper.IsEmpty(s.RequestWord)
 }
 
 const xpathBlockDescriptionEnRu = "//article[@id='page-content']//div[contains(@class, 'entry-body__el')]"
