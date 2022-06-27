@@ -18,9 +18,21 @@ type RequestChannelTelegram struct {
 	Message []byte     `json:"message"`
 }
 
-func NewRequestChannelTelegram(requestType string, request interface{}) RequestChannelTelegram {
+func NewRequestChannelVoiceTelegram(word string, chatId int, languages []string) RequestChannelTelegram {
+	request := NewCambridgeRequestTelegramVoice(word, chatId, languages)
+	var keyboards []Keyboard
+	for _, lang := range languages {
+		keyboards = append(keyboards, Keyboard{Text: "show " + lang, CallbackData: ShowRequestVoice + " " + lang + " " + word})
+	}
 	if requestInJson, err := json.Marshal(request); err == nil {
-		return RequestChannelTelegram{Type: requestType, Message: requestInJson}
+		return RequestChannelTelegram{Type: "voice", Message: requestInJson, Buttons: keyboards}
+	}
+	return RequestChannelTelegram{}
+}
+
+func NewRequestChannelTelegram(requestType string, request interface{}, buttons []Keyboard) RequestChannelTelegram {
+	if requestInJson, err := json.Marshal(request); err == nil {
+		return RequestChannelTelegram{Type: requestType, Message: requestInJson, Buttons: buttons}
 	}
 	return RequestChannelTelegram{}
 }

@@ -31,20 +31,21 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 				telegram.GetHelloIGotYourMSGRequest(query),
 				telegram.GetResultFromRapidMicrosoft(query, state),
 			),
+			[]telegram.Keyboard{},
 		),
 	}
 
 	if cambridgeInfo := cambridge.Get(query.GetChatText()); cambridgeInfo.IsValid() {
 		for _, message := range telegram.GetResultFromCambridge(cambridgeInfo, query) {
-			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
+			messages = append(messages, telegram.NewRequestChannelTelegram("text", message, []telegram.Keyboard{}))
 		}
 		switch true {
 		case helper.Len(cambridgeInfo.VoicePath.UK) > 0 && helper.Len(cambridgeInfo.VoicePath.US) > 0:
-			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.NewCambridgeRequestTelegramVoice(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUk, telegram.CountryUs})))
+			messages = append(messages, telegram.NewRequestChannelVoiceTelegram(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUk, telegram.CountryUs}))
 		case helper.Len(cambridgeInfo.VoicePath.UK) > 0:
-			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.NewCambridgeRequestTelegramVoice(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUk})))
+			messages = append(messages, telegram.NewRequestChannelVoiceTelegram(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUk}))
 		case helper.Len(cambridgeInfo.VoicePath.US) > 0:
-			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.NewCambridgeRequestTelegramVoice(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUs})))
+			messages = append(messages, telegram.NewRequestChannelVoiceTelegram(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUs}))
 		}
 		statistic.Consider(query.GetChatText(), query.GetUserId())
 	}
@@ -55,7 +56,7 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 
 	if multitranInfo := multitran.Get(query.GetChatText()); multitranInfo.IsValid() {
 		for _, message := range telegram.GetResultFromMultitran(multitranInfo, query) {
-			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
+			messages = append(messages, telegram.NewRequestChannelTelegram("text", message, []telegram.Keyboard{}))
 		}
 	}
 

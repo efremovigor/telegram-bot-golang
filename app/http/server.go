@@ -110,19 +110,19 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 
 	switch query.GetChatText() {
 	case command.StartCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.SayHello(query))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.SayHello(query), []telegram.Keyboard{})
 	case command.HelpCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.Help(query))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.Help(query), []telegram.Keyboard{})
 	case command.RuEnCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.RuEnCommand, query))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.RuEnCommand, query), []telegram.Keyboard{})
 	case command.EnRuCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.EnRuCommand, query))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.EnRuCommand, query), []telegram.Keyboard{})
 	case command.AutoTranslateCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.AutoTranslateCommand, query))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.ChangeTranslateTransition(command.AutoTranslateCommand, query), []telegram.Keyboard{})
 	case command.GetAllTopCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10(query))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10(query), []telegram.Keyboard{})
 	case command.GetMyTopCommand:
-		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10ForUser(query))
+		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10ForUser(query), []telegram.Keyboard{})
 	default:
 		words := strings.Split(query.GetChatText(), " ")
 		switch words[0] {
