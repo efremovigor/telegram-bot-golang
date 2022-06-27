@@ -35,7 +35,7 @@ func (i CambridgeInfo) IsValid() bool {
 	return !helper.IsEmpty(i.RequestText)
 }
 
-const xpathBLockDescriptionEnRu = "//article[@id='page-content']//div[contains(@class, 'entry-body__el')]"
+const xpathBLockDescriptionEnRu = "//article[@id='page-content']//div[contains(@class, 'di-body')]/div"
 const xpathTitle = "//div[contains(@class, 'di-title')]"
 const xpathType = "//div[contains(@class, 'posgram')]"
 const xpathComplexType = "//span[contains(@class, 'di-info')]/div"
