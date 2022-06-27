@@ -145,7 +145,7 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 			}
 			return nil
 		case telegram.SearchRequest:
-			query.SetChatText(strings.Join(words[2:], " "))
+			query.SetChatText(strings.Join(words[1:], " "))
 			command.General(query)
 			if message, err := command.GetNextMessage(query.GetUserId(), query.GetChatText()); err == nil {
 				listener.Message <- message
