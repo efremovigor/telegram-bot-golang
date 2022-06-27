@@ -152,13 +152,11 @@ func DecodeForTelegram(text string) string {
 
 func sendBaseInfo(telegramText RequestTelegramText, buttons []Keyboard) {
 	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text, buttons)
-	request.ReplyMarkup.SetKeyboard(buttons)
 	sendBaseMessage(request)
 }
 
 func sendVoiceMessage(telegramText CambridgeRequestTelegramVoice, buttons []Keyboard) {
 	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text, buttons)
-	request.ReplyMarkup.SetKeyboard(buttons)
 	sendBaseMessage(request)
 }
 

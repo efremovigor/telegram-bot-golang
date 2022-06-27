@@ -92,7 +92,7 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 	if len(request.Output) > 0 {
 		message = request.Output[0]
 		if len(request.Output) > 1 {
-			message.Buttons = []telegram.Keyboard{{Text: "more", CallbackData: telegram.NextRequestMessage + " " + word}}
+			message.Buttons = append(message.Buttons, telegram.Keyboard{Text: "more", CallbackData: telegram.NextRequestMessage + " " + word})
 			request.Output = request.Output[1:]
 			if infoInJson, err := json.Marshal(request); err == nil {
 				redis.Set(key, infoInJson, time.Hour*24)
