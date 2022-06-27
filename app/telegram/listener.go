@@ -14,14 +14,14 @@ func HandleRequests(listener Listener) {
 			case "text":
 				var textRequest RequestTelegramText
 				if err := json.Unmarshal(request.Message, &textRequest); err == nil {
-					sendBaseInfo(textRequest, request.HasMore)
+					sendBaseInfo(textRequest, request.Buttons)
 				} else {
 					fmt.Println(err)
 				}
 			case "voice":
 				var textRequest CambridgeRequestTelegramVoice
 				if err := json.Unmarshal(request.Message, &textRequest); err == nil {
-					sendVoiceMessage(textRequest, request.HasMore)
+					sendVoiceMessage(textRequest, request.Buttons)
 				} else {
 					fmt.Println(err)
 				}

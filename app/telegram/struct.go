@@ -12,9 +12,10 @@ type Listener struct {
 }
 
 type RequestChannelTelegram struct {
-	Type    string `json:"type"`
-	HasMore bool   `json:"hasMore"`
-	Message []byte `json:"message"`
+	Type    string     `json:"type"`
+	HasMore bool       `json:"hasMore"`
+	Buttons []Keyboard `json:"buttons"`
+	Message []byte     `json:"message"`
 }
 
 func NewRequestChannelTelegram(requestType string, request interface{}) RequestChannelTelegram {
@@ -24,11 +25,14 @@ func NewRequestChannelTelegram(requestType string, request interface{}) RequestC
 	return RequestChannelTelegram{}
 }
 
+func NewCambridgeRequestTelegramVoice(word string, chatId int, lang []string) CambridgeRequestTelegramVoice {
+	return CambridgeRequestTelegramVoice{Word: word, Text: "Found " + strings.Join(lang, ", ") + " voice record for " + word, ChatId: chatId}
+}
+
 type CambridgeRequestTelegramVoice struct {
-	Word   string   `json:"word"`
-	Text   string   `json:"text"`
-	ChatId int      `json:"chatId"`
-	Lang   []string `json:"lang"`
+	Word   string `json:"word"`
+	Text   string `json:"text"`
+	ChatId int    `json:"chatId"`
 }
 
 type RequestTelegramText struct {
@@ -269,16 +273,8 @@ type ReplyMarkup struct {
 	ResizeKeyboard  bool         `json:"resize_keyboard"`
 }
 
-func (r *ReplyMarkup) SetHasMore(word string) {
-	r.Keyboard = append(r.Keyboard, []Keyboard{{Text: "more", CallbackData: NextRequestMessage + " " + word}})
-	r.OneTimeKeyboard = true
-	r.ResizeKeyboard = true
-}
-
-func (r *ReplyMarkup) ShowVoiceMessage(word string, languages []string) {
-	for _, lang := range languages {
-		r.Keyboard = append(r.Keyboard, []Keyboard{{Text: "show " + lang, CallbackData: ShowRequestVoice + " " + lang + " " + word}})
-	}
+func (r *ReplyMarkup) SetKeyboard(buttons []Keyboard) {
+	r.Keyboard = append(r.Keyboard, buttons)
 	r.OneTimeKeyboard = true
 	r.ResizeKeyboard = true
 }

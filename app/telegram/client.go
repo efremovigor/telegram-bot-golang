@@ -67,7 +67,7 @@ func GetResultFromRapidMicrosoft(query IncomingTelegramQueryInterface, state str
 	)
 }
 
-func GetResultFromCambridge(cambridgeInfo cambridge.CambridgeInfo, query IncomingTelegramQueryInterface) []RequestTelegramText {
+func GetResultFromCambridge(cambridgeInfo cambridge.Page, query IncomingTelegramQueryInterface) []RequestTelegramText {
 	var messages []RequestTelegramText
 
 	for _, option := range cambridgeInfo.Options {
@@ -119,12 +119,12 @@ func GetResultFromMultitran(info multitran.Page, query IncomingTelegramQueryInte
 	return messages
 }
 
-func GetTelegramRequest(chatId int, text string) SendMessageReqBody {
+func GetTelegramRequest(chatId int, text string, buttons []Keyboard) SendMessageReqBody {
 	return SendMessageReqBody{
 		ChatID:      chatId,
 		Text:        text,
 		ParseMode:   "MarkdownV2",
-		ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{}, OneTimeKeyboard: true, ResizeKeyboard: true},
+		ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{buttons}, OneTimeKeyboard: true, ResizeKeyboard: true},
 	}
 }
 
@@ -150,20 +150,15 @@ func DecodeForTelegram(text string) string {
 	).Replace(text)
 }
 
-func sendBaseInfo(telegramText RequestTelegramText, hasMore bool) {
-	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text)
-	if hasMore {
-		request.ReplyMarkup.SetHasMore(telegramText.Word)
-	}
+func sendBaseInfo(telegramText RequestTelegramText, buttons []Keyboard) {
+	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text, buttons)
+	request.ReplyMarkup.SetKeyboard(buttons)
 	sendBaseMessage(request)
 }
 
-func sendVoiceMessage(telegramText CambridgeRequestTelegramVoice, hasMore bool) {
-	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text)
-	request.ReplyMarkup.ShowVoiceMessage(telegramText.Word, telegramText.Lang)
-	if hasMore {
-		request.ReplyMarkup.SetHasMore(telegramText.Word)
-	}
+func sendVoiceMessage(telegramText CambridgeRequestTelegramVoice, buttons []Keyboard) {
+	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text, buttons)
+	request.ReplyMarkup.SetKeyboard(buttons)
 	sendBaseMessage(request)
 }
 
@@ -185,7 +180,7 @@ func sendBaseMessage(request SendMessageReqBody) {
 	}
 }
 
-func SendVoices(chatId int, info cambridge.CambridgeInfo, lang string, hasMore bool) {
+func SendVoices(chatId int, info cambridge.Page, lang string, hasMore bool) {
 
 	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, lang)); err == nil && len([]rune(voiceId)) > 0 {
 		fmt.Println("find key " + lang + " voice in cache")
@@ -195,7 +190,7 @@ func SendVoices(chatId int, info cambridge.CambridgeInfo, lang string, hasMore b
 	}
 }
 
-func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore bool) {
+func sendVoice(chatId int, country string, info cambridge.Page, hasMore bool) {
 	var path string
 	switch country {
 	case CountryUk:
@@ -232,6 +227,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	if hasMore {
 		_ = writer.WriteField("reply_markup", fmt.Sprintf("{\"inline_keyboard\":[[{\"text\":\"more\",\"callback_data\":\"%s %s\"}]]}", NextRequestMessage, info.RequestText))
 	}
+
 	err = writer.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -265,7 +261,7 @@ func sendVoice(chatId int, country string, info cambridge.CambridgeInfo, hasMore
 	}
 }
 
-func sendVoiceFromCache(chatId int, country string, audioId string, info cambridge.CambridgeInfo, hasMore bool) {
+func sendVoiceFromCache(chatId int, country string, audioId string, info cambridge.Page, hasMore bool) {
 	var title string
 	if !helper.IsEmpty(info.Options[0].Text) {
 		title = info.Options[0].Text
@@ -274,7 +270,7 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	}
 	request := SendEarlierVoiceRequest{Performer: country, Title: title, Audio: audioId, ChatId: chatId, ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{}}}
 	if hasMore {
-		request.ReplyMarkup.SetHasMore(info.RequestText)
+		request.ReplyMarkup.SetKeyboard([]Keyboard{{Text: "more", CallbackData: NextRequestMessage + " " + title}})
 	}
 	requestInJson, err := json.Marshal(request)
 	if err != nil {

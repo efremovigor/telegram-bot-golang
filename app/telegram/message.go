@@ -21,7 +21,7 @@ func GetBlockWithRapidInfo(translate string) string {
 		DecodeForTelegram("*Rapid-microsoft*: ")+"*%s*\n\n", DecodeForTelegram(translate))
 }
 
-func GetCambridgeHeaderBlock(info cambridge.CambridgeInfo) string {
+func GetCambridgeHeaderBlock(info cambridge.Page) string {
 	return fmt.Sprintf("*Cambridge\\-dictionary*\\: *%s*", DecodeForTelegram(info.RequestText)) + "\n"
 }
 

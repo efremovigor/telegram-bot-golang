@@ -40,13 +40,16 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 		}
 		switch true {
 		case helper.Len(cambridgeInfo.VoicePath.UK) > 0 && helper.Len(cambridgeInfo.VoicePath.US) > 0:
-			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found " + telegram.CountryUk + " and " + telegram.CountryUs + "voice records for " + cambridgeInfo.RequestText, ChatId: query.GetChatId(), Lang: []string{telegram.CountryUk, telegram.CountryUs}}))
+			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.NewCambridgeRequestTelegramVoice(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUk, telegram.CountryUs})))
 		case helper.Len(cambridgeInfo.VoicePath.UK) > 0:
-			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found a " + telegram.CountryUk + " voice record for " + cambridgeInfo.RequestText, ChatId: query.GetChatId(), Lang: []string{telegram.CountryUk}}))
+			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.NewCambridgeRequestTelegramVoice(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUk})))
 		case helper.Len(cambridgeInfo.VoicePath.US) > 0:
-			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found a " + telegram.CountryUs + " voice record for " + cambridgeInfo.RequestText, ChatId: query.GetChatId(), Lang: []string{telegram.CountryUs}}))
+			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.NewCambridgeRequestTelegramVoice(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUs})))
 		}
 		statistic.Consider(query.GetChatText(), query.GetUserId())
+	}
+
+	if cambridgeFounded := cambridge.Search(query.GetChatText()); cambridgeFounded.IsValid() {
 
 	}
 
@@ -89,7 +92,7 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 	if len(request.Output) > 0 {
 		message = request.Output[0]
 		if len(request.Output) > 1 {
-			message.HasMore = true
+			message.Buttons = []telegram.Keyboard{{Text: "more", CallbackData: telegram.NextRequestMessage + " " + word}}
 			request.Output = request.Output[1:]
 			if infoInJson, err := json.Marshal(request); err == nil {
 				redis.Set(key, infoInJson, time.Hour*24)

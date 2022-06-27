@@ -3,8 +3,9 @@ package cambridge
 import "telegram-bot-golang/helper"
 
 const Url = "https://dictionary.cambridge.org"
+const SearchUrl = Url + "/autocomplete/amp?dataset=english&q=get up&__amp_source_origin=" + Url
 
-type CambridgeInfo struct {
+type Page struct {
 	RequestText string    `json:"request_text"`
 	Options     []Info    `json:"options"`
 	VoicePath   VoicePath `json:"voice_path"`
@@ -31,8 +32,22 @@ type Explanation struct {
 	Example             []string `json:"example"`
 }
 
-func (i CambridgeInfo) IsValid() bool {
+func (i Page) IsValid() bool {
 	return !helper.IsEmpty(i.RequestText)
+}
+
+type SearchResponse struct {
+	RequestWord string          `json:"request_word"`
+	Founded     []SearchElement `json:"founded"`
+}
+
+type SearchElement struct {
+	Word string `json:"word"`
+	Path string `json:"path"`
+}
+
+func (s SearchResponse) IsValid() bool {
+	return len(s.Founded) > 0
 }
 
 const xpathBlockDescriptionEnRu = "//article[@id='page-content']//div[contains(@class, 'entry-body__el')]"
