@@ -43,7 +43,7 @@ type SearchResponse struct {
 
 type SearchElement struct {
 	Word string `json:"word"`
-	Path string `json:"path"`
+	Path string `json:"url"`
 }
 
 func (s SearchResponse) IsValid() bool {
