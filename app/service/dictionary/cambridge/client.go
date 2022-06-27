@@ -133,7 +133,7 @@ func Search(query string) (response SearchResponse) {
 		fmt.Println("error getting search of result: " + err.Error())
 		return
 	}
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil && response.IsValid() {
+	if err := json.NewDecoder(res.Body).Decode(&response); err != nil || !response.IsValid() {
 		return
 	}
 
