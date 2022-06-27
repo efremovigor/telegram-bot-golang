@@ -55,7 +55,14 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 		for _, founded := range cambridgeFounded.Founded {
 			buttons = append(buttons, telegram.Keyboard{Text: founded.Word, CallbackData: telegram.SearchRequest + " cambridge " + founded.Word})
 		}
-		messages = append(messages, telegram.NewRequestChannelTelegram("text", telegram.DecodeForTelegram("Maybe you look for it:"), buttons))
+		messages = append(messages, telegram.NewRequestChannelTelegram(
+			"text",
+			telegram.MakeRequestTelegramText(
+				cambridgeFounded.RequestWord,
+				telegram.DecodeForTelegram("Maybe you look for it:"),
+				query.GetChatId(),
+			),
+			buttons))
 
 		fmt.Println(helper.ToJson(cambridgeFounded))
 	}
