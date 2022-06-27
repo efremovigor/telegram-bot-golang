@@ -120,11 +120,15 @@ func GetResultFromMultitran(info multitran.Page, query IncomingTelegramQueryInte
 }
 
 func GetTelegramRequest(chatId int, text string, buttons []Keyboard) SendMessageReqBody {
+	var keyboard [][]Keyboard
+	for _, button := range buttons {
+		keyboard = append(keyboard, []Keyboard{button})
+	}
 	return SendMessageReqBody{
 		ChatID:      chatId,
 		Text:        text,
 		ParseMode:   "MarkdownV2",
-		ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{buttons}, OneTimeKeyboard: true, ResizeKeyboard: false},
+		ReplyMarkup: ReplyMarkup{Keyboard: keyboard, OneTimeKeyboard: true, ResizeKeyboard: false},
 	}
 }
 
