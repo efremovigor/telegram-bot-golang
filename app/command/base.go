@@ -51,7 +51,7 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 	}
 
 	if cambridgeFounded := cambridge.Search(query.GetChatText()); cambridgeFounded.IsValid() {
-
+		fmt.Println(helper.ToJson(cambridgeFounded))
 	}
 
 	if multitranInfo := multitran.Get(query.GetChatText()); multitranInfo.IsValid() {

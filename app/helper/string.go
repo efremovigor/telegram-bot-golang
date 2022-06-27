@@ -1,5 +1,10 @@
 package helper
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 func IsEmpty(s string) bool {
 	if len([]rune(s)) > 0 {
 		return false
@@ -32,4 +37,14 @@ func IsEn(text string) bool {
 		return true
 	}
 	return false
+}
+
+func ToJson(object interface{}) string {
+	var out string
+	if requestTelegramInJson, err := json.Marshal(object); err == nil {
+		out = string(requestTelegramInJson)
+	} else {
+		fmt.Println(err)
+	}
+	return out
 }
