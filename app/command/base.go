@@ -38,11 +38,13 @@ func General(query telegram.TelegramQueryInterface) {
 		for _, message := range telegram.GetResultFromCambridge(cambridgeInfo, query) {
 			messages = append(messages, telegram.NewRequestChannelTelegram("text", message))
 		}
-		if helper.Len(cambridgeInfo.VoicePath.UK) > 0 {
-			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found a " + telegram.CountryUk + " voice record for " + cambridgeInfo.RequestText, ChatId: query.GetChatId(), Lang: telegram.CountryUk}))
-		}
-		if helper.Len(cambridgeInfo.VoicePath.US) > 0 {
-			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found a " + telegram.CountryUs + " voice record for " + cambridgeInfo.RequestText, ChatId: query.GetChatId(), Lang: telegram.CountryUs}))
+		switch true {
+		case helper.Len(cambridgeInfo.VoicePath.UK) > 0 && helper.Len(cambridgeInfo.VoicePath.US) > 0:
+			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found " + telegram.CountryUk + " and " + telegram.CountryUs + "voice records for " + cambridgeInfo.RequestText, ChatId: query.GetChatId(), Lang: []string{telegram.CountryUk, telegram.CountryUs}}))
+		case helper.Len(cambridgeInfo.VoicePath.UK) > 0:
+			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found a " + telegram.CountryUk + " voice record for " + cambridgeInfo.RequestText, ChatId: query.GetChatId(), Lang: []string{telegram.CountryUk}}))
+		case helper.Len(cambridgeInfo.VoicePath.US) > 0:
+			messages = append(messages, telegram.NewRequestChannelTelegram("voice", telegram.CambridgeRequestTelegramVoice{Word: cambridgeInfo.RequestText, Text: "Found a " + telegram.CountryUs + " voice record for " + cambridgeInfo.RequestText, ChatId: query.GetChatId(), Lang: []string{telegram.CountryUs}}))
 		}
 		statistic.Consider(query.GetChatText(), query.GetUserId())
 

@@ -25,10 +25,10 @@ func NewRequestChannelTelegram(requestType string, request interface{}) RequestC
 }
 
 type CambridgeRequestTelegramVoice struct {
-	Word   string `json:"word"`
-	Text   string `json:"text"`
-	ChatId int    `json:"chatId"`
-	Lang   string `json:"lang"`
+	Word   string   `json:"word"`
+	Text   string   `json:"text"`
+	ChatId int      `json:"chatId"`
+	Lang   []string `json:"lang"`
 }
 
 type RequestTelegramText struct {
@@ -266,8 +266,10 @@ func (r *ReplyMarkup) SetHasMore(word string) {
 	r.ResizeKeyboard = true
 }
 
-func (r *ReplyMarkup) ShowVoiceMessage(word string, lang string) {
-	r.Keyboard = append(r.Keyboard, []Keyboard{{Text: "show", CallbackData: ShowRequestVoice + " " + lang + " " + word}})
+func (r *ReplyMarkup) ShowVoiceMessage(word string, languages []string) {
+	for _, lang := range languages {
+		r.Keyboard = append(r.Keyboard, []Keyboard{{Text: "show " + lang, CallbackData: ShowRequestVoice + " " + lang + " " + word}})
+	}
 	r.OneTimeKeyboard = true
 	r.ResizeKeyboard = true
 }
