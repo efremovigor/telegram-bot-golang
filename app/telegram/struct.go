@@ -284,15 +284,11 @@ type SendMessageReqBody struct {
 }
 
 type ReplyMarkup struct {
-	Keyboard        [][]Keyboard `json:"inline_keyboard"`
-	OneTimeKeyboard bool         `json:"one_time_keyboard"`
-	ResizeKeyboard  bool         `json:"resize_keyboard"`
+	Keyboard [][]Keyboard `json:"inline_keyboard"`
 }
 
 func (r *ReplyMarkup) SetKeyboard(buttons []Keyboard) {
 	r.Keyboard = append(r.Keyboard, buttons)
-	r.OneTimeKeyboard = true
-	r.ResizeKeyboard = true
 }
 
 type Keyboard struct {
