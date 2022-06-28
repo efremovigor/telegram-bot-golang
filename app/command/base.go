@@ -92,13 +92,13 @@ func saveMessagesQueue(key string, chatText string, messages []telegram.RequestC
 	}
 }
 
-func GetSubCambridge(query telegram.IncomingTelegramQueryInterface, phrase string) {
+func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
 	cambridgeFounded := cambridge.Search(query.GetChatText())
 	if !cambridgeFounded.IsValid() {
 		return
 	}
 	for _, founded := range cambridgeFounded.Founded {
-		if founded.Word == phrase {
+		if founded.Word == query.GetChatText() {
 			if page := cambridge.DoRequest(cambridge.Url+founded.Path, ""); page.IsValid() {
 				saveMessagesQueue(
 					fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()),
