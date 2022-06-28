@@ -106,6 +106,8 @@ func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
 		)
 
 		return
+	} else {
+		fmt.Println(fmt.Sprintf("[Strange behaivor] Aren't able to parse url:%s", cambridge.Url+cambridgeFounded))
 	}
 }
 
