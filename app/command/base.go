@@ -87,6 +87,7 @@ func saveMessagesQueue(key string, chatText string, messages []telegram.RequestC
 
 	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: chatText, Output: messages}); err == nil {
 		redis.Set(key, requestTelegramInJson, time.Hour*24)
+		fmt.Println("save queue:" + string(requestTelegramInJson))
 	} else {
 		fmt.Println(err)
 	}
@@ -102,7 +103,7 @@ func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
 		if founded.Word == query.GetChatText() {
 			if page := cambridge.DoRequest(cambridge.Url+founded.Path, ""); page.IsValid() {
 				saveMessagesQueue(
-					fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()),
+					fmt.Sprintf(redis.NextCambridgeRequestMessageKey, query.GetUserId(), query.GetChatText()),
 					query.GetChatText(),
 					handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText()),
 				)
