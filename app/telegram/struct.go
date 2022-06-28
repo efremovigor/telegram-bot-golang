@@ -227,7 +227,7 @@ func (body CallbackQuery) GetUserId() int {
 }
 
 func (body *CallbackQuery) SetChatText(value string) {
-	body.CallbackQuery.Message.Text = value
+	body.CallbackQuery.Data = value
 }
 
 func (body WebhookMessage) IsValid() bool {
