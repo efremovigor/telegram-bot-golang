@@ -67,6 +67,7 @@ func Search(query string) (response SearchResponse) {
 			for _, found := range response.Founded {
 				redis.Set(fmt.Sprintf(redis.InfoCambridgeSearchValue, found.Word), found.Path, 0)
 			}
+			response.RequestWord = query
 		}
 
 		if responseInJson, err := json.Marshal(response); err != nil {
