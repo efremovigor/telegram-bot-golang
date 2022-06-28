@@ -44,9 +44,18 @@ func Search(query string) (response SearchResponse) {
 		fmt.Println("get cambridge search from service")
 		res, err := http.Get(fmt.Sprintf(SearchUrl, query))
 
-		if res.StatusCode != http.StatusOK || err != nil {
+		if err != nil {
+			fmt.Println("error get cambridge search from service: " + err.Error())
+		}
+
+		if res.StatusCode != http.StatusOK {
 			body, _ := ioutil.ReadAll(res.Body)
-			fmt.Println(fmt.Sprintf("error getting search of result - url:%s, error: %s, Code:%d, Content:%s", fmt.Sprintf(redis.InfoCambridgeSearchKey, query), err.Error(), res.StatusCode, body))
+			fmt.Println(fmt.Sprintf(
+				"error getting search of result - url:%s, Code:%d, Content:%s",
+				fmt.Sprintf(redis.InfoCambridgeSearchKey, query),
+				res.StatusCode,
+				body,
+			))
 			return
 		}
 
