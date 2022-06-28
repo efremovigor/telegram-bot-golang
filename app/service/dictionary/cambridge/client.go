@@ -17,10 +17,7 @@ func Get(query string) Page {
 	page := Page{}
 	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgePageKey, query))
 	if errGetCache != nil {
-		page = DoRequest(Url+"/dictionary/english-russian/"+query, Url+"/dictionary/english/"+query)
-		if len(page.Options) > 0 {
-			page.RequestText = strings.TrimSpace(query)
-		}
+		page = DoRequest(query, Url+"/dictionary/english-russian/"+query, Url+"/dictionary/english/"+query)
 
 		if infoInJson, err := json.Marshal(page); err != nil {
 			fmt.Println(err)
@@ -98,7 +95,7 @@ func getNodes(url string) []*html.Node {
 	return nodes
 }
 
-func DoRequest(url string, altUrl string) (page Page) {
+func DoRequest(word string, url string, altUrl string) (page Page) {
 	nodes := getNodes(url)
 	if len(nodes) == 0 && !helper.IsEmpty(altUrl) {
 		nodes = getNodes(altUrl)
@@ -174,5 +171,9 @@ func DoRequest(url string, altUrl string) (page Page) {
 		}
 		page.Options = append(page.Options, info)
 	}
+	if len(page.Options) > 0 {
+		page.RequestText = strings.TrimSpace(word)
+	}
+
 	return
 }

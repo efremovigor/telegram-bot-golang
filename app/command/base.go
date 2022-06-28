@@ -98,7 +98,7 @@ func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
 		fmt.Println(fmt.Sprintf("[Strange behaivor] Don't find cambridge key - word:%s", query.GetChatText()))
 		return
 	}
-	if page := cambridge.DoRequest(cambridge.Url+cambridgeFounded, ""); page.IsValid() {
+	if page := cambridge.DoRequest(query.GetChatText(), cambridge.Url+cambridgeFounded, ""); page.IsValid() {
 		saveMessagesQueue(
 			fmt.Sprintf(redis.NextCambridgeRequestMessageKey, query.GetUserId(), query.GetChatText()),
 			query.GetChatText(),
