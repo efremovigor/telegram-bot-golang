@@ -95,6 +95,7 @@ func saveMessagesQueue(key string, chatText string, messages []telegram.RequestC
 func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
 	cambridgeFounded := cambridge.Search(query.GetChatText())
 	if !cambridgeFounded.IsValid() {
+		fmt.Println(fmt.Sprintf("[Strange behaivor] Don't find cambridge key: word:%s", query.GetChatText()))
 		return
 	}
 	for _, founded := range cambridgeFounded.Founded {
@@ -132,6 +133,7 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 		key = fmt.Sprintf(redis.NextCambridgeRequestMessageKey, userId, word)
 		state, err = redis.Get(key)
 		if err != nil {
+			fmt.Println(fmt.Sprintf("[Strange behaivor] Don't find key when we getting next message: word:%s", word))
 			return
 		}
 	}
