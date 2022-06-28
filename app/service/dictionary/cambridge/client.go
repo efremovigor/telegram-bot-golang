@@ -46,7 +46,7 @@ func Search(query string) (response SearchResponse) {
 
 		if res.StatusCode != http.StatusOK || err != nil {
 			body, _ := ioutil.ReadAll(res.Body)
-			fmt.Println(fmt.Sprintf("error getting search of result: %s, Code:%d, Content:%s", err.Error(), res.StatusCode, body))
+			fmt.Println(fmt.Sprintf("error getting search of result - url:%s, error: %s, Code:%d, Content:%s", fmt.Sprintf(redis.InfoCambridgeSearchKey, query), err.Error(), res.StatusCode, body))
 			return
 		}
 
