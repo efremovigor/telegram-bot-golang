@@ -67,21 +67,17 @@ func GetResultFromRapidMicrosoft(query IncomingTelegramQueryInterface, state str
 	)
 }
 
-func GetResultFromCambridge(cambridgeInfo cambridge.Page, query IncomingTelegramQueryInterface) []RequestTelegramText {
+func GetResultFromCambridge(cambridgeInfo cambridge.Page, chatId int, chatText string) []RequestTelegramText {
 	var messages []RequestTelegramText
 
 	for _, option := range cambridgeInfo.Options {
-		requests := GetCambridgeOptionBlock(query.GetChatId(), option)
+		requests := GetCambridgeOptionBlock(chatId, option)
 		if len(requests) > 0 {
 			if len(messages) == 0 {
 				messages = append(
 					messages,
 					MergeRequestTelegram(
-						MakeRequestTelegramText(
-							query.GetChatText(),
-							GetCambridgeHeaderBlock(cambridgeInfo),
-							query.GetChatId(),
-						),
+						MakeRequestTelegramText(chatText, GetCambridgeHeaderBlock(cambridgeInfo), chatId),
 						requests[0],
 					),
 				)

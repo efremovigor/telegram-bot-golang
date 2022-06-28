@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/antchfx/htmlquery"
+	"golang.org/x/net/html"
 	"net/http"
 	"strings"
 	"telegram-bot-golang/db/redis"
@@ -15,97 +16,7 @@ func Get(query string) Page {
 	page := Page{}
 	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgePageKey, query))
 	if errGetCache != nil {
-		html, err := htmlquery.LoadURL(Url + "/dictionary/english-russian/" + query)
-		if err != nil {
-			fmt.Println("error getting html data: " + err.Error())
-			return page
-		}
-		nodes, _ := htmlquery.QueryAll(html, xpathBlockDescriptionEnRu)
-
-		if len(nodes) == 0 {
-			nodes, _ = htmlquery.QueryAll(html, xpathAltBlockDescriptionEnRu)
-			if len(nodes) == 0 {
-				html, err = htmlquery.LoadURL(Url + "/dictionary/english/" + query)
-				if err != nil {
-					fmt.Println("error getting html data: " + err.Error())
-					return page
-				}
-				nodes, _ = htmlquery.QueryAll(html, xpathBlockDescriptionEnRu)
-				if len(nodes) == 0 {
-					nodes, _ = htmlquery.QueryAll(html, xpathAltBlockDescriptionEnRu)
-				}
-			}
-		}
-		for _, node := range nodes {
-			info := Info{}
-			if node, err := htmlquery.Query(node, xpathTitle); err == nil && node != nil {
-				info.Text = strings.ToLower(strings.TrimSpace(htmlquery.InnerText(node)))
-			}
-			pathWayType := ""
-			if nodeWordType, err := htmlquery.Query(node, xpathType); err == nil && nodeWordType != nil {
-				pathWayType = xpathType
-			} else if nodeWordType, err := htmlquery.Query(node, xpathComplexType); err == nil && nodeWordType != nil {
-				pathWayType = xpathComplexType
-			}
-			if len(pathWayType) > 0 {
-				if nodes, err := htmlquery.QueryAll(node, pathWayType+"/*"); err == nil && nodes != nil {
-					for _, node := range nodes {
-						if node.DataAtom.String() == "span" {
-							info.Type += strings.TrimSpace(htmlquery.InnerText(node))
-							continue
-						}
-						break
-					}
-				}
-				info.Type = strings.TrimSpace(info.Type)
-			}
-
-			if node, err := htmlquery.Query(node, xpathTranscription); err == nil && node != nil {
-				info.Transcription = strings.TrimSpace(htmlquery.InnerText(node))
-			}
-			if node, err := htmlquery.Query(node, xpathUK); helper.Len(page.VoicePath.UK) == 0 && err == nil && node != nil {
-				page.VoicePath.UK = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
-			}
-			if node, err := htmlquery.Query(node, xpathUS); helper.Len(page.VoicePath.US) == 0 && err == nil && node != nil {
-				page.VoicePath.US = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
-			}
-			xpathExplanations, _ := htmlquery.QueryAll(node, xpathExplanations)
-
-			for _, xpathExplanation := range xpathExplanations {
-
-				explanation := Explanation{}
-				if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsSemanticDescription); node != nil && err == nil {
-					explanation.SemanticDescription = strings.TrimSpace(
-						strings.Map(func(letter rune) rune {
-							if unicode.IsGraphic(letter) && unicode.IsPrint(letter) {
-								return letter
-							}
-							return -1
-						}, htmlquery.InnerText(node)))
-				}
-				if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsWord); node != nil && err == nil {
-					explanation.Text = strings.TrimSpace(htmlquery.InnerText(node))
-				}
-				if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsLevel); node != nil && err == nil {
-					explanation.Level = strings.TrimSpace(htmlquery.InnerText(node))
-				}
-				if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsDescription); node != nil && err == nil {
-					explanation.Description = strings.TrimSpace(htmlquery.InnerText(node))
-
-				}
-				if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsTranslate); node != nil && err == nil {
-					explanation.Translate = strings.TrimSpace(htmlquery.InnerText(node))
-				}
-
-				if xpathExamples, err := htmlquery.QueryAll(xpathExplanation, xpathExplanationsExamples); xpathExamples != nil && err == nil && len(xpathExamples) > 0 {
-					for _, xpathExample := range xpathExamples {
-						explanation.Example = append(explanation.Example, strings.TrimSpace(htmlquery.InnerText(xpathExample)))
-					}
-				}
-				info.Explanation = append(info.Explanation, explanation)
-			}
-			page.Options = append(page.Options, info)
-		}
+		page = DoRequest(Url+"/dictionary/english-russian/"+query, Url+"/dictionary/english/"+query)
 		if len(page.Options) > 0 {
 			page.RequestText = strings.TrimSpace(query)
 		}
@@ -127,19 +38,126 @@ func Get(query string) Page {
 }
 
 func Search(query string) (response SearchResponse) {
-	res, err := http.Get(fmt.Sprintf(SearchUrl, query))
+	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgeSearchKey, query))
+	if errGetCache != nil {
+		res, err := http.Get(fmt.Sprintf(SearchUrl, query))
 
+		if err != nil {
+			fmt.Println("error getting search of result: " + err.Error())
+			return
+		}
+
+		if err := json.NewDecoder(res.Body).Decode(&response.Founded); err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		if len(response.Founded) > 0 {
+			response.RequestWord = query
+		}
+
+		if responseInJson, err := json.Marshal(response); err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println(string(responseInJson))
+			redis.Set(fmt.Sprintf(redis.InfoCambridgeSearchKey, response.RequestWord), responseInJson, 0)
+		}
+	} else {
+		fmt.Println("get cambridge search from cache")
+		if err := json.Unmarshal([]byte(cachedInfo), &response); err != nil {
+			fmt.Println(err)
+		}
+	}
+	return
+}
+
+func getNodes(url string) []*html.Node {
+	node, err := htmlquery.LoadURL(url)
 	if err != nil {
-		fmt.Println("error getting search of result: " + err.Error())
-		return
+		fmt.Println("error getting html data: " + err.Error())
+	}
+	nodes, _ := htmlquery.QueryAll(node, xpathBlockDescriptionEnRu)
+
+	if len(nodes) == 0 {
+		nodes, _ = htmlquery.QueryAll(node, xpathAltBlockDescriptionEnRu)
+	}
+	return nodes
+}
+
+func DoRequest(url string, altUrl string) (page Page) {
+	nodes := getNodes(url)
+	if len(nodes) == 0 && !helper.IsEmpty(altUrl) {
+		nodes = getNodes(altUrl)
 	}
 
-	if err := json.NewDecoder(res.Body).Decode(&response.Founded); err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	if len(response.Founded) > 0 {
-		response.RequestWord = query
+	for _, node := range nodes {
+		info := Info{}
+		if node, err := htmlquery.Query(node, xpathTitle); err == nil && node != nil {
+			info.Text = strings.ToLower(strings.TrimSpace(htmlquery.InnerText(node)))
+		}
+		pathWayType := ""
+		if nodeWordType, err := htmlquery.Query(node, xpathType); err == nil && nodeWordType != nil {
+			pathWayType = xpathType
+		} else if nodeWordType, err := htmlquery.Query(node, xpathComplexType); err == nil && nodeWordType != nil {
+			pathWayType = xpathComplexType
+		}
+		if len(pathWayType) > 0 {
+			if nodes, err := htmlquery.QueryAll(node, pathWayType+"/*"); err == nil && nodes != nil {
+				for _, node := range nodes {
+					if node.DataAtom.String() == "span" {
+						info.Type += strings.TrimSpace(htmlquery.InnerText(node))
+						continue
+					}
+					break
+				}
+			}
+			info.Type = strings.TrimSpace(info.Type)
+		}
+
+		if node, err := htmlquery.Query(node, xpathTranscription); err == nil && node != nil {
+			info.Transcription = strings.TrimSpace(htmlquery.InnerText(node))
+		}
+		if node, err := htmlquery.Query(node, xpathUK); helper.Len(page.VoicePath.UK) == 0 && err == nil && node != nil {
+			page.VoicePath.UK = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
+		}
+		if node, err := htmlquery.Query(node, xpathUS); helper.Len(page.VoicePath.US) == 0 && err == nil && node != nil {
+			page.VoicePath.US = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
+		}
+		xpathExplanations, _ := htmlquery.QueryAll(node, xpathExplanations)
+
+		for _, xpathExplanation := range xpathExplanations {
+
+			explanation := Explanation{}
+			if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsSemanticDescription); node != nil && err == nil {
+				explanation.SemanticDescription = strings.TrimSpace(
+					strings.Map(func(letter rune) rune {
+						if unicode.IsGraphic(letter) && unicode.IsPrint(letter) {
+							return letter
+						}
+						return -1
+					}, htmlquery.InnerText(node)))
+			}
+			if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsWord); node != nil && err == nil {
+				explanation.Text = strings.TrimSpace(htmlquery.InnerText(node))
+			}
+			if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsLevel); node != nil && err == nil {
+				explanation.Level = strings.TrimSpace(htmlquery.InnerText(node))
+			}
+			if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsDescription); node != nil && err == nil {
+				explanation.Description = strings.TrimSpace(htmlquery.InnerText(node))
+
+			}
+			if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsTranslate); node != nil && err == nil {
+				explanation.Translate = strings.TrimSpace(htmlquery.InnerText(node))
+			}
+
+			if xpathExamples, err := htmlquery.QueryAll(xpathExplanation, xpathExplanationsExamples); xpathExamples != nil && err == nil && len(xpathExamples) > 0 {
+				for _, xpathExample := range xpathExamples {
+					explanation.Example = append(explanation.Example, strings.TrimSpace(htmlquery.InnerText(xpathExample)))
+				}
+			}
+			info.Explanation = append(info.Explanation, explanation)
+		}
+		page.Options = append(page.Options, info)
 	}
 	return
 }

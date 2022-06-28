@@ -21,8 +21,6 @@ func SayHello(query telegram.IncomingTelegramQueryInterface) telegram.RequestTel
 }
 
 func General(query telegram.IncomingTelegramQueryInterface) {
-	key := fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText())
-	redis.Del(key)
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId()))
 	messages := []telegram.RequestChannelTelegram{
 		telegram.NewRequestChannelTelegram(
@@ -35,24 +33,13 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 		),
 	}
 
-	if cambridgeInfo := cambridge.Get(query.GetChatText()); cambridgeInfo.IsValid() {
-		for _, message := range telegram.GetResultFromCambridge(cambridgeInfo, query) {
-			messages = append(messages, telegram.NewRequestChannelTelegram("text", message, []telegram.Keyboard{}))
-		}
-		switch true {
-		case helper.Len(cambridgeInfo.VoicePath.UK) > 0 && helper.Len(cambridgeInfo.VoicePath.US) > 0:
-			messages = append(messages, telegram.NewRequestChannelVoiceTelegram(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUk, telegram.CountryUs}))
-		case helper.Len(cambridgeInfo.VoicePath.UK) > 0:
-			messages = append(messages, telegram.NewRequestChannelVoiceTelegram(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUk}))
-		case helper.Len(cambridgeInfo.VoicePath.US) > 0:
-			messages = append(messages, telegram.NewRequestChannelVoiceTelegram(cambridgeInfo.RequestText, query.GetChatId(), []string{telegram.CountryUs}))
-		}
-		statistic.Consider(query.GetChatText(), query.GetUserId())
+	if page := cambridge.Get(query.GetChatText()); page.IsValid() {
+		messages = append(messages, handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText())...)
 	}
 
-	if cambridgeFounded := cambridge.Search(query.GetChatText()); cambridgeFounded.IsValid() {
+	if search := cambridge.Search(query.GetChatText()); search.IsValid() {
 		var buttons []telegram.Keyboard
-		for _, founded := range cambridgeFounded.Founded {
+		for _, founded := range search.Founded {
 			if founded.Word == query.GetChatText() {
 				continue
 			}
@@ -61,30 +48,68 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 		messages = append(messages, telegram.NewRequestChannelTelegram(
 			"text",
 			telegram.MakeRequestTelegramText(
-				cambridgeFounded.RequestWord,
+				search.RequestWord,
 				telegram.DecodeForTelegram("Maybe you look for it:"),
 				query.GetChatId(),
 			),
 			buttons))
 
-		fmt.Println(helper.ToJson(cambridgeFounded))
+		fmt.Println(helper.ToJson(search))
 	}
 
-	if multitranInfo := multitran.Get(query.GetChatText()); multitranInfo.IsValid() {
-		for _, message := range telegram.GetResultFromMultitran(multitranInfo, query) {
+	if page := multitran.Get(query.GetChatText()); page.IsValid() {
+		for _, message := range telegram.GetResultFromMultitran(page, query) {
 			messages = append(messages, telegram.NewRequestChannelTelegram("text", message, []telegram.Keyboard{}))
 		}
 	}
 
-	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: query.GetChatText(), Output: messages}); err == nil {
+	saveMessagesQueue(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText(), messages)
+}
+
+func handleCambridgePage(page cambridge.Page, userId int, chatId int, chatText string) (messages []telegram.RequestChannelTelegram) {
+	for _, message := range telegram.GetResultFromCambridge(page, chatId, chatText) {
+		messages = append(messages, telegram.NewRequestChannelTelegram("text", message, []telegram.Keyboard{}))
+	}
+	switch true {
+	case helper.Len(page.VoicePath.UK) > 0 && helper.Len(page.VoicePath.US) > 0:
+		messages = append(messages, telegram.NewRequestChannelVoiceTelegram(page.RequestText, chatId, []string{telegram.CountryUk, telegram.CountryUs}))
+	case helper.Len(page.VoicePath.UK) > 0:
+		messages = append(messages, telegram.NewRequestChannelVoiceTelegram(page.RequestText, chatId, []string{telegram.CountryUk}))
+	case helper.Len(page.VoicePath.US) > 0:
+		messages = append(messages, telegram.NewRequestChannelVoiceTelegram(page.RequestText, chatId, []string{telegram.CountryUs}))
+	}
+	statistic.Consider(chatText, userId)
+	return
+}
+
+func saveMessagesQueue(key string, chatText string, messages []telegram.RequestChannelTelegram) {
+	redis.Del(key)
+
+	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: chatText, Output: messages}); err == nil {
 		redis.Set(key, requestTelegramInJson, time.Hour*24)
 	} else {
 		fmt.Println(err)
 	}
 }
 
-func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
+func GetSubCambridge(query telegram.IncomingTelegramQueryInterface, phrase string) {
+	cambridgeFounded := cambridge.Search(query.GetChatText())
+	if !cambridgeFounded.IsValid() {
+		return
+	}
+	for _, founded := range cambridgeFounded.Founded {
+		if founded.Word == phrase {
+			if page := cambridge.DoRequest(cambridge.Url+founded.Path, ""); page.IsValid() {
+				saveMessagesQueue(
+					fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()),
+					query.GetChatText(),
+					handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText()),
+				)
 
+				return
+			}
+		}
+	}
 }
 
 func GetVoice(query telegram.IncomingTelegramQueryInterface, lang string, word string) {
@@ -104,7 +129,11 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 	key := fmt.Sprintf(redis.NextRequestMessageKey, userId, word)
 	state, err := redis.Get(key)
 	if err != nil {
-		return
+		key = fmt.Sprintf(redis.NextCambridgeRequestMessageKey, userId, word)
+		state, err = redis.Get(key)
+		if err != nil {
+			return
+		}
 	}
 	if err := json.Unmarshal([]byte(state), &request); err != nil {
 		fmt.Println("Unmarshal request : " + err.Error())
