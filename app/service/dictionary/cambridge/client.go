@@ -52,7 +52,7 @@ func Search(query string) (response SearchResponse) {
 			body, _ := ioutil.ReadAll(res.Body)
 			fmt.Println(fmt.Sprintf(
 				"error getting search of result - url:%s, Code:%d, Content:%s",
-				fmt.Sprintf(redis.InfoCambridgeSearchKey, query),
+				fmt.Sprintf(SearchUrl, query),
 				res.StatusCode,
 				body,
 			))
