@@ -254,7 +254,11 @@ func (body WebhookMessage) GetChatText() string {
 }
 
 func (body *WebhookMessage) SetChatText(value string) {
-	body.Message.Text = value
+	if body.Message.Chat.Id != 0 {
+		body.Message.Text = value
+	} else {
+		body.EditedMessage.Text = value
+	}
 }
 
 func (body WebhookMessage) GetUsername() string {
