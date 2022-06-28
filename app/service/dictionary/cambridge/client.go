@@ -40,6 +40,7 @@ func Get(query string) Page {
 func Search(query string) (response SearchResponse) {
 	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgeSearchKey, query))
 	if errGetCache != nil {
+		fmt.Println("get cambridge search from service")
 		res, err := http.Get(fmt.Sprintf(SearchUrl, query))
 
 		if err != nil {

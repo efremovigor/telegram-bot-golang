@@ -96,7 +96,7 @@ func saveMessagesQueue(key string, chatText string, messages []telegram.RequestC
 func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
 	cambridgeFounded := cambridge.Search(query.GetChatText())
 	if !cambridgeFounded.IsValid() {
-		fmt.Println(fmt.Sprintf("[Strange behaivor] Don't find cambridge key: word:%s", query.GetChatText()))
+		fmt.Println(fmt.Sprintf("[Strange behaivor] Don't find cambridge key - word:%s", query.GetChatText()))
 		return
 	}
 	for _, founded := range cambridgeFounded.Founded {
