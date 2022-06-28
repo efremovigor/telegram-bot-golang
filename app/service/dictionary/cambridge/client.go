@@ -57,7 +57,7 @@ func Search(query string) (response SearchResponse) {
 		}
 
 		if responseInJson, err := json.Marshal(response); err != nil {
-			fmt.Println(err)
+			fmt.Println("error marshal cambridge search response:" + err.Error())
 		} else {
 			fmt.Println(string(responseInJson))
 			redis.Set(fmt.Sprintf(redis.InfoCambridgeSearchKey, response.RequestWord), responseInJson, 0)
