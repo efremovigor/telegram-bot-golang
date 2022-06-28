@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/antchfx/htmlquery"
 	"golang.org/x/net/html"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"telegram-bot-golang/db/redis"
@@ -43,8 +44,9 @@ func Search(query string) (response SearchResponse) {
 		fmt.Println("get cambridge search from service")
 		res, err := http.Get(fmt.Sprintf(SearchUrl, query))
 
-		if err != nil {
-			fmt.Println("error getting search of result: " + err.Error())
+		if res.StatusCode != http.StatusOK || err != nil {
+			body, _ := ioutil.ReadAll(res.Body)
+			fmt.Println(fmt.Sprintf("error getting search of result: %s, Code:%d, Content:%s", err.Error(), res.StatusCode, body))
 			return
 		}
 
