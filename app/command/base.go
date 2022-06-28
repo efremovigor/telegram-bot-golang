@@ -94,23 +94,19 @@ func saveMessagesQueue(key string, chatText string, messages []telegram.RequestC
 }
 
 func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
-	cambridgeFounded := cambridge.Search(query.GetChatText())
-	if !cambridgeFounded.IsValid() {
+	cambridgeFounded, err := redis.Get(fmt.Sprintf(redis.InfoCambridgeSearchValue, query.GetChatText()))
+	if err != nil {
 		fmt.Println(fmt.Sprintf("[Strange behaivor] Don't find cambridge key - word:%s", query.GetChatText()))
 		return
 	}
-	for _, founded := range cambridgeFounded.Founded {
-		if founded.Word == query.GetChatText() {
-			if page := cambridge.DoRequest(cambridge.Url+founded.Path, ""); page.IsValid() {
-				saveMessagesQueue(
-					fmt.Sprintf(redis.NextCambridgeRequestMessageKey, query.GetUserId(), query.GetChatText()),
-					query.GetChatText(),
-					handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText()),
-				)
+	if page := cambridge.DoRequest(cambridge.Url+cambridgeFounded, ""); page.IsValid() {
+		saveMessagesQueue(
+			fmt.Sprintf(redis.NextCambridgeRequestMessageKey, query.GetUserId(), query.GetChatText()),
+			query.GetChatText(),
+			handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText()),
+		)
 
-				return
-			}
-		}
+		return
 	}
 }
 

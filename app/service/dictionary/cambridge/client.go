@@ -39,7 +39,7 @@ func Get(query string) Page {
 }
 
 func Search(query string) (response SearchResponse) {
-	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgeSearchKey, query))
+	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgeSearchResult, query))
 	if errGetCache != nil {
 		fmt.Println("get cambridge search from service")
 		res, err := http.Get(fmt.Sprintf(SearchUrl, query))
@@ -64,14 +64,16 @@ func Search(query string) (response SearchResponse) {
 			return
 		}
 		if len(response.Founded) > 0 {
-			response.RequestWord = query
+			for _, found := range response.Founded {
+				redis.Set(fmt.Sprintf(redis.InfoCambridgeSearchValue, found.Word), found.Path, 0)
+			}
 		}
 
 		if responseInJson, err := json.Marshal(response); err != nil {
 			fmt.Println("error marshal cambridge search response:" + err.Error())
 		} else {
 			fmt.Println(string(responseInJson))
-			redis.Set(fmt.Sprintf(redis.InfoCambridgeSearchKey, response.RequestWord), responseInJson, 0)
+			redis.Set(fmt.Sprintf(redis.InfoCambridgeSearchResult, response.RequestWord), responseInJson, 0)
 		}
 	} else {
 		fmt.Println("get cambridge search from cache")
