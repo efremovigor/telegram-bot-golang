@@ -118,8 +118,12 @@ func GetResultFromMultitran(info multitran.Page, query IncomingTelegramQueryInte
 func GetTelegramRequest(chatId int, text string, buttons []Keyboard) SendMessageReqBody {
 	var keyboard [][]Keyboard
 	if len(buttons) > 0 {
-		for _, button := range buttons {
-			keyboard = append(keyboard, []Keyboard{button})
+		if len(buttons) < 3 {
+			keyboard = append(keyboard, buttons)
+		} else {
+			for _, button := range buttons {
+				keyboard = append(keyboard, []Keyboard{button})
+			}
 		}
 	} else {
 		keyboard = [][]Keyboard{}

@@ -60,6 +60,13 @@ func Search(query string) (response SearchResponse) {
 			fmt.Println(err.Error())
 			return
 		}
+		for i, found := range response.Founded {
+			if found.Word == query {
+				response.Founded[i] = response.Founded[len(response.Founded)-1]
+				response.Founded = response.Founded[:len(response.Founded)-1]
+				break
+			}
+		}
 		if len(response.Founded) > 0 {
 			for _, found := range response.Founded {
 				redis.Set(fmt.Sprintf(redis.InfoCambridgeSearchValue, found.Word), found.Path, 0)

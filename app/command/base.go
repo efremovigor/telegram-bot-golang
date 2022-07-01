@@ -40,9 +40,6 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 	if search := cambridge.Search(query.GetChatText()); search.IsValid() {
 		var buttons []telegram.Keyboard
 		for _, founded := range search.Founded {
-			if founded.Word == query.GetChatText() {
-				continue
-			}
 			buttons = append(buttons, telegram.Keyboard{Text: founded.Word, CallbackData: telegram.SearchRequest + " cambridge " + founded.Word})
 		}
 		messages = append(messages, telegram.NewRequestChannelTelegram(
