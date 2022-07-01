@@ -66,3 +66,4 @@ const xpathExplanationsLevel = "//div[contains(@class, 'sense-body')]//div[conta
 const xpathExplanationsDescription = "//div[contains(@class, 'sense-body')]//div[contains(@class, 'ddef_h')]/div"
 const xpathExplanationsTranslate = "//div[contains(@class, 'sense-body')]//div[contains(@class, 'def-body')]/span"
 const xpathExplanationsExamples = "//div[contains(@class, 'sense-body')]//div[contains(@class, 'dexamp')]"
+const xpathExplanationsMoreExamples = "//div[contains(@class, 'daccord')]//ul/li[contains(@class, 'dexamp')]"

@@ -177,6 +177,11 @@ func DoRequest(word string, url string, altUrl string) (page Page) {
 					explanation.Example = append(explanation.Example, strings.TrimSpace(htmlquery.InnerText(xpathExample)))
 				}
 			}
+			if xpathExamples, err := htmlquery.QueryAll(xpathExplanation, xpathExplanationsMoreExamples); xpathExamples != nil && err == nil && len(xpathExamples) > 0 {
+				for _, xpathExample := range xpathExamples {
+					explanation.Example = append(explanation.Example, strings.TrimSpace(htmlquery.InnerText(xpathExample)))
+				}
+			}
 			info.Explanation = append(info.Explanation, explanation)
 		}
 		page.Options = append(page.Options, info)
