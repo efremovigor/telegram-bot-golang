@@ -22,7 +22,7 @@ func NewRequestChannelVoiceTelegram(word string, chatId int, languages []string)
 	request := NewCambridgeRequestTelegramVoice(word, chatId, languages)
 	var keyboards []Keyboard
 	for _, lang := range languages {
-		keyboards = append(keyboards, Keyboard{Text: "show " + lang, CallbackData: ShowRequestVoice + " " + lang + " " + word})
+		keyboards = append(keyboards, Keyboard{Text: "🗣 " + lang, CallbackData: ShowRequestVoice + " " + lang + " " + word})
 	}
 	if requestInJson, err := json.Marshal(request); err == nil {
 		return RequestChannelTelegram{Type: "voice", Message: requestInJson, Buttons: keyboards}
