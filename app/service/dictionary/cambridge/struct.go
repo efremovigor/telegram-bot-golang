@@ -12,10 +12,10 @@ type Page struct {
 }
 
 type Info struct {
-	Text          string        `json:"text"`
-	Type          string        `json:"type"`
-	Transcription string        `json:"transcription"`
-	Explanation   []Explanation `json:"explanation"`
+	Text          string            `json:"text"`
+	Type          string            `json:"type"`
+	Transcription map[string]string `json:"transcription"`
+	Explanation   []Explanation     `json:"explanation"`
 }
 
 type VoicePath struct {
@@ -55,7 +55,8 @@ const xpathAltBlockDescriptionEnRu = "//article[@id='page-content']//div[contain
 const xpathTitle = "//div[contains(@class, 'di-title')]"
 const xpathType = "//div[contains(@class, 'posgram')]"
 const xpathComplexType = "//span[contains(@class, 'di-info')]/div"
-const xpathTranscription = "//span/span[contains(@class, 'pron')]"
+const xpathTranscriptionUK = "//span[contains(@class, 'uk')]/span[contains(@class, 'pron')]"
+const xpathTranscriptionUS = "//span[contains(@class, 'us')]/span[contains(@class, 'pron')]"
 const xpathUK = "//span[contains(@class, 'uk')]//amp-audio//source[contains(@type,'audio/mpeg')]"
 const xpathUS = "//span[contains(@class, 'us')]//amp-audio//source[contains(@type,'audio/mpeg')]"
 const xpathExplanations = "//div[contains(concat(\" \", normalize-space(@class), \" \"), \" dsense \")]"

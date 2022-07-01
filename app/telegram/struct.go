@@ -25,7 +25,7 @@ func NewRequestChannelVoiceTelegram(word string, chatId int, languages []string)
 		keyboards = append(keyboards, Keyboard{Text: "🗣 " + lang, CallbackData: ShowRequestVoice + " " + lang + " " + word})
 	}
 	if requestInJson, err := json.Marshal(request); err == nil {
-		return RequestChannelTelegram{Type: "voice", Message: requestInJson, Buttons: keyboards}
+		return RequestChannelTelegram{Type: "text", Message: requestInJson, Buttons: keyboards}
 	}
 	return RequestChannelTelegram{}
 }
@@ -37,14 +37,8 @@ func NewRequestChannelTelegram(requestType string, request interface{}, buttons 
 	return RequestChannelTelegram{}
 }
 
-func NewCambridgeRequestTelegramVoice(word string, chatId int, lang []string) CambridgeRequestTelegramVoice {
-	return CambridgeRequestTelegramVoice{Word: word, Text: "Found " + strings.Join(lang, ", ") + " voice record for " + word, ChatId: chatId}
-}
-
-type CambridgeRequestTelegramVoice struct {
-	Word   string `json:"word"`
-	Text   string `json:"text"`
-	ChatId int    `json:"chatId"`
+func NewCambridgeRequestTelegramVoice(word string, chatId int, lang []string) RequestTelegramText {
+	return RequestTelegramText{Word: word, Text: "Found " + strings.Join(lang, ", ") + " voice record for " + word, ChatId: chatId}
 }
 
 type RequestTelegramText struct {

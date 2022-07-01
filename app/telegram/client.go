@@ -164,11 +164,6 @@ func sendBaseInfo(telegramText RequestTelegramText, buttons []Keyboard) {
 	sendBaseMessage(request)
 }
 
-func sendVoiceMessage(telegramText CambridgeRequestTelegramVoice, buttons []Keyboard) {
-	request := GetTelegramRequest(telegramText.ChatId, telegramText.Text, buttons)
-	sendBaseMessage(request)
-}
-
 func sendBaseMessage(request SendMessageReqBody) {
 	if len([]rune(request.Text)) > 0 {
 		toTelegram, err := json.Marshal(request)

@@ -18,13 +18,6 @@ func HandleRequests(listener Listener) {
 				} else {
 					fmt.Println(err)
 				}
-			case "voice":
-				var textRequest CambridgeRequestTelegramVoice
-				if err := json.Unmarshal(request.Message, &textRequest); err == nil {
-					sendVoiceMessage(textRequest, request.Buttons)
-				} else {
-					fmt.Println(err)
-				}
 			}
 		}
 	}

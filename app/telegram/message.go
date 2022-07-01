@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"fmt"
+	"strings"
 	"telegram-bot-golang/db/postgree/model"
 	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
@@ -32,7 +33,12 @@ func GetMultitranHeaderBlock(info multitran.Page) string {
 func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramText {
 	var messages []RequestTelegramText
 	var mainBlock string
-	mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n"
+	mainBlock += fmt.Sprintf("*Word*\\: *%s*", DecodeForTelegram(info.Text))
+	mainBlock += fmt.Sprintf("\\(%s\\)", DecodeForTelegram(info.Type))
+	for lang, transcription := range info.Transcription {
+		mainBlock += fmt.Sprintf("%s:\\[%s\\] ", strings.ToUpper(lang), DecodeForTelegram(transcription))
+	}
+	mainBlock += "\n"
 	for n, explanation := range info.Explanation {
 		if helper.Len(mainBlock) > MaxRequestSize {
 			messages = append(messages,

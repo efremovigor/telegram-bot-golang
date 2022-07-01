@@ -109,7 +109,7 @@ func DoRequest(word string, url string, altUrl string) (page Page) {
 	}
 
 	for _, node := range nodes {
-		info := Info{}
+		info := Info{Transcription: make(map[string]string)}
 		if node, err := htmlquery.Query(node, xpathTitle); err == nil && node != nil {
 			info.Text = strings.ToLower(strings.TrimSpace(htmlquery.InnerText(node)))
 		}
@@ -132,8 +132,11 @@ func DoRequest(word string, url string, altUrl string) (page Page) {
 			info.Type = strings.TrimSpace(info.Type)
 		}
 
-		if node, err := htmlquery.Query(node, xpathTranscription); err == nil && node != nil {
-			info.Transcription = strings.TrimSpace(htmlquery.InnerText(node))
+		if node, err := htmlquery.Query(node, xpathTranscriptionUK); err == nil && node != nil {
+			info.Transcription["uk"] = strings.TrimSpace(htmlquery.InnerText(node))
+		}
+		if node, err := htmlquery.Query(node, xpathTranscriptionUS); err == nil && node != nil {
+			info.Transcription["us"] = strings.TrimSpace(htmlquery.InnerText(node))
 		}
 		if node, err := htmlquery.Query(node, xpathUK); helper.Len(page.VoicePath.UK) == 0 && err == nil && node != nil {
 			page.VoicePath.UK = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
