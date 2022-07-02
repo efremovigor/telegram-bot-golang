@@ -34,7 +34,7 @@ func GetMultitranHeaderBlock(word string) string {
 func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramText {
 	var messages []RequestTelegramText
 	var mainBlock string
-	mainBlock += fmt.Sprintf("❗️*Word*\\: *%s*", DecodeForTelegram(info.Text))
+	mainBlock += fmt.Sprintf("*Word*\\: *%s*", DecodeForTelegram(info.Text))
 	mainBlock += fmt.Sprintf("\\(%s\\)", DecodeForTelegram(info.Type)) + "\n\n"
 	for lang, transcription := range info.Transcription {
 		mainBlock += fmt.Sprintf("*%s*:\\[%s\\] ", strings.ToUpper(lang), DecodeForTelegram(transcription))
@@ -48,7 +48,7 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 		if n > 0 {
 			explanationBlock += "\n" + GetRowSeparation() + "\n"
 		}
-		explanationBlock += GetFieldIfCan(explanation.Text, "❗️Phrase") + "\n"
+		explanationBlock += GetFieldIfCan(explanation.Text, "Phrase") + "\n"
 		explanationBlock += GetFieldIfCan(explanation.Level, "Level")
 		explanationBlock += GetFieldIfCan(explanation.SemanticDescription, "📃 Semantic")
 		explanationBlock += GetFieldIfCan(explanation.Description, "📃 Description")
@@ -99,7 +99,7 @@ func GetMultitranOptionBlock(chatId int, page multitran.Page) []RequestTelegramT
 	var messages []RequestTelegramText
 	var mainBlock string
 	for _, info := range page.Options {
-		mainBlock += fmt.Sprintf("❗️*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n\n"
+		mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(info.Text), DecodeForTelegram(info.Transcription), DecodeForTelegram(info.Type)) + "\n\n"
 		for _, explanation := range info.Explanation {
 			if helper.Len(mainBlock) > MaxRequestSize {
 				messages = append(messages,
