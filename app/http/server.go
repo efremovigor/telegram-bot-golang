@@ -16,6 +16,7 @@ import (
 	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
 	"telegram-bot-golang/service/dictionary/multitran"
+	"telegram-bot-golang/service/dictionary/wooordhunt"
 	"telegram-bot-golang/statistic"
 	"telegram-bot-golang/telegram"
 	telegramConfig "telegram-bot-golang/telegram/config"
@@ -90,6 +91,12 @@ func Handle(listener telegram.Listener) {
 		e.GET("/multitran/:query", func(c echo.Context) error {
 			query := c.Param("query")
 			info := multitran.Get(query)
+			return c.JSON(http.StatusOK, info)
+		})
+
+		e.GET("/wooordhunt/:query", func(c echo.Context) error {
+			query := c.Param("query")
+			info := wooordhunt.Get(query)
 			return c.JSON(http.StatusOK, info)
 		})
 
