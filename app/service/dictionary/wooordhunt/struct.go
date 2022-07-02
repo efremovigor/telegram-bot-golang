@@ -1,10 +1,11 @@
 package wooordhunt
 
 type Page struct {
-	RequestText   string            `json:"request_text"`
-	Options       []Info            `json:"options"`
-	VoicePath     VoicePath         `json:"voice_path"`
-	Transcription map[string]string `json:"transcription"`
+	RequestText      string            `json:"request_text"`
+	Options          []Info            `json:"options"`
+	VoicePath        VoicePath         `json:"voice_path"`
+	Transcription    map[string]string `json:"transcription"`
+	GeneralTranslate []string          `json:"generalTranslate"`
 }
 
 type Info struct {
