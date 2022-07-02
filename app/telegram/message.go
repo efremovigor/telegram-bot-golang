@@ -19,7 +19,7 @@ func GetIGotYourNewRequest(base string) string {
 
 func GetBlockWithRapidInfo(word string, translate string) string {
 	return fmt.Sprintf(
-		DecodeForTelegram("✅ *Rapid-microsoft*: ")+"*%s*\n\n", DecodeForTelegram(word)) + "\n" +
+		DecodeForTelegram("✅ *Rapid-microsoft*: ")+"*%s*\n", DecodeForTelegram(word)) + "\n" +
 		GetFieldIfCan(translate, "💡 Translate")
 }
 
