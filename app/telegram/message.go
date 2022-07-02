@@ -58,8 +58,8 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 		}
 		mainBlock += GetFieldIfCan(explanation.Text, "❗️Phrase")
 		mainBlock += GetFieldIfCan(explanation.Level, "Level")
-		mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic")
-		mainBlock += GetFieldIfCan(explanation.Description, "Description")
+		mainBlock += GetFieldIfCan(explanation.SemanticDescription, "📃 Semantic")
+		mainBlock += GetFieldIfCan(explanation.Description, "📃 Description")
 		mainBlock += GetFieldIfCan(explanation.Translate, "💡 Translate")
 		if len(explanation.Example) > 0 {
 			mainBlock += "*Example*:\n"
@@ -75,7 +75,7 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 				)
 				mainBlock = ""
 			}
-			mainBlock += DecodeForTelegram(example) + "\n"
+			mainBlock += "📌" + DecodeForTelegram(example) + "\n"
 		}
 	}
 	messages = append(messages, MakeRequestTelegramText(info.Text, mainBlock+"\n", chatId))
