@@ -117,12 +117,13 @@ func GetResultFromMultitran(info multitran.Page, query IncomingTelegramQueryInte
 
 func GetTelegramRequest(chatId int, text string, buttons []Keyboard) SendMessageReqBody {
 	var keyboard [][]Keyboard
+	fmt.Println(fmt.Sprintf("count of buttons: %d", len(buttons)))
 	if len(buttons) > 0 {
 		var buffer []Keyboard
 		var bufferCount int
 		for i, button := range buttons {
 
-			if bufferCount+helper.Len(button.Text) > 20 {
+			if bufferCount+helper.Len(button.Text) > 25 {
 				keyboard = append(keyboard, buffer)
 				buffer = []Keyboard{}
 				bufferCount = 0
