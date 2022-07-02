@@ -39,7 +39,9 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 	for lang, transcription := range info.Transcription {
 		mainBlock += fmt.Sprintf("*%s*:\\[%s\\] ", strings.ToUpper(lang), DecodeForTelegram(transcription))
 	}
-	mainBlock += "\n"
+	if len(info.Transcription) > 0 {
+		mainBlock += "\n"
+	}
 	for n, explanation := range info.Explanation {
 		if helper.Len(mainBlock) > MaxRequestSize {
 			messages = append(messages,
