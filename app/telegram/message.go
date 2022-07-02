@@ -118,7 +118,7 @@ func GetMultitranOptionBlock(chatId int, page multitran.Page) []RequestTelegramT
 					mainBlock += ", "
 				}
 			}
-			mainBlock += "\n"
+			mainBlock += "\n" + GetRowSeparation()
 		}
 	}
 	messages = append(messages, MakeRequestTelegramText(
