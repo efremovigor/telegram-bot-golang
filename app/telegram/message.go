@@ -19,15 +19,15 @@ func GetIGotYourNewRequest(base string) string {
 
 func GetBlockWithRapidInfo(translate string) string {
 	return fmt.Sprintf(
-		DecodeForTelegram("*Rapid-microsoft*: ")+"*%s*\n\n", DecodeForTelegram(translate))
+		DecodeForTelegram("✅ *Rapid-microsoft*: ")+"*%s*\n\n", DecodeForTelegram(translate))
 }
 
 func GetCambridgeHeaderBlock(info cambridge.Page) string {
-	return fmt.Sprintf("*Cambridge\\-dictionary*\\: *%s*", DecodeForTelegram(info.RequestText)) + "\n"
+	return fmt.Sprintf("✅ *Cambridge\\-dictionary*\\: *%s*", DecodeForTelegram(info.RequestText)) + "\n"
 }
 
 func GetMultitranHeaderBlock(info multitran.Page) string {
-	return fmt.Sprintf("*Multitran\\-dictionary*\\: *%s*", DecodeForTelegram(info.RequestText)) + "\n"
+	return fmt.Sprintf("✅ *Multitran\\-dictionary*\\: *%s*", DecodeForTelegram(info.RequestText)) + "\n"
 }
 
 func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramText {
@@ -57,7 +57,7 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 		mainBlock += GetFieldIfCan(explanation.Level, "Level")
 		mainBlock += GetFieldIfCan(explanation.SemanticDescription, "Semantic")
 		mainBlock += GetFieldIfCan(explanation.Description, "Description")
-		mainBlock += GetFieldIfCan(explanation.Translate, "Translate")
+		mainBlock += GetFieldIfCan(explanation.Translate, "💡 Translate")
 		if len(explanation.Example) > 0 {
 			mainBlock += "*Example*:\n"
 		}
@@ -148,5 +148,5 @@ func GetRowRating(n int, statistic model.WordStatistic) string {
 }
 
 func GetRowSeparation() string {
-	return DecodeForTelegram("-+-+-+-+-+-") + "\n"
+	return DecodeForTelegram("▫️◾️▫️◾️▫️◾️▫️") + "\n"
 }

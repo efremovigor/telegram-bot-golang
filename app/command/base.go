@@ -15,7 +15,7 @@ import (
 func SayHello(query telegram.IncomingTelegramQueryInterface) telegram.RequestTelegramText {
 	return telegram.MakeRequestTelegramText(
 		query.GetChatText(),
-		telegram.DecodeForTelegram("Hello Friend. How can I help you?"),
+		telegram.DecodeForTelegram("Hello friend. How can I help you?"),
 		query.GetChatId(),
 	)
 }
@@ -46,7 +46,7 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 			"text",
 			telegram.MakeRequestTelegramText(
 				search.RequestWord,
-				telegram.DecodeForTelegram("Maybe you look for it:"),
+				telegram.DecodeForTelegram("Additional various 🔽"),
 				query.GetChatId(),
 			),
 			buttons))
