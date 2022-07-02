@@ -54,7 +54,7 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 			mainBlock = ""
 		}
 		if n > 0 {
-			mainBlock += GetRowSeparation()
+			mainBlock += GetRowSeparation() + "\n"
 		}
 		mainBlock += GetFieldIfCan(explanation.Text, "❗️Phrase") + "\n"
 		mainBlock += GetFieldIfCan(explanation.Level, "Level")
