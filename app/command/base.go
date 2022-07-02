@@ -25,10 +25,7 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 	messages := []telegram.RequestChannelTelegram{
 		telegram.NewRequestChannelTelegram(
 			"text",
-			telegram.MergeRequestTelegram(
-				telegram.GetHelloIGotYourMSGRequest(query),
-				telegram.GetResultFromRapidMicrosoft(query, state),
-			),
+			telegram.GetResultFromRapidMicrosoft(query, state),
 			[]telegram.Keyboard{},
 		),
 	}
