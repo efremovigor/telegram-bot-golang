@@ -122,13 +122,13 @@ func GetTelegramRequest(chatId int, text string, buttons []Keyboard) SendMessage
 		var bufferCount int
 		for i, button := range buttons {
 
-			if bufferCount > 20 {
+			if bufferCount+helper.Len(button.Text) > 20 {
 				keyboard = append(keyboard, buffer)
 				buffer = []Keyboard{}
 				bufferCount = 0
 			}
 
-			bufferCount += len(button.Text)
+			bufferCount += helper.Len(button.Text)
 			buffer = append(buffer, button)
 
 			if i == len(buttons)-1 {
