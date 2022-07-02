@@ -89,7 +89,6 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 			if n != len(info.Explanation)-1 {
 				mainBlock += "\n" + GetRowSeparation() + "\n"
 			}
-
 		}
 	}
 	messages = append(messages, MakeRequestTelegramText(info.Text, mainBlock+"\n", chatId))
@@ -132,7 +131,7 @@ func GetMultitranOptionBlock(chatId int, page multitran.Page) []RequestTelegramT
 					mainBlock += ", "
 				}
 			}
-			mainBlock += "\n\n" + GetRowSeparation() + "\n\n"
+			mainBlock += "\n\n" + GetRowSeparation() + "\n"
 		}
 	}
 	messages = append(messages, MakeRequestTelegramText(
