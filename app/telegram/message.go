@@ -34,8 +34,8 @@ func GetMultitranHeaderBlock(word string) string {
 func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramText {
 	var messages []RequestTelegramText
 	var mainBlock string
-	mainBlock += fmt.Sprintf("❗️*Word*\\: *%s*", DecodeForTelegram(info.Text)) + "\n"
-	mainBlock += fmt.Sprintf("\\(%s\\)", DecodeForTelegram(info.Type)) + "\n"
+	mainBlock += fmt.Sprintf("❗️*Word*\\: *%s*", DecodeForTelegram(info.Text))
+	mainBlock += fmt.Sprintf("\\(%s\\)", DecodeForTelegram(info.Type)) + "\n\n"
 	for lang, transcription := range info.Transcription {
 		mainBlock += fmt.Sprintf("*%s*:\\[%s\\] ", strings.ToUpper(lang), DecodeForTelegram(transcription))
 	}
@@ -54,7 +54,7 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 			mainBlock = ""
 		}
 		if n > 0 {
-			mainBlock += GetRowSeparation() + "\n"
+			mainBlock += "\n" + GetRowSeparation() + "\n"
 		}
 		mainBlock += GetFieldIfCan(explanation.Text, "❗️Phrase") + "\n"
 		mainBlock += GetFieldIfCan(explanation.Level, "Level")
