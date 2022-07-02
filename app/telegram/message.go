@@ -17,17 +17,18 @@ func GetIGotYourNewRequest(base string) string {
 		DecodeForTelegram("I got your message: ")+"*%s*\n", DecodeForTelegram(base))
 }
 
-func GetBlockWithRapidInfo(translate string) string {
+func GetBlockWithRapidInfo(word string, translate string) string {
 	return fmt.Sprintf(
-		DecodeForTelegram("✅ *Rapid-microsoft*: ")+"*%s*\n\n", DecodeForTelegram(translate))
+		DecodeForTelegram("✅ *Rapid-microsoft*: ")+"*%s*\n\n", DecodeForTelegram(word)) + "\n\n" +
+		GetFieldIfCan(translate, "💡 Translate")
 }
 
-func GetCambridgeHeaderBlock(info cambridge.Page) string {
-	return fmt.Sprintf("✅ *Cambridge\\-dictionary*\\: *%s*", DecodeForTelegram(info.RequestText)) + "\n"
+func GetCambridgeHeaderBlock(word string) string {
+	return fmt.Sprintf("✅ *Cambridge\\-dictionary*\\: *%s*", DecodeForTelegram(word)) + "\n\n"
 }
 
-func GetMultitranHeaderBlock(info multitran.Page) string {
-	return fmt.Sprintf("✅ *Multitran\\-dictionary*\\: *%s*", DecodeForTelegram(info.RequestText)) + "\n"
+func GetMultitranHeaderBlock(word string) string {
+	return fmt.Sprintf("✅ *Multitran\\-dictionary*\\: *%s*", DecodeForTelegram(word)) + "\n\n"
 }
 
 func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramText {

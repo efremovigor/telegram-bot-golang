@@ -62,7 +62,7 @@ func GetResultFromRapidMicrosoft(query IncomingTelegramQueryInterface, state str
 	}
 	return MakeRequestTelegramText(
 		query.GetChatText(),
-		GetBlockWithRapidInfo(translate),
+		GetBlockWithRapidInfo(query.GetChatText(), translate),
 		query.GetChatId(),
 	)
 }
@@ -77,7 +77,7 @@ func GetResultFromCambridge(cambridgeInfo cambridge.Page, chatId int, chatText s
 				messages = append(
 					messages,
 					MergeRequestTelegram(
-						MakeRequestTelegramText(chatText, GetCambridgeHeaderBlock(cambridgeInfo), chatId),
+						MakeRequestTelegramText(chatText, GetCambridgeHeaderBlock(cambridgeInfo.RequestText), chatId),
 						requests[0],
 					),
 				)
@@ -102,7 +102,7 @@ func GetResultFromMultitran(info multitran.Page, query IncomingTelegramQueryInte
 			MergeRequestTelegram(
 				MakeRequestTelegramText(
 					query.GetChatText(),
-					GetMultitranHeaderBlock(info),
+					GetMultitranHeaderBlock(info.RequestText),
 					query.GetChatId(),
 				),
 				requests[0],
