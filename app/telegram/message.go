@@ -45,9 +45,6 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 
 	var explanationBlock string
 	for n, explanation := range info.Explanation {
-		if n > 0 {
-			explanationBlock += "\n" + GetRowSeparation() + "\n"
-		}
 		explanationBlock += GetFieldIfCan(explanation.Text, "Phrase") + "\n"
 		explanationBlock += GetFieldIfCan(explanation.Level, "Level")
 		explanationBlock += GetFieldIfCan(explanation.SemanticDescription, "📃 Semantic")
@@ -89,6 +86,10 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 			explanationBlock = ""
 		} else {
 			mainBlock += explanationBlock + exampleBlock
+			if n != len(info.Explanation)-1 {
+				mainBlock += "\n" + GetRowSeparation() + "\n"
+			}
+
 		}
 	}
 	messages = append(messages, MakeRequestTelegramText(info.Text, mainBlock+"\n", chatId))
