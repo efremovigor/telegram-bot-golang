@@ -197,8 +197,8 @@ func sendBaseMessage(request SendMessageReqBody) {
 
 func SendImage(chatId int, info cambridge.Page, hasMore bool) {
 
-	if voiceId, err := redis.Get(fmt.Sprintf(redis.WordPicTelegramKey, info.RequestText, 0)); err == nil && len([]rune(voiceId)) > 0 {
-		//sendVoiceFromCache(chatId, lang, voiceId, info, hasMore)
+	if picId, err := redis.Get(fmt.Sprintf(redis.WordPicTelegramKey, info.RequestText, 0)); err == nil && len([]rune(picId)) > 0 {
+		sendPicFromCache(chatId, picId, info, hasMore)
 	} else {
 		sendPic(chatId, info, hasMore)
 	}
@@ -276,11 +276,11 @@ func sendVoice(chatId int, country string, info cambridge.Page, hasMore bool) {
 		log.Fatalln(err)
 	}
 
-	var audioResponse AudioResponse
-	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&audioResponse); err != nil && !audioResponse.Ok {
+	var fileResponse FileResponse
+	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&fileResponse); err != nil && !fileResponse.Ok {
 		fmt.Println("could not decode telegram response", err)
 	} else {
-		redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, country), audioResponse.Result.Audio.FileId, 0)
+		redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, country), fileResponse.Result.Audio.FileId, 0)
 	}
 }
 
@@ -327,18 +327,17 @@ func sendPic(chatId int, info cambridge.Page, hasMore bool) {
 	defer rapidMicrosoft.CloseConnection(res.Body)
 
 	buf, _ := ioutil.ReadAll(res.Body)
-	//b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	fmt.Println(string(buf))
+	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	//var audioResponse AudioResponse
-	//if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&audioResponse); err != nil && !audioResponse.Ok {
-	//	fmt.Println("could not decode telegram response", err)
-	//} else {
-	//	redis.Set(fmt.Sprintf(redis.WordPicTelegramKey, info.RequestText, 0), audioResponse.Result.Audio.FileId, 0)
-	//}
+	var fileResponse FileResponse
+	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&fileResponse); err != nil && !fileResponse.Ok {
+		fmt.Println("could not decode telegram response", err)
+	} else {
+		redis.Set(fmt.Sprintf(redis.WordPicTelegramKey, info.RequestText, 0), fileResponse.Result.Audio.FileId, 0)
+	}
 }
 
 func sendVoiceFromCache(chatId int, country string, audioId string, info cambridge.Page, hasMore bool) {
@@ -358,6 +357,40 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 	}
 
 	req, _ := http.NewRequest("POST", telegramConfig.GetTelegramUrl("sendAudio"), strings.NewReader(string(requestInJson)))
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	res, err := http.DefaultClient.Do(req)
+
+	qwe, err := req.GetBody()
+	body1, _ := ioutil.ReadAll(qwe)
+	fmt.Println(string(body1))
+
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		body, _ := ioutil.ReadAll(res.Body)
+		fmt.Println("bad response from telegram:" + res.Status + " Message:" + string(body) + "\n")
+	}
+	defer rapidMicrosoft.CloseConnection(res.Body)
+}
+
+func sendPicFromCache(chatId int, photoId string, info cambridge.Page, hasMore bool) {
+	var title string
+	if !helper.IsEmpty(info.Options[0].Text) {
+		title = info.Options[0].Text
+	} else {
+		title = info.RequestText
+	}
+	request := SendEarlierPhotoRequest{Photo: photoId, ChatId: chatId, ReplyMarkup: ReplyMarkup{Keyboard: [][]Keyboard{}}}
+	if hasMore {
+		request.ReplyMarkup.SetKeyboard([]Keyboard{{Text: "more", CallbackData: NextRequestMessage + " " + title}})
+	}
+	requestInJson, err := json.Marshal(request)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	req, _ := http.NewRequest("POST", telegramConfig.GetTelegramUrl("sendPhoto"), strings.NewReader(string(requestInJson)))
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 	res, err := http.DefaultClient.Do(req)

@@ -163,7 +163,7 @@ type WebhookMessage struct {
 	UpdateId int `json:"update_id"`
 }
 
-type AudioResponse struct {
+type FileResponse struct {
 	Ok     bool `json:"ok"`
 	Result struct {
 		MessageId int `json:"message_id"`
@@ -181,6 +181,13 @@ type AudioResponse struct {
 			Type      string `json:"type"`
 		} `json:"chat"`
 		Date  int `json:"date"`
+		Photo []struct {
+			FileId       string `json:"file_id"`
+			FileUniqueId string `json:"file_unique_id"`
+			FileSize     int    `json:"file_size"`
+			Width        int    `json:"width"`
+			Height       int    `json:"height"`
+		} `json:"photo"`
 		Audio struct {
 			Duration     int    `json:"duration"`
 			FileName     string `json:"file_name"`
@@ -304,6 +311,12 @@ type SendEarlierVoiceRequest struct {
 	DisableNotification bool        `json:"disable_notification"`
 	ReplyToMessageId    interface{} `json:"reply_to_message_id"`
 	ReplyMarkup         ReplyMarkup `json:"reply_markup"`
+}
+
+type SendEarlierPhotoRequest struct {
+	ChatId      int         `json:"chat_id"`
+	Photo       string      `json:"photo"`
+	ReplyMarkup ReplyMarkup `json:"reply_markup"`
 }
 
 type UserRequest struct {
