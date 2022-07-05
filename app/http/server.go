@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"telegram-bot-golang/command"
@@ -20,6 +22,17 @@ import (
 
 type Context struct {
 	echo.Context
+}
+
+func (c Context) tryReply(reader io.Reader, message telegram.IncomingTelegramQueryInterface) error {
+	if _, err := helper.ParseJson(reader, &message); err == nil && message.IsValid() {
+		if err := c.reply(message); err != nil {
+			fmt.Println("error in sending reply:", err)
+		}
+		return nil
+	} else {
+		return err
+	}
 }
 
 func bindListener(listener telegram.Listener) echo.MiddlewareFunc {
@@ -46,29 +59,10 @@ func Handle(listener telegram.Listener) {
 	e.POST(telegramConfig.GetUrlPrefix(), func(c echo.Context) error {
 		cc := c.(*Context)
 
-		var webhookMessage telegram.IncomingTelegramQueryInterface
+		parseJson, _ := ioutil.ReadAll(c.Request().Body)
 
-		webhookMessage = &telegram.WebhookMessage{}
-		parseJson, err := helper.ParseJson(c.Request().Body, &webhookMessage)
-		fmt.Println("raw json from telegram:" + parseJson)
-		fmt.Println("----")
-
-		if err == nil && webhookMessage.IsValid() {
-			if err := cc.reply(webhookMessage); err != nil {
-				fmt.Println("error in sending reply:", err)
-				return err
-			}
-			return cc.JSON(http.StatusOK, "")
-		}
-		webhookMessage = &telegram.CallbackQuery{}
-
-		if _, err := helper.ParseJson(bytes.NewBuffer([]byte(parseJson)), &webhookMessage); err == nil && webhookMessage.IsValid() {
-			if err := cc.reply(webhookMessage); err != nil {
-				fmt.Println("error in sending reply:", err)
-				return err
-			}
-		} else {
-			fmt.Println("could not decode request body", err)
+		if err := cc.tryReply(bytes.NewBuffer(parseJson), &telegram.WebhookMessage{}); err != nil {
+			_ = cc.tryReply(bytes.NewBuffer(parseJson), &telegram.CallbackQuery{})
 		}
 
 		return cc.JSON(http.StatusOK, "")
