@@ -32,7 +32,7 @@ func NewRequestChannelVoiceTelegram(word string, chatId int, languages []string)
 
 func NewRequestChannelImageTelegram(word string, chatId int) RequestChannelTelegram {
 	request := RequestTelegramText{Word: word, Text: "Found image for " + word, ChatId: chatId}
-	var keyboards = []Keyboard{{Text: "🏞 show", CallbackData: ShowRequestPic + word}}
+	var keyboards = []Keyboard{{Text: "🏞 show", CallbackData: ShowRequestPic + " " + word}}
 	if requestInJson, err := json.Marshal(request); err == nil {
 		return RequestChannelTelegram{Type: "text", Message: requestInJson, Buttons: keyboards}
 	}
