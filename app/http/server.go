@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"io"
@@ -24,14 +25,14 @@ type Context struct {
 	echo.Context
 }
 
-func (c Context) tryReply(reader io.Reader, message telegram.IncomingTelegramQueryInterface) (err error) {
-	if _, err = helper.ParseJson(reader, &message); err == nil && message.IsValid() {
+func (c Context) tryReply(reader io.Reader, message telegram.IncomingTelegramQueryInterface) error {
+	if _, err := helper.ParseJson(reader, &message); err == nil && message.IsValid() {
 		if err := c.reply(message); err != nil {
 			fmt.Println("error in sending reply:", err)
 		}
 		return nil
 	} else {
-		return err
+		return errors.New("invalid struct")
 	}
 }
 
