@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
@@ -270,17 +269,11 @@ func sendVoice(chatId int, country string, info cambridge.Page, hasMore bool) {
 	}
 	defer rapidMicrosoft.CloseConnection(res.Body)
 
-	buf, _ := ioutil.ReadAll(res.Body)
-	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	var fileResponse FileResponse
-	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&fileResponse); err != nil && !fileResponse.Ok {
+	if _, err := helper.ParseJson(res.Body, &fileResponse); err != nil && !fileResponse.Ok {
 		fmt.Println("could not decode telegram response", err)
 	} else {
-		redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKey, info.RequestText, country), fileResponse.Result.Audio.FileId, 0)
+		redis.Set(fmt.Sprintf(redis.WordPicTelegramKey, info.RequestText, 0), fileResponse.Result.Audio.FileId, 0)
 	}
 }
 
@@ -316,9 +309,6 @@ func sendPic(chatId int, info cambridge.Page, hasMore bool) {
 	r.Header.Add("Content-Type", writer.FormDataContentType())
 	client := &http.Client{}
 	res, err = client.Do(r)
-	qwe, err := r.GetBody()
-	body1, _ := ioutil.ReadAll(qwe)
-	fmt.Println(string(body1))
 
 	if err != nil {
 		fmt.Println(err)
@@ -326,17 +316,11 @@ func sendPic(chatId int, info cambridge.Page, hasMore bool) {
 	}
 	defer rapidMicrosoft.CloseConnection(res.Body)
 
-	buf, _ := ioutil.ReadAll(res.Body)
-	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	var fileResponse FileResponse
-	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&fileResponse); err != nil && !fileResponse.Ok {
+	if _, err := helper.ParseJson(res.Body, &fileResponse); err != nil && !fileResponse.Ok {
 		fmt.Println("could not decode telegram response", err)
 	} else {
-		redis.Set(fmt.Sprintf(redis.WordPicTelegramKey, info.RequestText, 0), fileResponse.Result.Audio.FileId, 0)
+		redis.Set(fmt.Sprintf(redis.WordPicTelegramKey, info.RequestText, 0), fileResponse.Result.Photo[0].FileId, 0)
 	}
 }
 
@@ -356,22 +340,7 @@ func sendVoiceFromCache(chatId int, country string, audioId string, info cambrid
 		fmt.Println(err)
 	}
 
-	req, _ := http.NewRequest("POST", telegramConfig.GetTelegramUrl("sendAudio"), strings.NewReader(string(requestInJson)))
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
-	res, err := http.DefaultClient.Do(req)
-
-	qwe, err := req.GetBody()
-	body1, _ := ioutil.ReadAll(qwe)
-	fmt.Println(string(body1))
-
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		body, _ := ioutil.ReadAll(res.Body)
-		fmt.Println("bad response from telegram:" + res.Status + " Message:" + string(body) + "\n")
-	}
-	defer rapidMicrosoft.CloseConnection(res.Body)
+	doJsonRequest(telegramConfig.GetTelegramUrl("sendAudio"), requestInJson)
 }
 
 func sendPicFromCache(chatId int, photoId string, info cambridge.Page, hasMore bool) {
@@ -389,15 +358,14 @@ func sendPicFromCache(chatId int, photoId string, info cambridge.Page, hasMore b
 	if err != nil {
 		fmt.Println(err)
 	}
+	doJsonRequest(telegramConfig.GetTelegramUrl("sendPhoto"), requestInJson)
+}
 
-	req, _ := http.NewRequest("POST", telegramConfig.GetTelegramUrl("sendPhoto"), strings.NewReader(string(requestInJson)))
+func doJsonRequest(url string, json []byte) {
+	req, _ := http.NewRequest("POST", url, strings.NewReader(string(json)))
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 	res, err := http.DefaultClient.Do(req)
-
-	qwe, err := req.GetBody()
-	body1, _ := ioutil.ReadAll(qwe)
-	fmt.Println(string(body1))
 
 	if err != nil {
 		fmt.Println(err)

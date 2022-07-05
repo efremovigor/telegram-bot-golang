@@ -81,12 +81,7 @@ func handleCambridgePage(page cambridge.Page, userId int, chatId int, chatText s
 
 func saveMessagesQueue(key string, chatText string, messages []telegram.RequestChannelTelegram) {
 	redis.Del(key)
-
-	if requestTelegramInJson, err := json.Marshal(telegram.UserRequest{Request: chatText, Output: messages}); err == nil {
-		redis.Set(key, requestTelegramInJson, time.Hour*24)
-	} else {
-		fmt.Println(err)
-	}
+	redis.SetStruct(key, telegram.UserRequest{Request: chatText, Output: messages}, time.Hour*24)
 }
 
 func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
@@ -153,11 +148,7 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 		if len(request.Output) > 1 {
 			message.Buttons = append(message.Buttons, telegram.Keyboard{Text: "📚 more", CallbackData: telegram.NextRequestMessage + " " + word})
 			request.Output = request.Output[1:]
-			if infoInJson, err := json.Marshal(request); err == nil {
-				redis.Set(key, infoInJson, time.Hour*24)
-			} else {
-				fmt.Println(err)
-			}
+			redis.SetStruct(key, request, time.Hour*24)
 		} else {
 			redis.Del(key)
 		}

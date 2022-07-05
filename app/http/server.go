@@ -2,12 +2,8 @@ package http
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
-	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"telegram-bot-golang/command"
@@ -50,25 +46,24 @@ func Handle(listener telegram.Listener) {
 	e.POST(telegramConfig.GetUrlPrefix(), func(c echo.Context) error {
 		cc := c.(*Context)
 
-		buf, _ := ioutil.ReadAll(c.Request().Body)
-		b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
-		if err != nil {
-			log.Fatalln(err)
-		}
+		var webhookMessage telegram.IncomingTelegramQueryInterface
 
-		fmt.Println("raw json from telegram:" + string(b))
+		webhookMessage = &telegram.WebhookMessage{}
+		parseJson, err := helper.ParseJson(c.Request().Body, &webhookMessage)
+		fmt.Println("raw json from telegram:" + parseJson)
 		fmt.Println("----")
 
-		webhookMessage := &telegram.WebhookMessage{}
-		callbackQuery := &telegram.CallbackQuery{}
-
-		if err := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(buf))).Decode(webhookMessage); err == nil && webhookMessage.IsValid() {
+		if err == nil && webhookMessage.IsValid() {
 			if err := cc.reply(webhookMessage); err != nil {
 				fmt.Println("error in sending reply:", err)
 				return err
 			}
-		} else if err := json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(buf))).Decode(callbackQuery); err == nil && callbackQuery.IsValid() {
-			if err := cc.reply(callbackQuery); err != nil {
+			return cc.JSON(http.StatusOK, "")
+		}
+		webhookMessage = &telegram.CallbackQuery{}
+
+		if _, err := helper.ParseJson(bytes.NewBuffer([]byte(parseJson)), &webhookMessage); err == nil && webhookMessage.IsValid() {
+			if err := cc.reply(webhookMessage); err != nil {
 				fmt.Println("error in sending reply:", err)
 				return err
 			}

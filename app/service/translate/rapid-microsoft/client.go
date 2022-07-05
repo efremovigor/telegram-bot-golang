@@ -1,16 +1,14 @@
 package rapid_microsoft
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/env"
+	"telegram-bot-golang/helper"
 )
 
 const url = "https://microsoft-translator-text.p.rapidapi.com/translate?to=%s&from=%s&api-version=3.0&profanityAction=NoAction&textType=plain"
@@ -33,17 +31,13 @@ func GetTranslate(text string, to string, from string) string {
 
 		defer CloseConnection(res.Body)
 
-		buf, _ := ioutil.ReadAll(res.Body)
-		b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
+		parseJson, err := helper.ParseJson(res.Body, &microsoftTranslateResponse)
 		if err != nil {
-			log.Fatalln(err)
-		}
-
-		if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(b))).Decode(&microsoftTranslateResponse); err != nil {
 			fmt.Println("could not decode microsoft response", err)
 		} else {
-			redis.Set(fmt.Sprintf(redis.TranslateRapidMicrosoftKey, from, to, text), buf, 0)
+			redis.Set(fmt.Sprintf(redis.TranslateRapidMicrosoftKey, from, to, text), parseJson, 0)
 		}
+
 	} else {
 		fmt.Println("get translate from redis")
 

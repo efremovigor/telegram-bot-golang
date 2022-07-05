@@ -18,13 +18,7 @@ func Get(query string) Page {
 	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgePageKey, query))
 	if errGetCache != nil {
 		page = DoRequest(query, Url+"/dictionary/english-russian/"+query, Url+"/dictionary/english/"+query)
-
-		if infoInJson, err := json.Marshal(page); err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println(string(infoInJson))
-			redis.Set(fmt.Sprintf(redis.InfoCambridgePageKey, page.RequestText), infoInJson, 0)
-		}
+		redis.SetStruct(fmt.Sprintf(redis.InfoCambridgePageKey, page.RequestText), page, 0)
 	} else {
 		fmt.Println("get cambridge info from cache")
 		if err := json.Unmarshal([]byte(cachedInfo), &page); err != nil {
@@ -56,10 +50,11 @@ func Search(query string) (response SearchResponse) {
 			return
 		}
 
-		if err := json.NewDecoder(res.Body).Decode(&response.Founded); err != nil {
+		if _, err = helper.ParseJson(res.Body, &response.Founded); err != nil {
 			fmt.Println(err.Error())
 			return
 		}
+
 		for i, found := range response.Founded {
 			if found.Word == query {
 				response.Founded[i] = response.Founded[len(response.Founded)-1]
@@ -74,12 +69,8 @@ func Search(query string) (response SearchResponse) {
 			response.RequestWord = query
 		}
 
-		if responseInJson, err := json.Marshal(response); err != nil {
-			fmt.Println("error marshal cambridge search response:" + err.Error())
-		} else {
-			fmt.Println(string(responseInJson))
-			redis.Set(fmt.Sprintf(redis.InfoCambridgeSearchResult, response.RequestWord), responseInJson, 0)
-		}
+		redis.SetStruct(fmt.Sprintf(redis.InfoCambridgeSearchResult, response.RequestWord), response, 0)
+
 	} else {
 		fmt.Println("get cambridge search from cache")
 		if err := json.Unmarshal([]byte(cachedInfo), &response); err != nil {

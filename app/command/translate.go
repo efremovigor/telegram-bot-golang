@@ -7,10 +7,11 @@ import (
 )
 
 func ChangeTranslateTransition(command string, query telegram.IncomingTelegramQueryInterface) telegram.RequestTelegramText {
+	key := fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId())
 	if command == AutoTranslateCommand {
-		redis.Del(fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId()))
+		redis.Del(key)
 	} else {
-		redis.Set(fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId()), Transitions()[command].key, 0)
+		redis.Set(key, Transitions()[command].key, 0)
 	}
 	return telegram.MakeRequestTelegramText(
 		query.GetChatText(),

@@ -1,8 +1,11 @@
 package helper
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 )
 
 func IsEmpty(s string) bool {
@@ -47,4 +50,17 @@ func ToJson(object interface{}) string {
 		fmt.Println(err)
 	}
 	return out
+}
+
+func ParseJson(r io.Reader, object interface{}) (string, error) {
+	buf, err := ioutil.ReadAll(r)
+	if err != nil {
+		return "", err
+	}
+
+	if err = json.NewDecoder(ioutil.NopCloser(bytes.NewBuffer(buf))).Decode(object); err != nil {
+		fmt.Println("could not decode microsoft response", err)
+	}
+	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
+	return string(b), err
 }
