@@ -62,7 +62,9 @@ func Handle(listener telegram.Listener) {
 		parseJson, _ := ioutil.ReadAll(c.Request().Body)
 
 		if err := cc.tryReply(bytes.NewBuffer(parseJson), &telegram.WebhookMessage{}); err != nil {
-			_ = cc.tryReply(bytes.NewBuffer(parseJson), &telegram.CallbackQuery{})
+			if err = cc.tryReply(bytes.NewBuffer(parseJson), &telegram.CallbackQuery{}); err != nil {
+				fmt.Println(err)
+			}
 		}
 
 		return cc.JSON(http.StatusOK, "")
