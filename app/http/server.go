@@ -140,8 +140,11 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 			return nil
 		case telegram.ShowRequestVoice:
 			if words[1] == telegram.CountryUs || words[1] == telegram.CountryUk {
-				command.GetVoice(query, words[1], strings.Join(words[2:], " "))
+				command.SendVoice(query, words[1], strings.Join(words[2:], " "))
 			}
+			return nil
+		case telegram.ShowRequestPic:
+			command.SendImage(query, strings.Join(words[1:], " "))
 			return nil
 		case telegram.SearchRequest:
 			if words[1] == "cambridge" {

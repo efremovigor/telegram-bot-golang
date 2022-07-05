@@ -104,8 +104,8 @@ func getNodes(url string) []*html.Node {
 
 func DoRequest(word string, url string, altUrl string) (page Page) {
 	nodes := getNodes(url)
-	if len(nodes) == 0 && !helper.IsEmpty(altUrl) {
-		nodes = getNodes(altUrl)
+	if !helper.IsEmpty(altUrl) {
+		nodes = append(nodes, getNodes(altUrl)...)
 	}
 
 	for _, node := range nodes {
@@ -135,9 +135,31 @@ func DoRequest(word string, url string, altUrl string) (page Page) {
 		if node, err := htmlquery.Query(node, xpathTranscriptionUK); err == nil && node != nil {
 			info.Transcription["uk"] = strings.TrimSpace(htmlquery.InnerText(node))
 		}
+
 		if node, err := htmlquery.Query(node, xpathTranscriptionUS); err == nil && node != nil {
 			info.Transcription["us"] = strings.TrimSpace(htmlquery.InnerText(node))
 		}
+
+		if forms, err := htmlquery.QueryAll(node, xpathForms); err == nil && len(forms) > 0 {
+			for _, form := range forms {
+				if desc, err := htmlquery.Query(form, "/span[contains(@class,'lab')]"); err == nil && desc != nil {
+					if value, err := htmlquery.Query(form, "/b[contains(@class,'inf')]"); err == nil && value != nil {
+						info.Forms = append(
+							info.Forms,
+							Forms{
+								Desc:  strings.TrimSpace(htmlquery.InnerText(desc)),
+								Value: strings.TrimSpace(htmlquery.InnerText(value)),
+							},
+						)
+					}
+				}
+			}
+		}
+
+		if img, err := htmlquery.Query(node, xpathImage); err == nil && img != nil {
+			page.Image = append(page.Image, strings.TrimSpace(htmlquery.SelectAttr(img, "src")))
+		}
+
 		if node, err := htmlquery.Query(node, xpathUK); helper.Len(page.VoicePath.UK) == 0 && err == nil && node != nil {
 			page.VoicePath.UK = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
 		}

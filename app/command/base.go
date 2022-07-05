@@ -64,6 +64,9 @@ func handleCambridgePage(page cambridge.Page, userId int, chatId int, chatText s
 	for _, message := range telegram.GetResultFromCambridge(page, chatId, chatText) {
 		messages = append(messages, telegram.NewRequestChannelTelegram("text", message, []telegram.Keyboard{}))
 	}
+	if len(page.Image) > 0 {
+		messages = append(messages, telegram.NewRequestChannelImageTelegram(page.RequestText, chatId))
+	}
 	switch true {
 	case helper.Len(page.VoicePath.UK) > 0 && helper.Len(page.VoicePath.US) > 0:
 		messages = append(messages, telegram.NewRequestChannelVoiceTelegram(page.RequestText, chatId, []string{telegram.CountryUk, telegram.CountryUs}))
@@ -105,7 +108,7 @@ func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
 	}
 }
 
-func GetVoice(query telegram.IncomingTelegramQueryInterface, lang string, word string) {
+func SendVoice(query telegram.IncomingTelegramQueryInterface, lang string, word string) {
 	if cambridgeInfo := cambridge.Get(word); cambridgeInfo.IsValid() {
 		var request telegram.UserRequest
 		key := fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), word)
@@ -114,6 +117,18 @@ func GetVoice(query telegram.IncomingTelegramQueryInterface, lang string, word s
 			fmt.Println("Unmarshal request : " + err.Error())
 		}
 		telegram.SendVoices(query.GetChatId(), cambridgeInfo, lang, len(request.Output) > 0)
+	}
+}
+
+func SendImage(query telegram.IncomingTelegramQueryInterface, word string) {
+	if cambridgeInfo := cambridge.Get(word); cambridgeInfo.IsValid() {
+		var request telegram.UserRequest
+		key := fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), word)
+		state, _ := redis.Get(key)
+		if err := json.Unmarshal([]byte(state), &request); err != nil {
+			fmt.Println("Unmarshal request : " + err.Error())
+		}
+		telegram.SendImage(query.GetChatId(), cambridgeInfo, len(request.Output) > 0)
 	}
 }
 

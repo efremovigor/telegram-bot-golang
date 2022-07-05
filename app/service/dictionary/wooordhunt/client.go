@@ -17,78 +17,99 @@ func Get(query string) (page Page) {
 			).Replace(cleanTextField(query)),
 		),
 	)
-	/**
-	add is valid block
-	*/
 
 	if value, err := htmlquery.Query(html1, "//div[@id='wd_title']/h1"); err == nil && value != nil {
-		page.RequestText = cleanNodeField(value.FirstChild)
+		page.Title = cleanNodeField(value.FirstChild)
 	}
 
-	if value, err := htmlquery.Query(html1, "//div[@id='us_tr_sound']/span[contains(@class, 'transcription')]"); err == nil && value != nil {
-		page.Transcription["us"] = cleanNodeField(value)
-	}
-
-	if value, err := htmlquery.Query(html1, "//div[@id='uk_tr_sound']/span[contains(@class, 'transcription')]"); err == nil && value != nil {
-		page.Transcription["uk"] = cleanNodeField(value)
-	}
-
-	if value, err := htmlquery.Query(html1, "//div[@id='us_tr_sound']//source[contains(@type,'audio/mpeg')]"); err == nil && value != nil {
-		page.VoicePath.US = cleanTextField(htmlquery.SelectAttr(value, "src"))
-	}
-
-	if value, err := htmlquery.Query(html1, "//div[@id='uk_tr_sound']//source[contains(@type,'audio/mpeg')]"); err == nil && value != nil {
-		page.VoicePath.UK = cleanTextField(htmlquery.SelectAttr(value, "src"))
-	}
-
-	explanations, _ := htmlquery.QueryAll(html1, "//div[@id='content_in_russian']/*")
-
-	for _, explanation := range explanations {
-		if explanation.DataAtom.String() == "div" &&
-			(htmlquery.SelectAttr(explanation, "class") == "tr" || htmlquery.SelectAttr(explanation, "class") == "block") {
-			continue
+	if helper.IsEn(query) {
+		if value, err := htmlquery.Query(html1, "//div[@id='us_tr_sound']/span[contains(@class, 'transcription')]"); err == nil && value != nil {
+			page.Transcription["us"] = cleanNodeField(value)
 		}
-		if htmlquery.SelectAttr(explanation, "class") == "t_inline_en" {
-			page.GeneralTranslate = strings.Split(cleanNodeField(explanation), ", ")
-			continue
+
+		if value, err := htmlquery.Query(html1, "//div[@id='uk_tr_sound']/span[contains(@class, 'transcription')]"); err == nil && value != nil {
+			page.Transcription["uk"] = cleanNodeField(value)
 		}
-		if explanation.DataAtom.String() == "h4" {
-			nextIsDivTr, _ := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'tr')]")
-			if nextIsDivTr != nil {
-				wordTypeNode, err := htmlquery.Query(explanation, "node()[1]")
-				if err != nil {
-					fmt.Println(err)
-				}
-				page.Info = append(
-					page.Info,
-					Info{
-						Type:    cleanNodeField(wordTypeNode),
-						Meaning: getMeaningBlock(nextIsDivTr),
-					},
-				)
+
+		if value, err := htmlquery.Query(html1, "//div[@id='us_tr_sound']//source[contains(@type,'audio/mpeg')]"); err == nil && value != nil {
+			page.VoicePath.US = cleanTextField(htmlquery.SelectAttr(value, "src"))
+		}
+
+		if value, err := htmlquery.Query(html1, "//div[@id='uk_tr_sound']//source[contains(@type,'audio/mpeg')]"); err == nil && value != nil {
+			page.VoicePath.UK = cleanTextField(htmlquery.SelectAttr(value, "src"))
+		}
+
+		explanations, _ := htmlquery.QueryAll(html1, "//div[@id='content_in_russian']/*")
+
+		for _, explanation := range explanations {
+			if explanation.DataAtom.String() == "div" &&
+				(htmlquery.SelectAttr(explanation, "class") == "tr" || htmlquery.SelectAttr(explanation, "class") == "block") {
 				continue
 			}
-		}
-		if strings.Contains(htmlquery.SelectAttr(explanation, "class"), "phrases") {
-			page.Phrases = getPhrasesFromBlock(explanation)
-			continue
-		}
+			if htmlquery.SelectAttr(explanation, "class") == "t_inline_en" {
+				page.GeneralTranslate = strings.Split(cleanNodeField(explanation), ", ")
+				continue
+			}
+			if explanation.DataAtom.String() == "h4" {
+				nextIsDivTr, _ := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'tr')]")
+				if nextIsDivTr != nil {
+					wordTypeNode, err := htmlquery.Query(explanation, "node()[1]")
+					if err != nil {
+						fmt.Println(err)
+					}
+					page.Info = append(
+						page.Info,
+						Info{
+							Type:    cleanNodeField(wordTypeNode),
+							Meaning: getMeaningBlock(nextIsDivTr),
+						},
+					)
+					continue
+				}
+			}
+			if strings.Contains(htmlquery.SelectAttr(explanation, "class"), "phrases") {
+				page.Phrases = getPhrasesFromBlock(explanation)
+				continue
+			}
 
-		if explanation.DataAtom.String() == "h3" && htmlquery.InnerText(explanation) == "Примеры" {
-			nextIsDivBlock, _ := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'block')]")
-			if nextIsDivBlock != nil {
-				page.Examples = getExamplesFromBlock(nextIsDivBlock)
+			if explanation.DataAtom.String() == "h3" && htmlquery.InnerText(explanation) == "Примеры" {
+				nextIsDivBlock, _ := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'block')]")
+				if nextIsDivBlock != nil {
+					page.Examples = getExamplesFromBlock(nextIsDivBlock)
+				}
+			}
+
+			if explanation.DataAtom.String() == "h3" && htmlquery.InnerText(explanation) == "Фразовые глаголы" {
+				nextIsDivBlock, _ := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'block')]")
+				if nextIsDivBlock != nil {
+					page.PhraseVerb = getPhrasesWithLinkFromBlock(nextIsDivBlock)
+				}
+			}
+
+			if explanation.DataAtom.String() == "h3" && htmlquery.InnerText(explanation) == "Возможные однокоренные слова" {
+				nextIsDivBlock, _ := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'block')]")
+				if nextIsDivBlock != nil {
+					page.PossibleCognates = getPhrasesWithLinkFromBlock(nextIsDivBlock)
+				}
+			}
+
+			if explanation.DataAtom.String() == "div" && htmlquery.SelectAttr(explanation, "class") == "word_form_block" {
+				page.Form = append(page.Form, getWordFormFromBlock(explanation))
 			}
 		}
-
-		if explanation.DataAtom.String() == "h3" && htmlquery.InnerText(explanation) == "Фразовые глаголы" {
-			nextIsDivBlock, _ := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'block')]")
-			if nextIsDivBlock != nil {
-				page.PhraseVerb = getPhrasesVerbsFromBlock(nextIsDivBlock)
-			}
+	} else {
+		if value, err := htmlquery.Query(html1, "//div[@id='wd_title']/p"); err == nil && value != nil {
+			page.GeneralTranslate = strings.Split(cleanNodeField(value), ", ")
 		}
+		if value, err := htmlquery.Query(html1, "//div[@id='wd_content']/div[contains(@class,'word_ex')]"); err == nil && value != nil {
+			page.Phrases = getPhrasesFromRuBlock(value)
+		}
+
 	}
 
+	if !helper.IsEmpty(page.Title) && len(page.GeneralTranslate) > 0 {
+		page.RequestText = query
+	}
 	return
 }
 
@@ -177,6 +198,9 @@ func getExamplesFromBlock(node *html.Node) (phrases []Phrase) {
 		fmt.Println(err)
 	}
 	for _, explanation := range each {
+		if htmlquery.SelectAttr(explanation, "id") == "hidden_ex" {
+			phrases = append(phrases, getExamplesFromBlock(explanation)...)
+		}
 		if htmlquery.SelectAttr(explanation, "class") == "ex_o" {
 			nextBlock, _ := htmlquery.Query(explanation, "following-sibling::p[contains(@class,'ex_t')]")
 			if nextBlock != nil {
@@ -187,7 +211,35 @@ func getExamplesFromBlock(node *html.Node) (phrases []Phrase) {
 	return
 }
 
-func getPhrasesVerbsFromBlock(node *html.Node) (phrases []PhraseVerb) {
+func getPhrasesFromRuBlock(node *html.Node) (phrases []Phrase) {
+	each, err := htmlquery.QueryAll(node, "node()")
+	if err != nil {
+		fmt.Println(err)
+	}
+	for _, explanation := range each {
+		if explanation.DataAtom.String() == "span" {
+
+			beforeBlock, _ := htmlquery.Query(explanation, "preceding-sibling::text()")
+			if beforeBlock != nil {
+				text := cleanNodeField(beforeBlock)
+				if helper.IsEmpty(text) {
+					continue
+				}
+				if string([]rune(text)[helper.Len(text)-1:]) == "—" {
+					text = cleanTextField(string([]rune(text)[:helper.Len(text)-1]))
+				}
+				phrases = append(phrases, Phrase{Text: text, Translate: cleanNodeField(explanation)})
+			}
+		}
+
+		if explanation.DataAtom.String() == "div" && htmlquery.SelectAttr(explanation, "id") == "ex_sup" {
+			phrases = append(phrases, getPhrasesFromRuBlock(explanation)...)
+		}
+	}
+	return
+}
+
+func getPhrasesWithLinkFromBlock(node *html.Node) (phrases []PhraseLink) {
 	each, err := htmlquery.QueryAll(node, "node()")
 	if err != nil {
 		fmt.Println(err)
@@ -197,14 +249,14 @@ func getPhrasesVerbsFromBlock(node *html.Node) (phrases []PhraseVerb) {
 			nextBlock, _ := htmlquery.Query(explanation, "following-sibling::text()")
 			if nextBlock != nil {
 				translate := cleanNodeField(nextBlock)
-				fmt.Println(string([]rune(translate)[:1]))
 
 				if string([]rune(translate)[:1]) == "—" {
-					translate = string([]rune(translate)[1 : helper.Len(translate)-1])
+					translate = string([]rune(translate)[1:helper.Len(translate)])
 				}
+
 				phrases = append(
 					phrases,
-					PhraseVerb{
+					PhraseLink{
 						Text:      cleanNodeField(explanation),
 						Link:      cleanTextField(htmlquery.SelectAttr(explanation, "href")),
 						Translate: cleanTextField(translate),
@@ -213,6 +265,50 @@ func getPhrasesVerbsFromBlock(node *html.Node) (phrases []PhraseVerb) {
 
 			}
 		}
+	}
+	return
+}
+
+func getWordFormFromBlock(node *html.Node) (form Forms) {
+	each, err := htmlquery.QueryAll(node, "node()")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var bufferInfo string
+	var bufferValue string
+	var bufferLink string
+	for _, explanation := range each {
+		if explanation.DataAtom.String() == "i" {
+			form.Type = cleanNodeField(explanation)
+			continue
+		}
+		if explanation.DataAtom.String() == "a" {
+			bufferLink = cleanTextField(htmlquery.SelectAttr(explanation, "href"))
+			bufferValue += cleanNodeField(explanation)
+			continue
+		}
+		if explanation.DataAtom.String() == "span" {
+			bufferInfo += cleanNodeField(explanation)
+			continue
+		}
+		if explanation.DataAtom.String() == "br" {
+			if !helper.IsEmpty(bufferValue) {
+				if !helper.IsEmpty(bufferInfo) {
+					if string([]rune(bufferInfo)[helper.Len(bufferInfo)-1:]) == ":" {
+						bufferInfo = string([]rune(bufferInfo)[:helper.Len(bufferInfo)-1])
+					}
+				}
+				form.Form = append(form.Form, WordForm{Info: bufferInfo, Link: bufferLink, Value: bufferValue})
+			}
+			bufferInfo = ""
+			bufferValue = ""
+			bufferLink = ""
+			continue
+		}
+
+		bufferValue += cleanNodeField(explanation)
+
 	}
 	return
 }

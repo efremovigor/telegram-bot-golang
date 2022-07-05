@@ -19,11 +19,20 @@ type RequestChannelTelegram struct {
 }
 
 func NewRequestChannelVoiceTelegram(word string, chatId int, languages []string) RequestChannelTelegram {
-	request := NewCambridgeRequestTelegramVoice(word, chatId, languages)
+	request := RequestTelegramText{Word: word, Text: "Found " + strings.Join(languages, ", ") + " voice record for " + word, ChatId: chatId}
 	var keyboards []Keyboard
 	for _, lang := range languages {
 		keyboards = append(keyboards, Keyboard{Text: "🗣 " + lang, CallbackData: ShowRequestVoice + " " + lang + " " + word})
 	}
+	if requestInJson, err := json.Marshal(request); err == nil {
+		return RequestChannelTelegram{Type: "text", Message: requestInJson, Buttons: keyboards}
+	}
+	return RequestChannelTelegram{}
+}
+
+func NewRequestChannelImageTelegram(word string, chatId int) RequestChannelTelegram {
+	request := RequestTelegramText{Word: word, Text: "Found image for " + word, ChatId: chatId}
+	var keyboards = []Keyboard{{Text: "🏞 show", CallbackData: ShowRequestPic + word}}
 	if requestInJson, err := json.Marshal(request); err == nil {
 		return RequestChannelTelegram{Type: "text", Message: requestInJson, Buttons: keyboards}
 	}
@@ -35,10 +44,6 @@ func NewRequestChannelTelegram(requestType string, request interface{}, buttons 
 		return RequestChannelTelegram{Type: requestType, Message: requestInJson, Buttons: buttons}
 	}
 	return RequestChannelTelegram{}
-}
-
-func NewCambridgeRequestTelegramVoice(word string, chatId int, lang []string) RequestTelegramText {
-	return RequestTelegramText{Word: word, Text: "Found " + strings.Join(lang, ", ") + " voice record for " + word, ChatId: chatId}
 }
 
 type RequestTelegramText struct {

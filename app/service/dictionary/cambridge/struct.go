@@ -9,13 +9,20 @@ type Page struct {
 	RequestText string    `json:"request_text"`
 	Options     []Info    `json:"options"`
 	VoicePath   VoicePath `json:"voice_path"`
+	Image       []string  `json:"image"`
 }
 
 type Info struct {
 	Text          string            `json:"text"`
 	Type          string            `json:"type"`
+	Forms         []Forms           `json:"forms"`
 	Transcription map[string]string `json:"transcription"`
 	Explanation   []Explanation     `json:"explanation"`
+}
+
+type Forms struct {
+	Desc  string `json:"desc"`
+	Value string `json:"value"`
 }
 
 type VoicePath struct {
@@ -55,6 +62,8 @@ const xpathAltBlockDescriptionEnRu = "//article[@id='page-content']//div[contain
 const xpathTitle = "//div[contains(@class, 'di-title')]"
 const xpathType = "//div[contains(@class, 'posgram')]"
 const xpathComplexType = "//span[contains(@class, 'di-info')]/div"
+const xpathForms = "//span[contains(@class, 'irreg-infls')]/span[contains(@class, 'inf-group')]"
+const xpathImage = "//div[contains(@class, 'dimg')]//amp-img[contains(@class, 'dimg_i')]"
 const xpathTranscriptionUK = "//span[contains(@class, 'uk')]/span[contains(@class, 'pron')]"
 const xpathTranscriptionUS = "//span[contains(@class, 'us')]/span[contains(@class, 'pron')]"
 const xpathUK = "//span[contains(@class, 'uk')]//amp-audio//source[contains(@type,'audio/mpeg')]"
