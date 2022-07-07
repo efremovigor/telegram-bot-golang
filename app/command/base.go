@@ -140,6 +140,7 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 
 	if len(request.Output) > 0 {
 		message = request.Output[0]
+		fmt.Println(helper.ToJson(message))
 		if len(request.Output) > 1 {
 			request.Output = request.Output[1:]
 			redis.SetStruct(key, request, time.Hour*24)
