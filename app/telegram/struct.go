@@ -15,7 +15,7 @@ type Collector struct {
 	Messages []RequestChannelTelegram
 }
 
-func (c *Collector) Add(typeMessage string, messages []RequestTelegramText) {
+func (c *Collector) Add(typeMessage string, messages ...RequestTelegramText) {
 	for _, message := range messages {
 		if len(c.Messages) > 0 {
 			message.SetHasMore()
@@ -27,27 +27,6 @@ func (c *Collector) Add(typeMessage string, messages []RequestTelegramText) {
 type RequestChannelTelegram struct {
 	Type    string `json:"type"`
 	Message []byte `json:"message"`
-}
-
-func NewRequestChannelVoiceTelegram(word string, chatId int, languages []string) RequestChannelTelegram {
-	request := RequestTelegramText{Word: word, Text: "Found " + strings.Join(languages, ", ") + " voice record for " + DecodeForTelegram(word), ChatId: chatId}
-	var keyboards []Keyboard
-	for _, lang := range languages {
-		keyboards = append(keyboards, Keyboard{Text: "🗣 " + lang, CallbackData: ShowRequestVoice + " " + lang + " " + word})
-	}
-	if requestInJson, err := json.Marshal(request); err == nil {
-		return RequestChannelTelegram{Type: "text", Message: requestInJson} //, Buttons: keyboards}
-	}
-	return RequestChannelTelegram{}
-}
-
-func NewRequestChannelImageTelegram(word string, chatId int) RequestChannelTelegram {
-	request := RequestTelegramText{Word: word, Text: "Found image for " + word, ChatId: chatId}
-	//var keyboards = []Keyboard{{Text: "🏞 show", CallbackData: ShowRequestPic + " " + DecodeForTelegram(word)}}
-	if requestInJson, err := json.Marshal(request); err == nil {
-		return RequestChannelTelegram{Type: "text", Message: requestInJson} //,Buttons: keyboards}
-	}
-	return RequestChannelTelegram{}
 }
 
 func NewRequestChannelTelegram(requestType string, request interface{}) RequestChannelTelegram {

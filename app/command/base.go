@@ -26,13 +26,13 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 	var collector telegram.Collector
 	collector.Add(
 		"text",
-		[]telegram.RequestTelegramText{telegram.GetResultFromRapidMicrosoft(query, state)},
+		telegram.GetResultFromRapidMicrosoft(query, state),
 	)
 
 	if page := cambridge.Get(query.GetChatText()); page.IsValid() {
 		collector.Add(
 			"text",
-			handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText()),
+			handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText())...,
 		)
 	}
 
@@ -43,19 +43,19 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 		}
 		collector.Add(
 			"text",
-			[]telegram.RequestTelegramText{telegram.MakeRequestTelegramText(
+			telegram.MakeRequestTelegramText(
 				search.RequestWord,
 				telegram.DecodeForTelegram("Additional various 🔽"),
 				query.GetChatId(),
 				[]telegram.Keyboard{},
-			)},
+			),
 		)
 
 		fmt.Println(helper.ToJson(search))
 	}
 
 	if page := multitran.Get(query.GetChatText()); page.IsValid() {
-		collector.Add("text", telegram.GetResultFromMultitran(page, query))
+		collector.Add("text", telegram.GetResultFromMultitran(page, query)...)
 	}
 
 	saveMessagesQueue(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText(), collector.Messages)
@@ -80,7 +80,7 @@ func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
 	}
 	if page := cambridge.DoRequest(query.GetChatText(), cambridge.Url+cambridgeFounded, ""); page.IsValid() {
 		var collector telegram.Collector
-		collector.Add("text", handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText()))
+		collector.Add("text", handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText())...)
 		saveMessagesQueue(
 			fmt.Sprintf(redis.NextCambridgeRequestMessageKey, query.GetUserId(), query.GetChatText()),
 			query.GetChatText(),
