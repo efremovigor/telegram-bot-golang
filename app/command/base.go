@@ -57,7 +57,8 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 	if page := multitran.Get(query.GetChatText()); page.IsValid() {
 		collector.Add("text", telegram.GetResultFromMultitran(page, query)...)
 	}
-
+	fmt.Println("count:!!")
+	fmt.Println(len(collector.Messages))
 	saveMessagesQueue(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText(), collector.Messages)
 }
 
@@ -137,8 +138,6 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 	if err := json.Unmarshal([]byte(state), &request); err != nil {
 		fmt.Println("Unmarshal request : " + err.Error())
 	}
-	fmt.Println("hi")
-	fmt.Println(len(request.Output) > 0)
 
 	if len(request.Output) > 0 {
 		message = request.Output[0]
