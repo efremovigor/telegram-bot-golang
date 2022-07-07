@@ -137,6 +137,8 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 	if err := json.Unmarshal([]byte(state), &request); err != nil {
 		fmt.Println("Unmarshal request : " + err.Error())
 	}
+	fmt.Println("hi")
+	fmt.Println(len(request.Output) > 0)
 
 	if len(request.Output) > 0 {
 		message = request.Output[0]
