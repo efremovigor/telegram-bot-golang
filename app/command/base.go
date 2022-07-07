@@ -44,11 +44,10 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 				search.RequestWord,
 				telegram.DecodeForTelegram("Additional various 🔽"),
 				query.GetChatId(),
-				[]telegram.Keyboard{},
+				buttons,
 			),
 		)
 
-		fmt.Println(helper.ToJson(search))
 	}
 
 	if page := multitran.Get(query.GetChatText()); page.IsValid() {
