@@ -258,7 +258,7 @@ func sendVoice(chatId int, cache redis.VoiceFile) {
 	if _, err := helper.ParseJson(res.Body, &fileResponse); err != nil && !fileResponse.Ok {
 		fmt.Println("could not decode telegram response", err)
 	} else {
-		redis.Set(fmt.Sprintf(redis.WordPicTelegramKey, cache.Word, 0), fileResponse.Result.Audio.FileId, 0)
+		redis.Set(fmt.Sprintf(redis.WordVoiceTelegramKey, cache.Word, cache.Lang), fileResponse.Result.Audio.FileId, 0)
 	}
 }
 
