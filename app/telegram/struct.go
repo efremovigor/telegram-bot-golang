@@ -19,8 +19,8 @@ func (c *Collector) Add(typeMessage string, messages ...RequestTelegramText) {
 	for _, message := range messages {
 		if len(c.Messages) > 0 {
 			message.SetHasMore()
-			c.Messages = append(c.Messages, NewRequestChannelTelegram(typeMessage, message))
 		}
+		c.Messages = append(c.Messages, NewRequestChannelTelegram(typeMessage, message))
 	}
 }
 
