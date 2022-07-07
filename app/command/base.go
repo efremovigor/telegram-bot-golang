@@ -25,13 +25,11 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId()))
 	var collector telegram.Collector
 	collector.Add(
-		"text",
 		telegram.GetResultFromRapidMicrosoft(query, state),
 	)
 
 	if page := cambridge.Get(query.GetChatText()); page.IsValid() {
 		collector.Add(
-			"text",
 			handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText())...,
 		)
 	}
@@ -42,7 +40,6 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 			buttons = append(buttons, telegram.Keyboard{Text: "🔍 " + founded.Word, CallbackData: telegram.SearchRequest + " cambridge " + founded.Word})
 		}
 		collector.Add(
-			"text",
 			telegram.MakeRequestTelegramText(
 				search.RequestWord,
 				telegram.DecodeForTelegram("Additional various 🔽"),
@@ -55,10 +52,10 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 	}
 
 	if page := multitran.Get(query.GetChatText()); page.IsValid() {
-		collector.Add("text", telegram.GetResultFromMultitran(page, query)...)
+		collector.Add(telegram.GetResultFromMultitran(page, query)...)
 	}
 
-	saveMessagesQueue(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText(), collector.Messages)
+	saveMessagesQueue(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText(), collector.GetMessageForSave())
 }
 
 func handleCambridgePage(page cambridge.Page, userId int, chatId int, chatText string) (messages []telegram.RequestTelegramText) {
@@ -80,11 +77,11 @@ func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
 	}
 	if page := cambridge.DoRequest(query.GetChatText(), cambridge.Url+cambridgeFounded, ""); page.IsValid() {
 		var collector telegram.Collector
-		collector.Add("text", handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText())...)
+		collector.Add(handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText())...)
 		saveMessagesQueue(
 			fmt.Sprintf(redis.NextCambridgeRequestMessageKey, query.GetUserId(), query.GetChatText()),
 			query.GetChatText(),
-			collector.Messages,
+			collector.GetMessageForSave(),
 		)
 
 		return

@@ -12,16 +12,23 @@ type Listener struct {
 }
 
 type Collector struct {
-	Messages []RequestChannelTelegram
+	Messages []RequestTelegramText
 }
 
-func (c *Collector) Add(typeMessage string, messages ...RequestTelegramText) {
+func (c *Collector) Add(messages ...RequestTelegramText) {
 	for _, message := range messages {
 		if len(c.Messages) > 0 {
-			message.SetHasMore()
+			c.Messages[len(c.Messages)-1].SetHasMore()
 		}
-		c.Messages = append(c.Messages, NewRequestChannelTelegram(typeMessage, message))
+		c.Messages = append(c.Messages, message)
 	}
+}
+
+func (c Collector) GetMessageForSave() (output []RequestChannelTelegram) {
+	for _, message := range c.Messages {
+		output = append(output, NewRequestChannelTelegram("text", message))
+	}
+	return
 }
 
 type RequestChannelTelegram struct {
