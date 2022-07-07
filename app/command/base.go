@@ -57,8 +57,7 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 	if page := multitran.Get(query.GetChatText()); page.IsValid() {
 		collector.Add("text", telegram.GetResultFromMultitran(page, query)...)
 	}
-	fmt.Println("count:!!")
-	fmt.Println(len(collector.Messages))
+
 	saveMessagesQueue(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText(), collector.Messages)
 }
 
