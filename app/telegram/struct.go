@@ -11,11 +11,22 @@ type Listener struct {
 	Message chan RequestChannelTelegram
 }
 
+type Collector struct {
+	Messages []RequestChannelTelegram
+}
+
+func (c *Collector) Add(typeMessage string, messages []RequestTelegramText) {
+	for _, message := range messages {
+		if len(c.Messages) > 0 {
+			message.SetHasMore()
+			c.Messages = append(c.Messages, NewRequestChannelTelegram(typeMessage, message))
+		}
+	}
+}
+
 type RequestChannelTelegram struct {
-	Type    string     `json:"type"`
-	HasMore bool       `json:"hasMore"`
-	Buttons []Keyboard `json:"buttons"`
-	Message []byte     `json:"message"`
+	Type    string `json:"type"`
+	Message []byte `json:"message"`
 }
 
 func NewRequestChannelVoiceTelegram(word string, chatId int, languages []string) RequestChannelTelegram {
@@ -25,39 +36,45 @@ func NewRequestChannelVoiceTelegram(word string, chatId int, languages []string)
 		keyboards = append(keyboards, Keyboard{Text: "🗣 " + lang, CallbackData: ShowRequestVoice + " " + lang + " " + word})
 	}
 	if requestInJson, err := json.Marshal(request); err == nil {
-		return RequestChannelTelegram{Type: "text", Message: requestInJson, Buttons: keyboards}
+		return RequestChannelTelegram{Type: "text", Message: requestInJson} //, Buttons: keyboards}
 	}
 	return RequestChannelTelegram{}
 }
 
 func NewRequestChannelImageTelegram(word string, chatId int) RequestChannelTelegram {
 	request := RequestTelegramText{Word: word, Text: "Found image for " + word, ChatId: chatId}
-	var keyboards = []Keyboard{{Text: "🏞 show", CallbackData: ShowRequestPic + " " + DecodeForTelegram(word)}}
+	//var keyboards = []Keyboard{{Text: "🏞 show", CallbackData: ShowRequestPic + " " + DecodeForTelegram(word)}}
 	if requestInJson, err := json.Marshal(request); err == nil {
-		return RequestChannelTelegram{Type: "text", Message: requestInJson, Buttons: keyboards}
+		return RequestChannelTelegram{Type: "text", Message: requestInJson} //,Buttons: keyboards}
 	}
 	return RequestChannelTelegram{}
 }
 
-func NewRequestChannelTelegram(requestType string, request interface{}, buttons []Keyboard) RequestChannelTelegram {
+func NewRequestChannelTelegram(requestType string, request interface{}) RequestChannelTelegram {
 	if requestInJson, err := json.Marshal(request); err == nil {
-		return RequestChannelTelegram{Type: requestType, Message: requestInJson, Buttons: buttons}
+		return RequestChannelTelegram{Type: requestType, Message: requestInJson}
 	}
 	return RequestChannelTelegram{}
 }
 
 type RequestTelegramText struct {
-	Word   string `json:"word"`
-	Text   string `json:"text"`
-	ChatId int    `json:"chatId"`
+	Word    string     `json:"word"`
+	Text    string     `json:"text"`
+	ChatId  int        `json:"chatId"`
+	Buttons []Keyboard `json:"buttons"`
 }
 
-func MakeRequestTelegramText(word string, text string, chatId int) RequestTelegramText {
+func MakeRequestTelegramText(word string, text string, chatId int, buttons []Keyboard) RequestTelegramText {
 	return RequestTelegramText{
-		Word:   word,
-		Text:   text,
-		ChatId: chatId,
+		Word:    word,
+		Text:    text,
+		ChatId:  chatId,
+		Buttons: buttons,
 	}
+}
+
+func (r *RequestTelegramText) SetHasMore() {
+	r.Buttons = append(r.Buttons, Keyboard{Text: "📚 more", CallbackData: NextRequestMessage + " " + r.Word})
 }
 
 func MergeRequestTelegram(one RequestTelegramText, two RequestTelegramText) RequestTelegramText {

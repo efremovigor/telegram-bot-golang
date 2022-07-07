@@ -2,6 +2,8 @@ package helper
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -63,4 +65,10 @@ func ParseJson(r io.Reader, object interface{}) (string, error) {
 	}
 	b, err := io.ReadAll(ioutil.NopCloser(bytes.NewBuffer(buf)))
 	return string(b), err
+}
+
+func MD5(text string) string {
+	algorithm := md5.New()
+	algorithm.Write([]byte(text))
+	return hex.EncodeToString(algorithm.Sum(nil))
 }

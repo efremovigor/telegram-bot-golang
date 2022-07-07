@@ -17,21 +17,23 @@ func SayHello(query telegram.IncomingTelegramQueryInterface) telegram.RequestTel
 		query.GetChatText(),
 		telegram.DecodeForTelegram("Hello friend. How can I help you?"),
 		query.GetChatId(),
+		[]telegram.Keyboard{},
 	)
 }
 
 func General(query telegram.IncomingTelegramQueryInterface) {
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId()))
-	messages := []telegram.RequestChannelTelegram{
-		telegram.NewRequestChannelTelegram(
-			"text",
-			telegram.GetResultFromRapidMicrosoft(query, state),
-			[]telegram.Keyboard{},
-		),
-	}
+	var collector telegram.Collector
+	collector.Add(
+		"text",
+		[]telegram.RequestTelegramText{telegram.GetResultFromRapidMicrosoft(query, state)},
+	)
 
 	if page := cambridge.Get(query.GetChatText()); page.IsValid() {
-		messages = append(messages, handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText())...)
+		collector.Add(
+			"text",
+			handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText()),
+		)
 	}
 
 	if search := cambridge.Search(query.GetChatText()); search.IsValid() {
@@ -39,42 +41,28 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 		for _, founded := range search.Founded {
 			buttons = append(buttons, telegram.Keyboard{Text: "🔍 " + founded.Word, CallbackData: telegram.SearchRequest + " cambridge " + founded.Word})
 		}
-		messages = append(messages, telegram.NewRequestChannelTelegram(
+		collector.Add(
 			"text",
-			telegram.MakeRequestTelegramText(
+			[]telegram.RequestTelegramText{telegram.MakeRequestTelegramText(
 				search.RequestWord,
 				telegram.DecodeForTelegram("Additional various 🔽"),
 				query.GetChatId(),
-			),
-			buttons))
+				[]telegram.Keyboard{},
+			)},
+		)
 
 		fmt.Println(helper.ToJson(search))
 	}
 
 	if page := multitran.Get(query.GetChatText()); page.IsValid() {
-		for _, message := range telegram.GetResultFromMultitran(page, query) {
-			messages = append(messages, telegram.NewRequestChannelTelegram("text", message, []telegram.Keyboard{}))
-		}
+		collector.Add("text", telegram.GetResultFromMultitran(page, query))
 	}
 
-	saveMessagesQueue(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText(), messages)
+	saveMessagesQueue(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText(), collector.Messages)
 }
 
-func handleCambridgePage(page cambridge.Page, userId int, chatId int, chatText string) (messages []telegram.RequestChannelTelegram) {
-	for _, message := range telegram.GetResultFromCambridge(page, chatId, chatText) {
-		messages = append(messages, telegram.NewRequestChannelTelegram("text", message, []telegram.Keyboard{}))
-	}
-	if len(page.Image) > 0 {
-		messages = append(messages, telegram.NewRequestChannelImageTelegram(page.RequestText, chatId))
-	}
-	switch true {
-	case helper.Len(page.VoicePath.UK) > 0 && helper.Len(page.VoicePath.US) > 0:
-		messages = append(messages, telegram.NewRequestChannelVoiceTelegram(page.RequestText, chatId, []string{telegram.CountryUk, telegram.CountryUs}))
-	case helper.Len(page.VoicePath.UK) > 0:
-		messages = append(messages, telegram.NewRequestChannelVoiceTelegram(page.RequestText, chatId, []string{telegram.CountryUk}))
-	case helper.Len(page.VoicePath.US) > 0:
-		messages = append(messages, telegram.NewRequestChannelVoiceTelegram(page.RequestText, chatId, []string{telegram.CountryUs}))
-	}
+func handleCambridgePage(page cambridge.Page, userId int, chatId int, chatText string) (messages []telegram.RequestTelegramText) {
+	messages = telegram.GetResultFromCambridge(page, chatId, chatText)
 	statistic.Consider(chatText, userId)
 	return
 }
@@ -91,10 +79,12 @@ func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
 		return
 	}
 	if page := cambridge.DoRequest(query.GetChatText(), cambridge.Url+cambridgeFounded, ""); page.IsValid() {
+		var collector telegram.Collector
+		collector.Add("text", handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText()))
 		saveMessagesQueue(
 			fmt.Sprintf(redis.NextCambridgeRequestMessageKey, query.GetUserId(), query.GetChatText()),
 			query.GetChatText(),
-			handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText()),
+			collector.Messages,
 		)
 
 		return
@@ -103,28 +93,33 @@ func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
 	}
 }
 
-func SendVoice(query telegram.IncomingTelegramQueryInterface, lang string, word string) {
-	if cambridgeInfo := cambridge.Get(word); cambridgeInfo.IsValid() {
-		var request telegram.UserRequest
-		key := fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), word)
-		state, _ := redis.Get(key)
-		if err := json.Unmarshal([]byte(state), &request); err != nil {
-			fmt.Println("Unmarshal request : " + err.Error())
-		}
-		telegram.SendVoices(query.GetChatId(), cambridgeInfo, lang, len(request.Output) > 0)
+func SendVoice(query telegram.IncomingTelegramQueryInterface, lang string, hash string) {
+	url, err := redis.Get(fmt.Sprintf(redis.InfoCambridgeUniqVoiceLink, hash))
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+	var cache redis.VoiceFile
+	if err := json.Unmarshal([]byte(url), &cache); err != nil {
+		fmt.Println(err)
+		return
+	}
+	telegram.SendVoices(query.GetChatId(), lang, cache)
 }
 
-func SendImage(query telegram.IncomingTelegramQueryInterface, word string) {
-	if cambridgeInfo := cambridge.Get(word); cambridgeInfo.IsValid() {
-		var request telegram.UserRequest
-		key := fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), word)
-		state, _ := redis.Get(key)
-		if err := json.Unmarshal([]byte(state), &request); err != nil {
-			fmt.Println("Unmarshal request : " + err.Error())
-		}
-		telegram.SendImage(query.GetChatId(), cambridgeInfo, len(request.Output) > 0)
+func SendImage(query telegram.IncomingTelegramQueryInterface, hash string) {
+	url, err := redis.Get(fmt.Sprintf(redis.InfoCambridgeUniqPicLink, hash))
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+	var cache redis.PicFile
+	if err := json.Unmarshal([]byte(url), &cache); err != nil {
+		fmt.Println(err)
+		return
+	}
+	telegram.SendImage(query.GetChatId(), cache)
+
 }
 
 func GetNextMessage(userId int, word string) (message telegram.RequestChannelTelegram, err error) {
@@ -146,7 +141,6 @@ func GetNextMessage(userId int, word string) (message telegram.RequestChannelTel
 	if len(request.Output) > 0 {
 		message = request.Output[0]
 		if len(request.Output) > 1 {
-			message.Buttons = append(message.Buttons, telegram.Keyboard{Text: "📚 more", CallbackData: telegram.NextRequestMessage + " " + word})
 			request.Output = request.Output[1:]
 			redis.SetStruct(key, request, time.Hour*24)
 		} else {
@@ -171,5 +165,6 @@ func Help(query telegram.IncomingTelegramQueryInterface) telegram.RequestTelegra
 			"*"+telegram.DecodeForTelegram(GetAllTopCommand)+"* \\- To see the most popular requests for translation or explanation  \n"+
 			"*"+telegram.DecodeForTelegram(GetMyTopCommand)+"* \\- To see your popular requests for translation or explanation  \n",
 		query.GetChatId(),
+		[]telegram.Keyboard{},
 	)
 }

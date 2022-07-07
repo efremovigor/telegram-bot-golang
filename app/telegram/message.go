@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"telegram-bot-golang/db/postgree/model"
+	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
 	"telegram-bot-golang/service/dictionary/multitran"
@@ -34,6 +35,7 @@ func GetMultitranHeaderBlock(word string) string {
 func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramText {
 	var messages []RequestTelegramText
 	var mainBlock string
+	var buttons []Keyboard
 	mainBlock += fmt.Sprintf("*Word*\\: *%s*", DecodeForTelegram(info.Text))
 	mainBlock += fmt.Sprintf("\\(%s\\)", DecodeForTelegram(info.Type)) + "\n\n"
 	for lang, transcription := range info.Transcription {
@@ -41,6 +43,23 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 	}
 	if len(info.Transcription) > 0 {
 		mainBlock += "\n"
+	}
+
+	if helper.Len(info.Image) > 0 {
+		hash := helper.MD5(info.Image)
+		redis.SetStruct(fmt.Sprintf(redis.InfoCambridgeUniqPicLink, hash), redis.PicFile{Word: info.Text, Url: info.Image}, 0)
+		buttons = append(buttons, Keyboard{Text: "🏞 picture", CallbackData: ShowRequestPic + " " + hash})
+	}
+
+	if helper.Len(info.VoicePath.UK) > 0 {
+		hash := helper.MD5(info.VoicePath.UK)
+		redis.SetStruct(fmt.Sprintf(redis.InfoCambridgeUniqVoiceLink, hash), redis.VoiceFile{Lang: CountryUk, Word: info.Text, Url: info.VoicePath.UK}, 0)
+		buttons = append(buttons, Keyboard{Text: "🗣 " + CountryUk, CallbackData: ShowRequestVoice + " " + CountryUk + " " + hash})
+	}
+	if helper.Len(info.VoicePath.US) > 0 {
+		hash := helper.MD5(info.VoicePath.US)
+		redis.SetStruct(fmt.Sprintf(redis.InfoCambridgeUniqVoiceLink, hash), redis.VoiceFile{Lang: CountryUs, Word: info.Text, Url: info.VoicePath.US}, 0)
+		buttons = append(buttons, Keyboard{Text: "🗣 " + CountryUs, CallbackData: ShowRequestVoice + " " + CountryUs + " " + hash})
 	}
 
 	var explanationBlock string
@@ -63,11 +82,13 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 					info.Text,
 					mainBlock+explanationBlock+"\n",
 					chatId,
+					[]Keyboard{},
 				),
 				MakeRequestTelegramText(
 					info.Text,
 					exampleBlock+"\n",
 					chatId,
+					[]Keyboard{},
 				),
 			)
 			mainBlock = ""
@@ -79,6 +100,7 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 					info.Text,
 					mainBlock+explanationBlock+exampleBlock+"\n",
 					chatId,
+					buttons,
 				),
 			)
 			mainBlock = ""
@@ -91,7 +113,7 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 			}
 		}
 	}
-	messages = append(messages, MakeRequestTelegramText(info.Text, mainBlock+"\n", chatId))
+	messages = append(messages, MakeRequestTelegramText(info.Text, mainBlock+"\n", chatId, buttons))
 	return messages
 }
 
@@ -107,6 +129,7 @@ func GetMultitranOptionBlock(chatId int, page multitran.Page) []RequestTelegramT
 						info.Text,
 						mainBlock+"\n",
 						chatId,
+						[]Keyboard{},
 					),
 				)
 				mainBlock = ""
@@ -121,6 +144,7 @@ func GetMultitranOptionBlock(chatId int, page multitran.Page) []RequestTelegramT
 							info.Text,
 							mainBlock+"\n",
 							chatId,
+							[]Keyboard{},
 						),
 					)
 					mainBlock = ""
@@ -138,6 +162,7 @@ func GetMultitranOptionBlock(chatId int, page multitran.Page) []RequestTelegramT
 		page.RequestText,
 		mainBlock+"\n",
 		chatId,
+		[]Keyboard{},
 	))
 	return messages
 }

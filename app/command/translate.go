@@ -17,6 +17,7 @@ func ChangeTranslateTransition(command string, query telegram.IncomingTelegramQu
 		query.GetChatText(),
 		telegram.GetBaseMsg(query.GetUsername(), query.GetUserId())+telegram.GetChangeTranslateMsg(Transitions()[command].Desc),
 		query.GetChatId(),
+		[]telegram.Keyboard{},
 	)
 }
 

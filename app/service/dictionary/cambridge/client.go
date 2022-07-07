@@ -148,14 +148,14 @@ func DoRequest(word string, url string, altUrl string) (page Page) {
 		}
 
 		if img, err := htmlquery.Query(node, xpathImage); err == nil && img != nil {
-			page.Image = append(page.Image, strings.TrimSpace(htmlquery.SelectAttr(img, "src")))
+			info.Image = strings.TrimSpace(htmlquery.SelectAttr(img, "src"))
 		}
 
-		if node, err := htmlquery.Query(node, xpathUK); helper.Len(page.VoicePath.UK) == 0 && err == nil && node != nil {
-			page.VoicePath.UK = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
+		if node, err := htmlquery.Query(node, xpathUK); helper.Len(info.VoicePath.UK) == 0 && err == nil && node != nil {
+			info.VoicePath.UK = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
 		}
-		if node, err := htmlquery.Query(node, xpathUS); helper.Len(page.VoicePath.US) == 0 && err == nil && node != nil {
-			page.VoicePath.US = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
+		if node, err := htmlquery.Query(node, xpathUS); helper.Len(info.VoicePath.US) == 0 && err == nil && node != nil {
+			info.VoicePath.US = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
 		}
 		xpathExplanations, _ := htmlquery.QueryAll(node, xpathExplanations)
 

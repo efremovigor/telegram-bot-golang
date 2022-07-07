@@ -12,7 +12,7 @@ func GetTop10(query telegram.IncomingTelegramQueryInterface) telegram.RequestTel
 		text = telegram.GetRatingHeader(10, true)
 		text += handleList(list)
 	}
-	return telegram.MakeRequestTelegramText(query.GetChatText(), text, query.GetChatId())
+	return telegram.MakeRequestTelegramText(query.GetChatText(), text, query.GetChatId(), []telegram.Keyboard{})
 }
 
 func GetTop10ForUser(query telegram.IncomingTelegramQueryInterface) telegram.RequestTelegramText {
@@ -22,7 +22,7 @@ func GetTop10ForUser(query telegram.IncomingTelegramQueryInterface) telegram.Req
 		text = telegram.GetRatingHeader(10, false)
 		text += handleList(list)
 	}
-	return telegram.MakeRequestTelegramText(query.GetChatText(), text, query.GetChatId())
+	return telegram.MakeRequestTelegramText(query.GetChatText(), text, query.GetChatId(), []telegram.Keyboard{})
 }
 
 func handleList(list []model.WordStatistic) string {

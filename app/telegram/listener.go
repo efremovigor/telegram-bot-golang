@@ -14,7 +14,7 @@ func HandleRequests(listener Listener) {
 			case "text":
 				var textRequest RequestTelegramText
 				if err := json.Unmarshal(request.Message, &textRequest); err == nil {
-					sendBaseInfo(textRequest, request.Buttons)
+					sendBaseInfo(textRequest)
 				} else {
 					fmt.Println(err)
 				}

@@ -6,10 +6,8 @@ const Url = "https://dictionary.cambridge.org"
 const SearchUrl = Url + "/autocomplete/amp?dataset=english&q=%s&__amp_source_origin=" + Url
 
 type Page struct {
-	RequestText string    `json:"request_text"`
-	Options     []Info    `json:"options"`
-	VoicePath   VoicePath `json:"voice_path"`
-	Image       []string  `json:"image"`
+	RequestText string `json:"request_text"`
+	Options     []Info `json:"options"`
 }
 
 type Info struct {
@@ -18,6 +16,8 @@ type Info struct {
 	Forms         []Forms           `json:"forms"`
 	Transcription map[string]string `json:"transcription"`
 	Explanation   []Explanation     `json:"explanation"`
+	VoicePath     VoicePath         `json:"voice_path"`
+	Image         string            `json:"image"`
 }
 
 type Forms struct {
