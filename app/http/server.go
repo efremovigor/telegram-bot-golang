@@ -127,7 +127,7 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 		words := strings.Split(query.GetChatText(), " ")
 		switch words[0] {
 		case telegram.NextMessage:
-			c.sendNextMessage(fmt.Sprintf(redis.SubCambridgeMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
+			c.sendNextMessage(fmt.Sprintf(redis.NextMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
 			return nil
 		case telegram.NextMessageSubCambridge:
 			c.sendNextMessage(fmt.Sprintf(redis.SubCambridgeMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
