@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"telegram-bot-golang/helper"
 )
 
 const MaxRequestSize = 3000
@@ -31,6 +32,7 @@ func (c *Collector) Add(messages ...RequestTelegramText) {
 			case ReasonTypeNextMessage:
 				fmt.Println("!!!!!!!!yes")
 				c.Messages[len(c.Messages)-1].SetHasMore(NextMessage)
+				fmt.Println(helper.ToJson(c.Messages[len(c.Messages)-1]))
 			case ReasonSubCambridgeMessage:
 				c.Messages[len(c.Messages)-1].SetHasMore(NextMessageSubCambridge)
 			case ReasonFullCambridgeMessage:
