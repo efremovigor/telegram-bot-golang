@@ -125,18 +125,19 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 		listener.Message <- telegram.NewRequestChannelTelegram("text", command.GetTop10ForUser(query))
 	default:
 		words := strings.Split(query.GetChatText(), " ")
+		restOfMessage := strings.Join(words[1:], " ")
 		switch words[0] {
 		case telegram.NextMessage:
-			c.sendNextMessage(fmt.Sprintf(redis.NextMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
+			c.sendNextMessage(fmt.Sprintf(redis.NextMessageKey, query.GetUserId(), restOfMessage), restOfMessage)
 			return nil
 		case telegram.NextMessageSubCambridge:
-			c.sendNextMessage(fmt.Sprintf(redis.SubCambridgeMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
+			c.sendNextMessage(fmt.Sprintf(redis.SubCambridgeMessageKey, query.GetUserId(), restOfMessage), restOfMessage)
 			return nil
 		case telegram.NextMessageFullCambridge:
-			c.sendNextMessage(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "cambridge", query.GetUserId(), query.GetChatText()), query.GetChatText())
+			c.sendNextMessage(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "cambridge", query.GetUserId(), restOfMessage), restOfMessage)
 			return nil
 		case telegram.NextMessageFullMultitran:
-			c.sendNextMessage(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "multitran", query.GetUserId(), query.GetChatText()), query.GetChatText())
+			c.sendNextMessage(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "multitran", query.GetUserId(), restOfMessage), restOfMessage)
 			return nil
 		case telegram.ShowRequestVoice:
 			if words[1] == telegram.CountryUs || words[1] == telegram.CountryUk {
@@ -144,7 +145,7 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 			}
 			return nil
 		case telegram.ShowRequestPic:
-			command.SendImage(query, strings.Join(words[1:], " "))
+			command.SendImage(query, restOfMessage)
 			return nil
 		case telegram.ShowFull:
 			command.FullInfo(words[1], query.GetChatId(), query.GetUserId(), strings.Join(words[2:], " "))
@@ -156,7 +157,7 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 				c.sendNextMessage(fmt.Sprintf(redis.SubCambridgeMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
 				return nil
 			}
-			query.SetChatText(strings.Join(words[1:], " "))
+			query.SetChatText(restOfMessage)
 		}
 		command.General(query.GetChatId(), query.GetUserId(), query.GetChatText())
 		c.sendNextMessage(fmt.Sprintf(redis.NextMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
