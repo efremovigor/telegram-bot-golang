@@ -21,20 +21,20 @@ func SayHello(query telegram.IncomingTelegramQueryInterface) telegram.RequestTel
 	)
 }
 
-func General(query telegram.IncomingTelegramQueryInterface) {
-	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, query.GetChatId(), query.GetUserId()))
-	var collector telegram.Collector
+func General(chatId int, userId int, chatText string) {
+	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, chatId, userId))
+	collector := telegram.Collector{Type: telegram.ReasonTypeNextMessage}
 	collector.Add(
-		telegram.GetResultFromRapidMicrosoft(query, state),
+		telegram.GetResultFromRapidMicrosoft(chatId, chatText, state),
 	)
 
-	if page := cambridge.Get(query.GetChatText()); page.IsValid() {
+	if page := cambridge.Get(chatText); page.IsValid() {
 		collector.Add(
-			handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText())...,
+			handleCambridgePage(page, userId, chatId, chatText)...,
 		)
 	}
 
-	if search := cambridge.Search(query.GetChatText()); search.IsValid() {
+	if search := cambridge.Search(chatText); search.IsValid() {
 		var buttons []telegram.Keyboard
 		for _, founded := range search.Founded {
 			buttons = append(buttons, telegram.Keyboard{Text: "🔍 " + founded.Word, CallbackData: telegram.SearchRequest + " cambridge " + founded.Word})
@@ -43,18 +43,54 @@ func General(query telegram.IncomingTelegramQueryInterface) {
 			telegram.MakeRequestTelegramText(
 				search.RequestWord,
 				telegram.DecodeForTelegram("Additional various 🔽"),
-				query.GetChatId(),
+				chatId,
 				buttons,
 			),
 		)
-
 	}
 
-	if page := multitran.Get(query.GetChatText()); page.IsValid() {
-		collector.Add(telegram.GetResultFromMultitran(page, query)...)
+	if page := multitran.Get(chatText); page.IsValid() {
+		collector.Add(telegram.GetResultFromMultitran(page, chatId, chatText)...)
 	}
 
-	saveMessagesQueue(fmt.Sprintf(redis.NextRequestMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText(), collector.GetMessageForSave())
+	saveMessagesQueue(fmt.Sprintf(redis.NextMessageKey, userId, chatText), chatText, collector.GetMessageForSave())
+}
+
+func FullInfo(dictionary string, chatId int, userId int, chatText string) {
+	var collector telegram.Collector
+	switch dictionary {
+	case "cambridge":
+		collector.Type = telegram.ReasonFullCambridgeMessage
+		if page := cambridge.Get(chatText); page.IsValid() {
+			collector.Add(
+				handleCambridgePage(page, userId, chatId, chatText)...,
+			)
+		}
+		if search := cambridge.Search(chatText); search.IsValid() {
+			var buttons []telegram.Keyboard
+			for _, founded := range search.Founded {
+				buttons = append(buttons, telegram.Keyboard{Text: "🔍 " + founded.Word, CallbackData: telegram.SearchRequest + " cambridge " + founded.Word})
+			}
+			collector.Add(
+				telegram.MakeRequestTelegramText(
+					search.RequestWord,
+					telegram.DecodeForTelegram("Additional various 🔽"),
+					chatId,
+					buttons,
+				),
+			)
+		}
+	case "multitran":
+		collector.Type = telegram.ReasonFullMultitranMessage
+		if page := multitran.Get(chatText); page.IsValid() {
+			collector.Add(telegram.GetResultFromMultitran(page, chatId, chatText)...)
+		}
+	case "wooordhunt":
+		/** wooordhunt hundler */
+	}
+
+	saveMessagesQueue(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, dictionary, userId, chatText), chatText, collector.GetMessageForSave())
+
 }
 
 func handleCambridgePage(page cambridge.Page, userId int, chatId int, chatText string) (messages []telegram.RequestTelegramText) {
@@ -68,18 +104,18 @@ func saveMessagesQueue(key string, chatText string, messages []telegram.RequestC
 	redis.SetStruct(key, telegram.UserRequest{Request: chatText, Output: messages}, time.Hour*24)
 }
 
-func GetSubCambridge(query telegram.IncomingTelegramQueryInterface) {
-	cambridgeFounded, err := redis.Get(fmt.Sprintf(redis.InfoCambridgeSearchValue, query.GetChatText()))
+func GetSubCambridge(chatId int, userId int, chatText string) {
+	cambridgeFounded, err := redis.Get(fmt.Sprintf(redis.InfoCambridgeSearchValue, chatText))
 	if err != nil {
-		fmt.Println(fmt.Sprintf("[Strange behaivor] Don't find cambridge key - word:%s", query.GetChatText()))
+		fmt.Println(fmt.Sprintf("[Strange behaivor] Don't find cambridge key - word:%s", chatText))
 		return
 	}
-	if page := cambridge.DoRequest(query.GetChatText(), cambridge.Url+cambridgeFounded, ""); page.IsValid() {
-		var collector telegram.Collector
-		collector.Add(handleCambridgePage(page, query.GetUserId(), query.GetChatId(), query.GetChatText())...)
+	if page := cambridge.DoRequest(chatText, cambridge.Url+cambridgeFounded, ""); page.IsValid() {
+		collector := telegram.Collector{Type: telegram.ReasonSubCambridgeMessage}
+		collector.Add(handleCambridgePage(page, userId, chatId, chatText)...)
 		saveMessagesQueue(
-			fmt.Sprintf(redis.NextCambridgeRequestMessageKey, query.GetUserId(), query.GetChatText()),
-			query.GetChatText(),
+			fmt.Sprintf(redis.SubCambridgeMessageKey, userId, chatText),
+			chatText,
 			collector.GetMessageForSave(),
 		)
 
@@ -118,19 +154,14 @@ func SendImage(query telegram.IncomingTelegramQueryInterface, hash string) {
 
 }
 
-func GetNextMessage(userId int, word string) (message telegram.RequestChannelTelegram, err error) {
+func GetNextMessage(key string, word string) (message telegram.RequestChannelTelegram, err error) {
 	var request telegram.UserRequest
-	key := fmt.Sprintf(redis.NextRequestMessageKey, userId, word)
-	state, err := redis.Get(key)
+	value, err := redis.Get(key)
 	if err != nil {
-		key = fmt.Sprintf(redis.NextCambridgeRequestMessageKey, userId, word)
-		state, err = redis.Get(key)
-		if err != nil {
-			fmt.Println(fmt.Sprintf("[Strange behaivor] Don't find key when we getting next message: word:%s", word))
-			return
-		}
+		fmt.Println(fmt.Sprintf("[Strange behaivor] Don't find key when we getting next message: word:%s", word))
+		return
 	}
-	if err := json.Unmarshal([]byte(state), &request); err != nil {
+	if err := json.Unmarshal([]byte(value), &request); err != nil {
 		fmt.Println("Unmarshal request : " + err.Error())
 	}
 

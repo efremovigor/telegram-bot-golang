@@ -11,6 +11,7 @@ import (
 	"strings"
 	"telegram-bot-golang/command"
 	"telegram-bot-golang/config"
+	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/env"
 	"telegram-bot-golang/helper"
 	"telegram-bot-golang/service/dictionary/cambridge"
@@ -105,7 +106,7 @@ func Handle(listener telegram.Listener) {
 func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 
 	fmt.Println("from telegram message:" + string(query.GetChatText()))
-	listener := c.Get("listener").(telegram.Listener)
+	listener := c.getTelegramListener()
 
 	switch query.GetChatText() {
 	case command.StartCommand:
@@ -125,10 +126,17 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 	default:
 		words := strings.Split(query.GetChatText(), " ")
 		switch words[0] {
-		case telegram.NextRequestMessage:
-			if message, err := command.GetNextMessage(query.GetUserId(), strings.Join(words[1:], " ")); err == nil {
-				listener.Message <- message
-			}
+		case telegram.NextMessage:
+			c.sendNextMessage(fmt.Sprintf(redis.SubCambridgeMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
+			return nil
+		case telegram.NextMessageSubCambridge:
+			c.sendNextMessage(fmt.Sprintf(redis.SubCambridgeMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
+			return nil
+		case telegram.NextMessageFullCambridge:
+			c.sendNextMessage(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "cambridge", query.GetUserId(), query.GetChatText()), query.GetChatText())
+			return nil
+		case telegram.NextMessageFullMultitran:
+			c.sendNextMessage(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "multitran", query.GetUserId(), query.GetChatText()), query.GetChatText())
 			return nil
 		case telegram.ShowRequestVoice:
 			if words[1] == telegram.CountryUs || words[1] == telegram.CountryUk {
@@ -138,27 +146,31 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 		case telegram.ShowRequestPic:
 			command.SendImage(query, strings.Join(words[1:], " "))
 			return nil
+		case telegram.ShowFull:
+			command.FullInfo(words[1], query.GetChatId(), query.GetUserId(), strings.Join(words[2:], " "))
+			return nil
 		case telegram.SearchRequest:
 			if words[1] == "cambridge" {
 				query.SetChatText(strings.Join(words[2:], " "))
-				command.GetSubCambridge(query)
-				if message, err := command.GetNextMessage(query.GetUserId(), query.GetChatText()); err == nil {
-					listener.Message <- message
-				}
+				command.GetSubCambridge(query.GetChatId(), query.GetUserId(), query.GetChatText())
+				c.sendNextMessage(fmt.Sprintf(redis.SubCambridgeMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
 				return nil
 			}
 			query.SetChatText(strings.Join(words[1:], " "))
-			command.General(query)
-			if message, err := command.GetNextMessage(query.GetUserId(), query.GetChatText()); err == nil {
-				listener.Message <- message
-			}
-			return nil
 		}
-		command.General(query)
-		if message, err := command.GetNextMessage(query.GetUserId(), query.GetChatText()); err == nil {
-			listener.Message <- message
-		}
+		command.General(query.GetChatId(), query.GetUserId(), query.GetChatText())
+		c.sendNextMessage(fmt.Sprintf(redis.NextMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
 	}
 
 	return nil
+}
+
+func (c Context) sendNextMessage(key string, word string) {
+	if message, err := command.GetNextMessage(key, word); err == nil {
+		c.getTelegramListener().Message <- message
+	}
+}
+
+func (c Context) getTelegramListener() telegram.Listener {
+	return c.Get("listener").(telegram.Listener)
 }

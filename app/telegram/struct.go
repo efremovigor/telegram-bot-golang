@@ -7,18 +7,35 @@ import (
 
 const MaxRequestSize = 3000
 
+type ReasonMessage int
+
+const ReasonTypeNextMessage ReasonMessage = 1
+const ReasonSubCambridgeMessage ReasonMessage = 2
+const ReasonFullCambridgeMessage ReasonMessage = 3
+const ReasonFullMultitranMessage ReasonMessage = 4
+
 type Listener struct {
 	Message chan RequestChannelTelegram
 }
 
 type Collector struct {
+	Type     ReasonMessage
 	Messages []RequestTelegramText
 }
 
 func (c *Collector) Add(messages ...RequestTelegramText) {
 	for _, message := range messages {
 		if len(c.Messages) > 0 {
-			c.Messages[len(c.Messages)-1].SetHasMore()
+			switch c.Type {
+			case ReasonTypeNextMessage:
+				c.Messages[len(c.Messages)-1].SetHasMore(NextMessage)
+			case ReasonSubCambridgeMessage:
+				c.Messages[len(c.Messages)-1].SetHasMore(NextMessageSubCambridge)
+			case ReasonFullCambridgeMessage:
+				c.Messages[len(c.Messages)-1].SetHasMore(NextMessageFullCambridge)
+			case ReasonFullMultitranMessage:
+				c.Messages[len(c.Messages)-1].SetHasMore(NextMessageFullMultitran)
+			}
 		}
 		c.Messages = append(c.Messages, message)
 	}
@@ -59,8 +76,8 @@ func MakeRequestTelegramText(word string, text string, chatId int, buttons []Key
 	}
 }
 
-func (r *RequestTelegramText) SetHasMore() {
-	r.Buttons = append(r.Buttons, Keyboard{Text: "📚 more", CallbackData: NextRequestMessage + " " + r.Word})
+func (r *RequestTelegramText) SetHasMore(command string) {
+	r.Buttons = append(r.Buttons, Keyboard{Text: "📚 more", CallbackData: command + " " + r.Word})
 }
 
 func MergeRequestTelegram(one RequestTelegramText, two RequestTelegramText) RequestTelegramText {

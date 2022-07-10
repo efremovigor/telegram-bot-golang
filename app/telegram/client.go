@@ -19,10 +19,15 @@ import (
 	telegramConfig "telegram-bot-golang/telegram/config"
 )
 
-const NextRequestMessage = "/next_message"
+const NextMessage = "/next_message"
+const NextMessageSubCambridge = "/next_message_cambridge"
+const NextMessageFullCambridge = "/next_message_full_cambridge"
+const NextMessageFullMultitran = "/next_message_full_multitran"
 const ShowRequestVoice = "/show_voice"
 const ShowRequestPic = "/show_pic"
 const SearchRequest = "/search"
+const ShowFull = "/show_full"
+
 const LangEn = "en"
 const LangRu = "ru"
 const CountryUk = "uk"
@@ -38,11 +43,11 @@ func GetHelloIGotYourMSGRequest(query IncomingTelegramQueryInterface) RequestTel
 	)
 }
 
-func GetResultFromRapidMicrosoft(query IncomingTelegramQueryInterface, state string) RequestTelegramText {
+func GetResultFromRapidMicrosoft(chatId int, chatText string, state string) RequestTelegramText {
 	var from, to string
 
 	if state == "" {
-		if helper.IsEn(query.GetChatText()) {
+		if helper.IsEn(chatText) {
 			from = LangEn
 			to = LangRu
 		} else {
@@ -57,14 +62,14 @@ func GetResultFromRapidMicrosoft(query IncomingTelegramQueryInterface, state str
 		to = LangEn
 	}
 
-	translate := rapidMicrosoft.GetTranslate(query.GetChatText(), to, from)
+	translate := rapidMicrosoft.GetTranslate(chatText, to, from)
 	if helper.IsEmpty(translate) {
 		return RequestTelegramText{}
 	}
 	return MakeRequestTelegramText(
-		query.GetChatText(),
-		GetBlockWithRapidInfo(query.GetChatText(), translate),
-		query.GetChatId(),
+		chatText,
+		GetBlockWithRapidInfo(chatText, translate),
+		chatId,
 		[]Keyboard{},
 	)
 }
@@ -95,17 +100,17 @@ func GetResultFromCambridge(cambridgeInfo cambridge.Page, chatId int, chatText s
 	return messages
 }
 
-func GetResultFromMultitran(info multitran.Page, query IncomingTelegramQueryInterface) []RequestTelegramText {
+func GetResultFromMultitran(info multitran.Page, chatId int, chatText string) []RequestTelegramText {
 	var messages []RequestTelegramText
-	requests := GetMultitranOptionBlock(query.GetChatId(), info)
+	requests := GetMultitranOptionBlock(chatId, info)
 	if len(requests) > 0 {
 		messages = append(
 			messages,
 			MergeRequestTelegram(
 				MakeRequestTelegramText(
-					query.GetChatText(),
+					chatText,
 					GetMultitranHeaderBlock(info.RequestText),
-					query.GetChatId(),
+					chatId,
 					[]Keyboard{},
 				),
 				requests[0],
