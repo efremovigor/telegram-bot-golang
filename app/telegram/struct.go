@@ -2,7 +2,9 @@ package telegram
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
+	"telegram-bot-golang/helper"
 )
 
 const MaxRequestSize = 3000
@@ -39,6 +41,7 @@ func (c *Collector) Add(messages ...RequestTelegramText) {
 		}
 		c.Messages = append(c.Messages, message)
 	}
+	fmt.Println(helper.ToJson(messages[0]))
 }
 
 func (c Collector) GetMessageForSave() (output []RequestChannelTelegram) {
