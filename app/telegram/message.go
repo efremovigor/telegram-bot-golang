@@ -32,6 +32,12 @@ func GetMultitranHeaderBlock(word string) string {
 	return fmt.Sprintf("✅ *Multitran\\-dictionary*\\: *%s*", DecodeForTelegram(word)) + "\n\n"
 }
 
+func GetCambridgeShortInfo(chatId int, info cambridge.Page) []RequestTelegramText {
+	messages := GetCambridgeOptionBlock(chatId, info.Options[0])
+
+	return messages
+}
+
 func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramText {
 	var messages []RequestTelegramText
 	var mainBlock string

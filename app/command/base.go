@@ -29,8 +29,9 @@ func General(chatId int, userId int, chatText string) {
 	)
 
 	if page := cambridge.Get(chatText); page.IsValid() {
+		statistic.Consider(chatText, userId)
 		collector.Add(
-			handleCambridgePage(page, userId, chatId, chatText)...,
+			handleCambridgePage(page, chatId, chatText)...,
 		)
 	}
 
@@ -56,6 +57,17 @@ func General(chatId int, userId int, chatText string) {
 	saveMessagesQueue(fmt.Sprintf(redis.NextMessageKey, userId, chatText), chatText, collector.GetMessageForSave())
 }
 
+func ListShortInfo(chatId int, userId int, chatText string) {
+	var collector telegram.Collector
+
+	if page := cambridge.Get(chatText); page.IsValid() {
+		statistic.Consider(chatText, userId)
+		collector.Add(
+			handleCambridgePage(page, chatId, chatText)...,
+		)
+	}
+}
+
 func FullInfo(dictionary string, chatId int, userId int, chatText string) {
 	var collector telegram.Collector
 	switch dictionary {
@@ -63,7 +75,7 @@ func FullInfo(dictionary string, chatId int, userId int, chatText string) {
 		collector.Type = telegram.ReasonFullCambridgeMessage
 		if page := cambridge.Get(chatText); page.IsValid() {
 			collector.Add(
-				handleCambridgePage(page, userId, chatId, chatText)...,
+				handleCambridgePage(page, chatId, chatText)...,
 			)
 		}
 		if search := cambridge.Search(chatText); search.IsValid() {
@@ -93,9 +105,8 @@ func FullInfo(dictionary string, chatId int, userId int, chatText string) {
 
 }
 
-func handleCambridgePage(page cambridge.Page, userId int, chatId int, chatText string) (messages []telegram.RequestTelegramText) {
+func handleCambridgePage(page cambridge.Page, chatId int, chatText string) (messages []telegram.RequestTelegramText) {
 	messages = telegram.GetResultFromCambridge(page, chatId, chatText)
-	statistic.Consider(chatText, userId)
 	return
 }
 
@@ -111,8 +122,9 @@ func GetSubCambridge(chatId int, userId int, chatText string) {
 		return
 	}
 	if page := cambridge.DoRequest(chatText, cambridge.Url+cambridgeFounded, ""); page.IsValid() {
+		statistic.Consider(chatText, userId)
 		collector := telegram.Collector{Type: telegram.ReasonSubCambridgeMessage}
-		collector.Add(handleCambridgePage(page, userId, chatId, chatText)...)
+		collector.Add(handleCambridgePage(page, chatId, chatText)...)
 		saveMessagesQueue(
 			fmt.Sprintf(redis.SubCambridgeMessageKey, userId, chatText),
 			chatText,

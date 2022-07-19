@@ -18,7 +18,9 @@ func Get(query string) Page {
 	cachedInfo, errGetCache := redis.Get(fmt.Sprintf(redis.InfoCambridgePageKey, query))
 	if errGetCache != nil {
 		page = DoRequest(query, Url+"/dictionary/english-russian/"+query, Url+"/dictionary/english/"+query)
-		redis.SetStruct(fmt.Sprintf(redis.InfoCambridgePageKey, page.RequestText), page, 0)
+		if page.IsValid() {
+			redis.SetStruct(fmt.Sprintf(redis.InfoCambridgePageKey, page.RequestText), page, 0)
+		}
 	} else {
 		fmt.Println("get cambridge info from cache")
 		if err := json.Unmarshal([]byte(cachedInfo), &page); err != nil {
