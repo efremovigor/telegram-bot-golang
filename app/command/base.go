@@ -64,7 +64,7 @@ func ListShortInfo(chatId int, userId int, chatText string) {
 		collector.Add(
 			telegram.MakeRequestTelegramText(
 				search.RequestWord,
-				telegram.DecodeForTelegram("Additional various 🔽"),
+				telegram.DecodeForTelegram("✅ *Cambridge\\-dictionary-search*\\: \n\n Additional various 🔽"),
 				chatId,
 				buttons,
 			),
