@@ -42,7 +42,7 @@ func GetCambridgeShortInfo(chatId int, page cambridge.Page) []RequestTelegramTex
 			page.Options[0].Text,
 			mainBlock+"\n",
 			chatId,
-			[]Keyboard{{Text: "🗂 full info", CallbackData: NextMessageFullCambridge + page.Options[0].Text}},
+			[]Keyboard{{Text: "🗂 full info", CallbackData: NextMessageFullCambridge + " " + page.Options[0].Text}},
 		))
 	return messages
 }
@@ -143,7 +143,7 @@ func GetMultitranShortInfo(chatId int, page multitran.Page) []RequestTelegramTex
 			page.Options[0].Text,
 			mainBlock+"\n",
 			chatId,
-			[]Keyboard{{Text: "🗂 full info", CallbackData: NextMessageFullMultitran + page.Options[0].Text}},
+			[]Keyboard{{Text: "🗂 full info", CallbackData: NextMessageFullMultitran + " " + page.Options[0].Text}},
 		))
 	return messages
 }
