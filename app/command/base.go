@@ -21,27 +21,6 @@ func SayHello(query telegram.IncomingTelegramQueryInterface) telegram.RequestTel
 	)
 }
 
-func GeneralList(chatId int, userId int, chatText string) {
-	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, chatId, userId))
-	collector := telegram.Collector{Type: telegram.ReasonTypeNextMessage}
-	collector.Add(
-		telegram.GetResultFromRapidMicrosoft(chatId, chatText, state),
-	)
-
-	if page := cambridge.Get(chatText); page.IsValid() {
-		statistic.Consider(chatText, userId)
-		collector.Add(
-			handleCambridgePage(page, chatId, chatText)...,
-		)
-	}
-
-	if page := multitran.Get(chatText); page.IsValid() {
-		collector.Add(telegram.GetResultFromMultitran(page, chatId, chatText)...)
-	}
-
-	saveMessagesQueue(fmt.Sprintf(redis.NextMessageKey, userId, chatText), chatText, collector.GetMessageForSave())
-}
-
 func MakeCambridgeFullIfEmpty(chatId int, userId int, chatText string) {
 	collector := telegram.Collector{Type: telegram.ReasonFullCambridgeMessage}
 	if page := cambridge.Get(chatText); page.IsValid() {

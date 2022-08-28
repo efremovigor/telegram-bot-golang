@@ -34,15 +34,47 @@ func GetMultitranHeaderBlock(word string) string {
 
 func GetCambridgeShortInfo(chatId int, page cambridge.Page) []RequestTelegramText {
 	var messages []RequestTelegramText
+	var buttons []Keyboard
 	var mainBlock string
-	mainBlock += fmt.Sprintf("*Word*\\: *%s*", DecodeForTelegram(page.Options[0].Text))
+	if len(page.Options) == 0 {
+		return messages
+	}
+	// для короткой информации достаточно одного
+	mainBlock += GetCambridgeHeaderBlock(page.Options[0].Text)
 	mainBlock += fmt.Sprintf("\\(%s\\)", DecodeForTelegram(page.Options[0].Type)) + "\n\n"
+	for lang, transcription := range page.Options[0].Transcription {
+		mainBlock += fmt.Sprintf("*%s*:\\[%s\\] ", strings.ToUpper(lang), DecodeForTelegram(transcription)) + "\n"
+		break
+	}
+	if len(page.Options[0].Explanation) > 0 {
+		mainBlock += GetFieldIfCan(page.Options[0].Explanation[0].Text, "Phrase")
+		mainBlock += GetFieldIfCan(page.Options[0].Explanation[0].Level, "Level")
+		mainBlock += GetFieldIfCan(page.Options[0].Explanation[0].SemanticDescription, "📃 Semantic")
+		mainBlock += GetFieldIfCan(page.Options[0].Explanation[0].Description, "📃 Description")
+		mainBlock += GetFieldIfCan(page.Options[0].Explanation[0].Translate, "💡 Translate")
+		if len(page.Options[0].Explanation[0].Example) > 0 {
+			mainBlock += "📌" + DecodeForTelegram(page.Options[0].Explanation[0].Example[0]) + "\n"
+		}
+	}
+	for _, info := range page.Options {
+		if helper.Len(info.Image) > 0 {
+			hash := helper.MD5(info.Image)
+			redis.SetStruct(fmt.Sprintf(redis.InfoCambridgeUniqPicLink, hash), redis.PicFile{Word: info.Text, Url: info.Image}, 0)
+			buttons = append(buttons, Keyboard{Text: "🏞 picture", CallbackData: ShowRequestPic + " " + hash})
+		}
+		if helper.Len(info.VoicePath.US) > 0 {
+			hash := helper.MD5(info.VoicePath.US)
+			redis.SetStruct(fmt.Sprintf(redis.InfoCambridgeUniqVoiceLink, hash), redis.VoiceFile{Lang: CountryUs, Word: info.Text, Url: info.VoicePath.US}, 0)
+			buttons = append(buttons, Keyboard{Text: "🗣 " + CountryUs, CallbackData: ShowRequestVoice + " " + CountryUs + " " + hash})
+		}
+	}
+
 	messages = append(messages,
 		MakeRequestTelegramText(
 			page.Options[0].Text,
 			mainBlock+"\n",
 			chatId,
-			[]Keyboard{{Text: "🗂 full info", CallbackData: NextMessageFullCambridge + " " + page.Options[0].Text}},
+			append(buttons, Keyboard{Text: "🗂 full", CallbackData: NextMessageFullCambridge + " " + page.Options[0].Text}),
 		))
 	return messages
 }
@@ -135,7 +167,7 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 func GetMultitranShortInfo(chatId int, page multitran.Page) []RequestTelegramText {
 	var messages []RequestTelegramText
 	var mainBlock string
-	mainBlock += fmt.Sprintf("*Word*\\: *%s*", DecodeForTelegram(page.Options[0].Text))
+	mainBlock += GetMultitranHeaderBlock(page.Options[0].Text)
 	mainBlock += fmt.Sprintf("\\(%s\\)", DecodeForTelegram(page.Options[0].Type)) + "\n\n"
 	mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(page.Options[0].Text), DecodeForTelegram(page.Options[0].Transcription), DecodeForTelegram(page.Options[0].Type)) + "\n\n"
 	messages = append(messages,
@@ -143,7 +175,7 @@ func GetMultitranShortInfo(chatId int, page multitran.Page) []RequestTelegramTex
 			page.Options[0].Text,
 			mainBlock+"\n",
 			chatId,
-			[]Keyboard{{Text: "🗂 full info", CallbackData: NextMessageFullMultitran + " " + page.Options[0].Text}},
+			[]Keyboard{{Text: "🗂 full", CallbackData: NextMessageFullMultitran + " " + page.Options[0].Text}},
 		))
 	return messages
 }
