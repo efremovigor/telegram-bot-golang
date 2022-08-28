@@ -9,6 +9,7 @@ const MaxRequestSize = 3000
 
 type ReasonMessage int
 
+const ReasonTypeNextShortMessage ReasonMessage = 0
 const ReasonTypeNextMessage ReasonMessage = 1
 const ReasonSubCambridgeMessage ReasonMessage = 2
 const ReasonFullCambridgeMessage ReasonMessage = 3
@@ -27,6 +28,8 @@ func (c *Collector) Add(messages ...RequestTelegramText) {
 	for _, message := range messages {
 		if len(c.Messages) > 0 {
 			switch c.Type {
+			case ReasonTypeNextShortMessage:
+				c.Messages[len(c.Messages)-1].SetHasMore(NextShortMessage)
 			case ReasonTypeNextMessage:
 				c.Messages[len(c.Messages)-1].SetHasMore(NextMessage)
 			case ReasonSubCambridgeMessage:

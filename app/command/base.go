@@ -21,7 +21,7 @@ func SayHello(query telegram.IncomingTelegramQueryInterface) telegram.RequestTel
 	)
 }
 
-func General(chatId int, userId int, chatText string) {
+func GeneralList(chatId int, userId int, chatText string) {
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, chatId, userId))
 	collector := telegram.Collector{Type: telegram.ReasonTypeNextMessage}
 	collector.Add(
@@ -32,6 +32,48 @@ func General(chatId int, userId int, chatText string) {
 		statistic.Consider(chatText, userId)
 		collector.Add(
 			handleCambridgePage(page, chatId, chatText)...,
+		)
+	}
+
+	if page := multitran.Get(chatText); page.IsValid() {
+		collector.Add(telegram.GetResultFromMultitran(page, chatId, chatText)...)
+	}
+
+	saveMessagesQueue(fmt.Sprintf(redis.NextMessageKey, userId, chatText), chatText, collector.GetMessageForSave())
+}
+
+func MakeCambridgeFullIfEmpty(chatId int, userId int, chatText string) {
+	collector := telegram.Collector{Type: telegram.ReasonFullCambridgeMessage}
+	if page := cambridge.Get(chatText); page.IsValid() {
+		statistic.Consider(chatText, userId)
+		collector.Add(
+			handleCambridgePage(page, chatId, chatText)...,
+		)
+	}
+
+	saveMessagesQueue(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "cambridge", userId, chatText), chatText, collector.GetMessageForSave())
+}
+
+func MakeMultitranFullIfEmpty(chatId int, userId int, chatText string) {
+	collector := telegram.Collector{Type: telegram.ReasonFullMultitranMessage}
+	if page := multitran.Get(chatText); page.IsValid() {
+		collector.Add(telegram.GetResultFromMultitran(page, chatId, chatText)...)
+	}
+
+	saveMessagesQueue(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "multitran", userId, chatText), chatText, collector.GetMessageForSave())
+}
+
+func ListShortInfo(chatId int, userId int, chatText string) {
+	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, chatId, userId))
+	collector := telegram.Collector{Type: telegram.ReasonTypeNextShortMessage}
+	collector.Add(
+		telegram.GetResultFromRapidMicrosoft(chatId, chatText, state),
+	)
+
+	if page := cambridge.Get(chatText); page.IsValid() {
+		statistic.Consider(chatText, userId)
+		collector.Add(
+			telegram.GetCambridgeShortInfo(chatId, page)...,
 		)
 	}
 
@@ -51,58 +93,10 @@ func General(chatId int, userId int, chatText string) {
 	}
 
 	if page := multitran.Get(chatText); page.IsValid() {
-		collector.Add(telegram.GetResultFromMultitran(page, chatId, chatText)...)
+		collector.Add(telegram.GetMultitranShortInfo(chatId, page)...)
 	}
 
-	saveMessagesQueue(fmt.Sprintf(redis.NextMessageKey, userId, chatText), chatText, collector.GetMessageForSave())
-}
-
-func ListShortInfo(chatId int, userId int, chatText string) {
-	var collector telegram.Collector
-
-	if page := cambridge.Get(chatText); page.IsValid() {
-		statistic.Consider(chatText, userId)
-		collector.Add(
-			handleCambridgePage(page, chatId, chatText)...,
-		)
-	}
-}
-
-func FullInfo(dictionary string, chatId int, userId int, chatText string) {
-	var collector telegram.Collector
-	switch dictionary {
-	case "cambridge":
-		collector.Type = telegram.ReasonFullCambridgeMessage
-		if page := cambridge.Get(chatText); page.IsValid() {
-			collector.Add(
-				handleCambridgePage(page, chatId, chatText)...,
-			)
-		}
-		if search := cambridge.Search(chatText); search.IsValid() {
-			var buttons []telegram.Keyboard
-			for _, founded := range search.Founded {
-				buttons = append(buttons, telegram.Keyboard{Text: "🔍 " + founded.Word, CallbackData: telegram.SearchRequest + " cambridge " + founded.Word})
-			}
-			collector.Add(
-				telegram.MakeRequestTelegramText(
-					search.RequestWord,
-					telegram.DecodeForTelegram("Additional various 🔽"),
-					chatId,
-					buttons,
-				),
-			)
-		}
-	case "multitran":
-		collector.Type = telegram.ReasonFullMultitranMessage
-		if page := multitran.Get(chatText); page.IsValid() {
-			collector.Add(telegram.GetResultFromMultitran(page, chatId, chatText)...)
-		}
-	case "wooordhunt":
-		/** wooordhunt hundler */
-	}
-
-	saveMessagesQueue(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, dictionary, userId, chatText), chatText, collector.GetMessageForSave())
-
+	saveMessagesQueue(fmt.Sprintf(redis.NextShortInfoRequestMessageKey, userId, chatText), chatText, collector.GetMessageForSave())
 }
 
 func handleCambridgePage(page cambridge.Page, chatId int, chatText string) (messages []telegram.RequestTelegramText) {
@@ -191,6 +185,18 @@ func GetNextMessage(key string, word string) (message telegram.RequestChannelTel
 	}
 
 	return message, err
+}
+
+func GetCountMessages(key string) int {
+	var request telegram.UserRequest
+	value, err := redis.Get(key)
+	if err != nil {
+		return 0
+	}
+	if err := json.Unmarshal([]byte(value), &request); err != nil {
+		return 0
+	}
+	return len(request.Output)
 }
 
 func Help(query telegram.IncomingTelegramQueryInterface) telegram.RequestTelegramText {

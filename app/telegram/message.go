@@ -32,9 +32,18 @@ func GetMultitranHeaderBlock(word string) string {
 	return fmt.Sprintf("✅ *Multitran\\-dictionary*\\: *%s*", DecodeForTelegram(word)) + "\n\n"
 }
 
-func GetCambridgeShortInfo(chatId int, info cambridge.Page) []RequestTelegramText {
-	messages := GetCambridgeOptionBlock(chatId, info.Options[0])
-
+func GetCambridgeShortInfo(chatId int, page cambridge.Page) []RequestTelegramText {
+	var messages []RequestTelegramText
+	var mainBlock string
+	mainBlock += fmt.Sprintf("*Word*\\: *%s*", DecodeForTelegram(page.Options[0].Text))
+	mainBlock += fmt.Sprintf("\\(%s\\)", DecodeForTelegram(page.Options[0].Type)) + "\n\n"
+	messages = append(messages,
+		MakeRequestTelegramText(
+			page.Options[0].Text,
+			mainBlock+"\n",
+			chatId,
+			[]Keyboard{{Text: "🗂 full info", CallbackData: NextMessageFullCambridge + page.Options[0].Text}},
+		))
 	return messages
 }
 
@@ -120,6 +129,22 @@ func GetCambridgeOptionBlock(chatId int, info cambridge.Info) []RequestTelegramT
 		}
 	}
 	messages = append(messages, MakeRequestTelegramText(info.Text, mainBlock+"\n", chatId, buttons))
+	return messages
+}
+
+func GetMultitranShortInfo(chatId int, page multitran.Page) []RequestTelegramText {
+	var messages []RequestTelegramText
+	var mainBlock string
+	mainBlock += fmt.Sprintf("*Word*\\: *%s*", DecodeForTelegram(page.Options[0].Text))
+	mainBlock += fmt.Sprintf("\\(%s\\)", DecodeForTelegram(page.Options[0].Type)) + "\n\n"
+	mainBlock += fmt.Sprintf("*Word*\\: *%s* \\[%s\\] \\(%s\\)", DecodeForTelegram(page.Options[0].Text), DecodeForTelegram(page.Options[0].Transcription), DecodeForTelegram(page.Options[0].Type)) + "\n\n"
+	messages = append(messages,
+		MakeRequestTelegramText(
+			page.Options[0].Text,
+			mainBlock+"\n",
+			chatId,
+			[]Keyboard{{Text: "🗂 full info", CallbackData: NextMessageFullMultitran + page.Options[0].Text}},
+		))
 	return messages
 }
 

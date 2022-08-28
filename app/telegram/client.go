@@ -20,13 +20,13 @@ import (
 )
 
 const NextMessage = "/next_message"
+const NextShortMessage = "/next_short_message"
 const NextMessageSubCambridge = "/next_message_cambridge"
 const NextMessageFullCambridge = "/next_message_full_cambridge"
 const NextMessageFullMultitran = "/next_message_full_multitran"
 const ShowRequestVoice = "/show_voice"
 const ShowRequestPic = "/show_pic"
 const SearchRequest = "/search"
-const ShowFull = "/show_full"
 
 const LangEn = "en"
 const LangRu = "ru"

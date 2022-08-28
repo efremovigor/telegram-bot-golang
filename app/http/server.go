@@ -130,13 +130,24 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 		case telegram.NextMessage:
 			c.sendNextMessage(fmt.Sprintf(redis.NextMessageKey, query.GetUserId(), restOfMessage), restOfMessage)
 			return nil
+		case telegram.NextShortMessage:
+			c.sendNextMessage(fmt.Sprintf(redis.NextShortInfoRequestMessageKey, query.GetUserId(), restOfMessage), restOfMessage)
+			return nil
 		case telegram.NextMessageSubCambridge:
 			c.sendNextMessage(fmt.Sprintf(redis.SubCambridgeMessageKey, query.GetUserId(), restOfMessage), restOfMessage)
 			return nil
 		case telegram.NextMessageFullCambridge:
-			c.sendNextMessage(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "cambridge", query.GetUserId(), restOfMessage), restOfMessage)
+			key := fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "cambridge", query.GetUserId(), restOfMessage)
+			if command.GetCountMessages(key) == 0 {
+				command.MakeCambridgeFullIfEmpty(query.GetChatId(), query.GetUserId(), restOfMessage)
+			}
+			c.sendNextMessage(key, restOfMessage)
 			return nil
 		case telegram.NextMessageFullMultitran:
+			key := fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "multitran", query.GetUserId(), restOfMessage)
+			if command.GetCountMessages(key) == 0 {
+				command.MakeMultitranFullIfEmpty(query.GetChatId(), query.GetUserId(), restOfMessage)
+			}
 			c.sendNextMessage(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "multitran", query.GetUserId(), restOfMessage), restOfMessage)
 			return nil
 		case telegram.ShowRequestVoice:
@@ -147,9 +158,6 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 		case telegram.ShowRequestPic:
 			command.SendImage(query, restOfMessage)
 			return nil
-		case telegram.ShowFull:
-			command.FullInfo(words[1], query.GetChatId(), query.GetUserId(), strings.Join(words[2:], " "))
-			return nil
 		case telegram.SearchRequest:
 			if words[1] == "cambridge" {
 				query.SetChatText(strings.Join(words[2:], " "))
@@ -159,8 +167,8 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 			}
 			query.SetChatText(restOfMessage)
 		}
-		command.General(query.GetChatId(), query.GetUserId(), query.GetChatText())
-		c.sendNextMessage(fmt.Sprintf(redis.NextMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
+		command.ListShortInfo(query.GetChatId(), query.GetUserId(), query.GetChatText())
+		c.sendNextMessage(fmt.Sprintf(redis.NextShortInfoRequestMessageKey, query.GetUserId(), query.GetChatText()), query.GetChatText())
 	}
 
 	return nil
