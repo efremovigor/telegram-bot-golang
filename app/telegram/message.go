@@ -41,7 +41,7 @@ func GetCambridgeShortInfo(chatId int, page cambridge.Page) []RequestTelegramTex
 	}
 	// для короткой информации достаточно одного
 	mainBlock += GetCambridgeHeaderBlock(page.Options[0].Text)
-	mainBlock += fmt.Sprintf("\\(%s\\)", DecodeForTelegram(page.Options[0].Type)) + "\n\n"
+	mainBlock += GetFieldIfCan(page.Options[0].Type, "Type")
 	for lang, transcription := range page.Options[0].Transcription {
 		mainBlock += fmt.Sprintf("*%s*:\\[%s\\] ", strings.ToUpper(lang), DecodeForTelegram(transcription)) + "\n"
 		break
@@ -56,16 +56,22 @@ func GetCambridgeShortInfo(chatId int, page cambridge.Page) []RequestTelegramTex
 			mainBlock += "📌" + DecodeForTelegram(page.Options[0].Explanation[0].Example[0]) + "\n"
 		}
 	}
+	var hasImage, hasVoice bool
 	for _, info := range page.Options {
-		if helper.Len(info.Image) > 0 {
+		if helper.Len(info.Image) > 0 && !hasImage {
 			hash := helper.MD5(info.Image)
 			redis.SetStruct(fmt.Sprintf(redis.InfoCambridgeUniqPicLink, hash), redis.PicFile{Word: info.Text, Url: info.Image}, 0)
 			buttons = append(buttons, Keyboard{Text: "🏞 picture", CallbackData: ShowRequestPic + " " + hash})
+			hasImage = true
 		}
-		if helper.Len(info.VoicePath.US) > 0 {
+		if helper.Len(info.VoicePath.US) > 0 && !hasVoice {
 			hash := helper.MD5(info.VoicePath.US)
 			redis.SetStruct(fmt.Sprintf(redis.InfoCambridgeUniqVoiceLink, hash), redis.VoiceFile{Lang: CountryUs, Word: info.Text, Url: info.VoicePath.US}, 0)
 			buttons = append(buttons, Keyboard{Text: "🗣 " + CountryUs, CallbackData: ShowRequestVoice + " " + CountryUs + " " + hash})
+			hasVoice = true
+		}
+		if hasImage == true && hasVoice == true {
+			break
 		}
 	}
 
