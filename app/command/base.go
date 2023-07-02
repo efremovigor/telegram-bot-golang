@@ -21,27 +21,6 @@ func SayHello(query telegram.IncomingTelegramQueryInterface) telegram.RequestTel
 	)
 }
 
-func MakeCambridgeFullIfEmpty(chatId int, userId int, chatText string) {
-	collector := telegram.Collector{Type: telegram.ReasonFullCambridgeMessage}
-	if page := cambridge.Get(chatText); page.IsValid() {
-		statistic.Consider(chatText, userId)
-		collector.Add(
-			handleCambridgePage(page, chatId, chatText)...,
-		)
-	}
-
-	saveMessagesQueue(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "cambridge", userId, chatText), chatText, collector.GetMessageForSave())
-}
-
-func MakeMultitranFullIfEmpty(chatId int, userId int, chatText string) {
-	collector := telegram.Collector{Type: telegram.ReasonFullMultitranMessage}
-	if page := multitran.Get(chatText); page.IsValid() {
-		collector.Add(telegram.GetResultFromMultitran(page, chatId, chatText)...)
-	}
-
-	saveMessagesQueue(fmt.Sprintf(redis.NextFullInfoRequestMessageKey, "multitran", userId, chatText), chatText, collector.GetMessageForSave())
-}
-
 func ListShortInfo(chatId int, userId int, chatText string) {
 	state, _ := redis.Get(fmt.Sprintf(redis.TranslateTransitionKey, chatId, userId))
 	collector := telegram.Collector{Type: telegram.ReasonTypeNextShortMessage}
@@ -78,65 +57,9 @@ func ListShortInfo(chatId int, userId int, chatText string) {
 	saveMessagesQueue(fmt.Sprintf(redis.NextShortInfoRequestMessageKey, userId, chatText), chatText, collector.GetMessageForSave())
 }
 
-func handleCambridgePage(page cambridge.Page, chatId int, chatText string) (messages []telegram.RequestTelegramText) {
-	messages = telegram.GetResultFromCambridge(page, chatId, chatText)
-	return
-}
-
 func saveMessagesQueue(key string, chatText string, messages []telegram.RequestChannelTelegram) {
 	redis.Del(key)
 	redis.SetStruct(key, telegram.UserRequest{Request: chatText, Output: messages}, time.Hour*24)
-}
-
-func GetSubCambridge(chatId int, userId int, chatText string) {
-	cambridgeFounded, err := redis.Get(fmt.Sprintf(redis.InfoCambridgeSearchValue, chatText))
-	if err != nil {
-		fmt.Println(fmt.Sprintf("[Strange behaivor] Don't find cambridge key - word:%s", chatText))
-		return
-	}
-	if page := cambridge.DoRequest(chatText, cambridge.Url+cambridgeFounded, ""); page.IsValid() {
-		statistic.Consider(chatText, userId)
-		collector := telegram.Collector{Type: telegram.ReasonSubCambridgeMessage}
-		collector.Add(handleCambridgePage(page, chatId, chatText)...)
-		saveMessagesQueue(
-			fmt.Sprintf(redis.SubCambridgeMessageKey, userId, chatText),
-			chatText,
-			collector.GetMessageForSave(),
-		)
-
-		return
-	} else {
-		fmt.Println(fmt.Sprintf("[Strange behaivor] Aren't able to parse url:%s", cambridge.Url+cambridgeFounded))
-	}
-}
-
-func SendVoice(query telegram.IncomingTelegramQueryInterface, lang string, hash string) {
-	url, err := redis.Get(fmt.Sprintf(redis.InfoCambridgeUniqVoiceLink, hash))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	var cache redis.VoiceFile
-	if err := json.Unmarshal([]byte(url), &cache); err != nil {
-		fmt.Println(err)
-		return
-	}
-	telegram.SendVoices(query.GetChatId(), lang, cache)
-}
-
-func SendImage(query telegram.IncomingTelegramQueryInterface, hash string) {
-	url, err := redis.Get(fmt.Sprintf(redis.InfoCambridgeUniqPicLink, hash))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	var cache redis.PicFile
-	if err := json.Unmarshal([]byte(url), &cache); err != nil {
-		fmt.Println(err)
-		return
-	}
-	telegram.SendImage(query.GetChatId(), cache)
-
 }
 
 func GetNextMessage(key string, word string) (message telegram.RequestChannelTelegram, err error) {

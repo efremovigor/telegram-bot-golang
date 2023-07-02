@@ -104,6 +104,15 @@ func Get(query string) (page Page) {
 		if value, err := htmlquery.Query(html1, "//div[@id='wd_content']/div[contains(@class,'word_ex')]"); err == nil && value != nil {
 			page.Phrases = getPhrasesFromRuBlock(value)
 		}
+		fmt.Println(1)
+
+		values, _ := htmlquery.QueryAll(html1, "//div[@id='wd_content']/node()")
+		for _, value := range values {
+			fmt.Println(cleanNodeField(value))
+			if value.DataAtom.String() == "br" {
+				break
+			}
+		}
 
 	}
 
