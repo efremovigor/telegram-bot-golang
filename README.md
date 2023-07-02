@@ -10,7 +10,7 @@
 #### Умеет отдавать информацию разными способами, картинки, аудиосообщения
 
 # Демо
-[![Watch the video](https://github.com/efremovigor/telegram-bot-golang/blob/master/demo.png)](https://github.com/efremovigor/telegram-bot-golang/blob/master/demo.mp4)
+![Демо](https://github.com/efremovigor/telegram-bot-golang/blob/master/demo.gif)
 
 # Установка
 ```
