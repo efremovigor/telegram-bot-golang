@@ -8,6 +8,7 @@
 **[wooordhunt.ru](https://wooordhunt.ru)** 
 
 #### Умеет отдавать информацию разными способами, картинки, аудиосообщения
+#### Также встроена база(mysql) куда пишутся всё что мы искали и делается кеш(redis) сырых/полусырых данных, того что уже искали
 
 # Демо
 ![Демо](https://github.com/efremovigor/telegram-bot-golang/blob/master/demo.gif)
