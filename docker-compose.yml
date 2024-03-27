@@ -5,7 +5,7 @@ services:
       dockerfile: ./Dockerfile
       context: ./app
     ports:
-      - ${APP_PORT}:${APP_PORT}
+      - "88:88"
     volumes:
       - ./app:/app
       - ./.env:/app/build/.env
