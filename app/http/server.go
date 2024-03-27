@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 	"telegram-bot-golang/command"
+	"telegram-bot-golang/config"
 	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/env"
 	"telegram-bot-golang/helper"
@@ -98,7 +99,7 @@ func Handle(listener telegram.Listener) {
 		})
 		e.Logger.Fatal(e.Start(":88"))
 	} else {
-		e.Logger.Fatal(e.Start(":88"))
+		e.Logger.Fatal(e.StartTLS(":88", config.GetCertPath(), config.GetCertKeyPath()))
 	}
 }
 
