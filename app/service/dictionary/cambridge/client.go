@@ -86,6 +86,7 @@ func getNodes(url string) []*html.Node {
 	node, err := htmlquery.LoadURL(url)
 	if err != nil {
 		fmt.Println("error getting html data: " + err.Error())
+		return []*html.Node{}
 	}
 	nodes, err := htmlquery.QueryAll(node, xpathBlockDescriptionEnRu)
 
