@@ -39,6 +39,7 @@ func Search(query string) (response SearchResponse) {
 
 		if err != nil {
 			fmt.Println("error get cambridge search from service: " + err.Error())
+			return SearchResponse{}
 		}
 
 		if res.StatusCode != http.StatusOK {
