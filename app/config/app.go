@@ -13,3 +13,7 @@ func GetCertPath() string {
 func GetCertKeyPath() string {
 	return configParentPath + env.GetEnvVariable("CERT_KEY")
 }
+
+func GetAppPort() string {
+	return configParentPath + env.GetEnvVariable("APP_PORT")
+}

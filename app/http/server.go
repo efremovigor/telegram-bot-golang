@@ -97,9 +97,9 @@ func Handle(listener telegram.Listener) {
 			query := c.Param("query")
 			return c.JSON(http.StatusOK, helper.IsEn(query))
 		})
-		e.Logger.Fatal(e.Start(":443"))
+		e.Logger.Fatal(e.Start(":" + config.GetAppPort()))
 	} else {
-		e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
+		e.Logger.Fatal(e.StartTLS(":"+config.GetAppPort(), config.GetCertPath(), config.GetCertKeyPath()))
 	}
 }
 
