@@ -2,9 +2,11 @@ package http
 
 import (
 	"bytes"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 	"io"
 	"io/ioutil"
@@ -99,7 +101,25 @@ func Handle(listener telegram.Listener) {
 		})
 		e.Logger.Fatal(e.Start(":443"))
 	} else {
-		e.Logger.Fatal(e.Server.Serve(autocert.NewListener("igore.ru")))
+		autoTLSManager := autocert.Manager{
+			Prompt: autocert.AcceptTOS,
+			// Cache certificates to avoid issues with rate limits (https://letsencrypt.org/docs/rate-limits)
+			//Cache: autocert.DirCache("/var/www/.cache"),
+			HostPolicy: autocert.HostWhitelist("igore.ru"),
+		}
+		s := http.Server{
+			Addr:    ":443",
+			Handler: e, // set Echo as handler
+			TLSConfig: &tls.Config{
+				//Certificates: nil, // <-- s.ListenAndServeTLS will populate this field
+				GetCertificate: autoTLSManager.GetCertificate,
+				NextProtos:     []string{acme.ALPNProto},
+			},
+			//ReadTimeout: 30 * time.Second, // use custom timeouts
+		}
+		if err := s.ListenAndServeTLS("", ""); err != http.ErrServerClosed {
+			e.Logger.Fatal(err)
+		}
 	}
 }
 
