@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/crypto/acme/autocert"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"telegram-bot-golang/command"
-	"telegram-bot-golang/config"
 	"telegram-bot-golang/db/redis"
 	"telegram-bot-golang/env"
 	"telegram-bot-golang/helper"
@@ -99,7 +99,7 @@ func Handle(listener telegram.Listener) {
 		})
 		e.Logger.Fatal(e.Start(":443"))
 	} else {
-		e.Logger.Fatal(e.StartTLS(":443", config.GetCertPath(), config.GetCertKeyPath()))
+		e.Logger.Fatal(e.Server.Serve(autocert.NewListener("igore.ru")))
 	}
 }
 
