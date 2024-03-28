@@ -31,6 +31,8 @@ func SaveNewWord(userId int, newWord string) {
 				fmt.Println("postgree:error of save statistic:" + err.Error())
 			}
 			return
+		} else {
+			fmt.Println(err)
 		}
 	}
 	statistic.IncrRequested()

@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 )
 
@@ -59,6 +60,8 @@ type RequestChannelTelegram struct {
 func NewRequestChannelTelegram(requestType string, request interface{}) RequestChannelTelegram {
 	if requestInJson, err := json.Marshal(request); err == nil {
 		return RequestChannelTelegram{Type: requestType, Message: requestInJson}
+	} else {
+		fmt.Println(err)
 	}
 	return RequestChannelTelegram{}
 }

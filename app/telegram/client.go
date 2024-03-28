@@ -196,7 +196,10 @@ func sendBaseMessage(request SendMessageReqBody) {
 			fmt.Println("error of sending message to telegram:" + string(toTelegram))
 		}
 		if res.StatusCode != http.StatusOK {
-			body, _ := ioutil.ReadAll(res.Body)
+			body, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				fmt.Println(err)
+			}
 			fmt.Println("bad response from telegram:" + res.Status + " Message:" + string(body) + "\n" + string(toTelegram))
 		}
 	}

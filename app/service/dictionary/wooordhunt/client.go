@@ -25,22 +25,32 @@ func Get(query string) (page Page) {
 	if helper.IsEn(query) {
 		if value, err := htmlquery.Query(html1, "//div[@id='us_tr_sound']/span[contains(@class, 'transcription')]"); err == nil && value != nil {
 			page.Transcription["us"] = cleanNodeField(value)
+		} else {
+			fmt.Println(err)
 		}
 
 		if value, err := htmlquery.Query(html1, "//div[@id='uk_tr_sound']/span[contains(@class, 'transcription')]"); err == nil && value != nil {
 			page.Transcription["uk"] = cleanNodeField(value)
+		} else {
+			fmt.Println(err)
 		}
 
 		if value, err := htmlquery.Query(html1, "//div[@id='us_tr_sound']//source[contains(@type,'audio/mpeg')]"); err == nil && value != nil {
 			page.VoicePath.US = cleanTextField(htmlquery.SelectAttr(value, "src"))
+		} else {
+			fmt.Println(err)
 		}
 
 		if value, err := htmlquery.Query(html1, "//div[@id='uk_tr_sound']//source[contains(@type,'audio/mpeg')]"); err == nil && value != nil {
 			page.VoicePath.UK = cleanTextField(htmlquery.SelectAttr(value, "src"))
+		} else {
+			fmt.Println(err)
 		}
 
-		explanations, _ := htmlquery.QueryAll(html1, "//div[@id='content_in_russian']/*")
-
+		explanations, err := htmlquery.QueryAll(html1, "//div[@id='content_in_russian']/*")
+		if err != nil {
+			fmt.Println(err)
+		}
 		for _, explanation := range explanations {
 			if explanation.DataAtom.String() == "div" &&
 				(htmlquery.SelectAttr(explanation, "class") == "tr" || htmlquery.SelectAttr(explanation, "class") == "block") {
@@ -51,7 +61,10 @@ func Get(query string) (page Page) {
 				continue
 			}
 			if explanation.DataAtom.String() == "h4" {
-				nextIsDivTr, _ := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'tr')]")
+				nextIsDivTr, err := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'tr')]")
+				if err != nil {
+					fmt.Println(err)
+				}
 				if nextIsDivTr != nil {
 					wordTypeNode, err := htmlquery.Query(explanation, "node()[1]")
 					if err != nil {
@@ -73,21 +86,30 @@ func Get(query string) (page Page) {
 			}
 
 			if explanation.DataAtom.String() == "h3" && htmlquery.InnerText(explanation) == "Примеры" {
-				nextIsDivBlock, _ := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'block')]")
+				nextIsDivBlock, err := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'block')]")
+				if err != nil {
+					fmt.Println(err)
+				}
 				if nextIsDivBlock != nil {
 					page.Examples = getExamplesFromBlock(nextIsDivBlock)
 				}
 			}
 
 			if explanation.DataAtom.String() == "h3" && htmlquery.InnerText(explanation) == "Фразовые глаголы" {
-				nextIsDivBlock, _ := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'block')]")
+				nextIsDivBlock, err := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'block')]")
+				if err != nil {
+					fmt.Println(err)
+				}
 				if nextIsDivBlock != nil {
 					page.PhraseVerb = getPhrasesWithLinkFromBlock(nextIsDivBlock)
 				}
 			}
 
 			if explanation.DataAtom.String() == "h3" && htmlquery.InnerText(explanation) == "Возможные однокоренные слова" {
-				nextIsDivBlock, _ := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'block')]")
+				nextIsDivBlock, err := htmlquery.Query(explanation, "following-sibling::div[contains(@class,'block')]")
+				if err != nil {
+					fmt.Println(err)
+				}
 				if nextIsDivBlock != nil {
 					page.PossibleCognates = getPhrasesWithLinkFromBlock(nextIsDivBlock)
 				}
@@ -100,9 +122,13 @@ func Get(query string) (page Page) {
 	} else {
 		if value, err := htmlquery.Query(html1, "//div[@id='wd_title']/p"); err == nil && value != nil {
 			page.GeneralTranslate = strings.Split(cleanNodeField(value), ", ")
+		} else {
+			fmt.Println(err)
 		}
 		if value, err := htmlquery.Query(html1, "//div[@id='wd_content']/div[contains(@class,'word_ex')]"); err == nil && value != nil {
 			page.Phrases = getPhrasesFromRuBlock(value)
+		} else {
+			fmt.Println(err)
 		}
 
 	}
@@ -179,7 +205,10 @@ func getPhrasesFromBlock(node *html.Node) (phrases []Phrase) {
 			buffer = ""
 			continue
 		}
-		nextIsI, _ := htmlquery.Query(explanation, "following-sibling::i")
+		nextIsI, err := htmlquery.Query(explanation, "following-sibling::i")
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		if nextIsI != nil && string([]rune(text)[helper.Len(text)-1:]) == "—" {
 			text = string([]rune(text)[:helper.Len(text)-1])
@@ -219,7 +248,10 @@ func getPhrasesFromRuBlock(node *html.Node) (phrases []Phrase) {
 	for _, explanation := range each {
 		if explanation.DataAtom.String() == "span" {
 
-			beforeBlock, _ := htmlquery.Query(explanation, "preceding-sibling::text()")
+			beforeBlock, err := htmlquery.Query(explanation, "preceding-sibling::text()")
+			if err != nil {
+				fmt.Println(err)
+			}
 			if beforeBlock != nil {
 				text := cleanNodeField(beforeBlock)
 				if helper.IsEmpty(text) {
@@ -246,7 +278,10 @@ func getPhrasesWithLinkFromBlock(node *html.Node) (phrases []PhraseLink) {
 	}
 	for _, explanation := range each {
 		if explanation.DataAtom.String() == "a" {
-			nextBlock, _ := htmlquery.Query(explanation, "following-sibling::text()")
+			nextBlock, err := htmlquery.Query(explanation, "following-sibling::text()")
+			if err != nil {
+				fmt.Println(err)
+			}
 			if nextBlock != nil {
 				translate := cleanNodeField(nextBlock)
 

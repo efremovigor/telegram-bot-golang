@@ -174,6 +174,8 @@ func GetCountMessages(key string) int {
 	}
 	if err := json.Unmarshal([]byte(value), &request); err != nil {
 		return 0
+	} else {
+		fmt.Println(err)
 	}
 	return len(request.Output)
 }

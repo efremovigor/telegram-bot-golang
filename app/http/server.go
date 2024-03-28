@@ -61,7 +61,10 @@ func Handle(listener telegram.Listener) {
 	e.POST(telegramConfig.GetUrlPrefix(), func(c echo.Context) error {
 		cc := c.(*Context)
 
-		parseJson, _ := ioutil.ReadAll(c.Request().Body)
+		parseJson, err := ioutil.ReadAll(c.Request().Body)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		if err := cc.tryReply(bytes.NewBuffer(parseJson), &telegram.WebhookMessage{}); err != nil {
 			if err = cc.tryReply(bytes.NewBuffer(parseJson), &telegram.CallbackQuery{}); err != nil {
@@ -177,6 +180,8 @@ func (c Context) reply(query telegram.IncomingTelegramQueryInterface) error {
 func (c Context) sendNextMessage(key string, word string) {
 	if message, err := command.GetNextMessage(key, word); err == nil {
 		c.getTelegramListener().Message <- message
+	} else {
+		fmt.Println(err)
 	}
 }
 

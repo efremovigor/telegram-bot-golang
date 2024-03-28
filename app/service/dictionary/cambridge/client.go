@@ -118,6 +118,8 @@ func DoRequest(word string, url string, altUrl string) (page Page) {
 			pathWayType = xpathType
 		} else if nodeWordType, err := htmlquery.Query(node, xpathComplexType); err == nil && nodeWordType != nil {
 			pathWayType = xpathComplexType
+		} else {
+			fmt.Println(err)
 		}
 		if len(pathWayType) > 0 {
 			if nodes, err := htmlquery.QueryAll(node, pathWayType+"/*"); err == nil && nodes != nil {
@@ -134,10 +136,14 @@ func DoRequest(word string, url string, altUrl string) (page Page) {
 
 		if node, err := htmlquery.Query(node, xpathTranscriptionUK); err == nil && node != nil {
 			info.Transcription["uk"] = strings.TrimSpace(htmlquery.InnerText(node))
+		} else {
+			fmt.Println(err)
 		}
 
 		if node, err := htmlquery.Query(node, xpathTranscriptionUS); err == nil && node != nil {
 			info.Transcription["us"] = strings.TrimSpace(htmlquery.InnerText(node))
+		} else {
+			fmt.Println(err)
 		}
 
 		if forms, err := htmlquery.QueryAll(node, xpathForms); err == nil && len(forms) > 0 {
@@ -151,23 +157,35 @@ func DoRequest(word string, url string, altUrl string) (page Page) {
 								Value: strings.TrimSpace(htmlquery.InnerText(value)),
 							},
 						)
+					} else {
+						fmt.Println(err)
 					}
+				} else {
+					fmt.Println(err)
 				}
 			}
 		}
 
 		if img, err := htmlquery.Query(node, xpathImage); err == nil && img != nil {
 			info.Image = strings.TrimSpace(htmlquery.SelectAttr(img, "src"))
+		} else {
+			fmt.Println(err)
 		}
 
 		if node, err := htmlquery.Query(node, xpathUK); helper.Len(info.VoicePath.UK) == 0 && err == nil && node != nil {
 			info.VoicePath.UK = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
+		} else {
+			fmt.Println(err)
 		}
 		if node, err := htmlquery.Query(node, xpathUS); helper.Len(info.VoicePath.US) == 0 && err == nil && node != nil {
 			info.VoicePath.US = strings.TrimSpace(htmlquery.SelectAttr(node, "src"))
+		} else {
+			fmt.Println(err)
 		}
-		xpathExplanations, _ := htmlquery.QueryAll(node, xpathExplanations)
-
+		xpathExplanations, err := htmlquery.QueryAll(node, xpathExplanations)
+		if err != nil {
+			fmt.Println(err)
+		}
 		for _, xpathExplanation := range xpathExplanations {
 
 			explanation := Explanation{}
@@ -179,30 +197,44 @@ func DoRequest(word string, url string, altUrl string) (page Page) {
 						}
 						return -1
 					}, htmlquery.InnerText(node)))
+			} else {
+				fmt.Println(err)
 			}
 			if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsWord); node != nil && err == nil {
 				explanation.Text = strings.TrimSpace(htmlquery.InnerText(node))
+			} else {
+				fmt.Println(err)
 			}
 			if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsLevel); node != nil && err == nil {
 				explanation.Level = strings.TrimSpace(htmlquery.InnerText(node))
+			} else {
+				fmt.Println(err)
 			}
 			if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsDescription); node != nil && err == nil {
 				explanation.Description = strings.TrimSpace(htmlquery.InnerText(node))
 
+			} else {
+				fmt.Println(err)
 			}
 			if node, err := htmlquery.Query(xpathExplanation, xpathExplanationsTranslate); node != nil && err == nil {
 				explanation.Translate = strings.TrimSpace(htmlquery.InnerText(node))
+			} else {
+				fmt.Println(err)
 			}
 
 			if xpathExamples, err := htmlquery.QueryAll(xpathExplanation, xpathExplanationsExamples); xpathExamples != nil && err == nil && len(xpathExamples) > 0 {
 				for _, xpathExample := range xpathExamples {
 					explanation.Example = append(explanation.Example, strings.TrimSpace(htmlquery.InnerText(xpathExample)))
 				}
+			} else {
+				fmt.Println(err)
 			}
 			if xpathExamples, err := htmlquery.QueryAll(xpathExplanation, xpathExplanationsMoreExamples); xpathExamples != nil && err == nil && len(xpathExamples) > 0 {
 				for _, xpathExample := range xpathExamples {
 					explanation.Example = append(explanation.Example, strings.TrimSpace(htmlquery.InnerText(xpathExample)))
 				}
+			} else {
+				fmt.Println(err)
 			}
 			info.Explanation = append(info.Explanation, explanation)
 		}

@@ -39,12 +39,18 @@ func Get(query string) Page {
 							option = Info{}
 							if node, err := htmlquery.Query(cols[0], "/a"); err == nil && node != nil {
 								option.Text = htmlquery.InnerText(node)
+							} else {
+								fmt.Println(err)
 							}
 							if node, err := htmlquery.Query(cols[0], "/span"); err == nil && node != nil {
 								option.Transcription = htmlquery.InnerText(node)
+							} else {
+								fmt.Println(err)
 							}
 							if node, err := htmlquery.Query(cols[0], "/em"); err == nil && node != nil {
 								option.Type = htmlquery.InnerText(node)
+							} else {
+								fmt.Println(err)
 							}
 						}
 					case 2:
@@ -62,6 +68,8 @@ func Get(query string) Page {
 							}
 						}
 					}
+				} else {
+					fmt.Println(err)
 				}
 			}
 		} else if err != nil {
